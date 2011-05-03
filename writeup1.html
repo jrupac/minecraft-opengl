@@ -1,0 +1,227 @@
+<HTML>
+<HEAD>
+<TITLE>
+COS 426 Assignment 3
+</TITLE>
+<BODY>
+<CENTER>
+<H2>
+COS 426, Spring 2011<BR>
+NAME, LOGIN<BR>           <!-- Fill in your name and login -->
+</H2>                     
+</CENTER>
+<HR><BR>
+
+
+<!------------------------------------------------------------------------> 
+<!------------------------------------------------------------------------> 
+<H2>List of Implemented Features (first deadline basis features only) </H2>
+<!------------------------------------------------------------------------> 
+<!------------------------------------------------------------------------> 
+
+I believe that I have implemented the following features, which are worth a total of xxx points:
+<H3> Basic Ray Generation </H3>
+<UL>
+  <LI>(1) Generate at ray for each pixel</LI>
+</UL>
+<H3> Ray-Primitive Intersection </H3>
+<UL>
+  <LI>(1) <A href="#primitive">Intersect a ray with a sphere</A></LI>
+  <LI>(1) <A href="#primitive">Intersect a ray with an axis-aligned box</A></LI>
+  <LI>(2) <A href="#primitive">Intersect a ray with a triangle mesh</A></LI>
+</UL>
+<H3> Ray-Scene Intersection </H3>
+<UL>
+  <LI>(1) <A href="#scene">Intersect a ray with a scene</A></LI>
+</UL>
+<H3> Illumination </H3>
+<UL>
+  <LI>(2) <A href="#illumination">Phong illumination</A></LI>
+</UL>
+<HR><BR>
+
+
+
+
+<!------------------------------------------------------------------------> 
+<!------------------------------------------------------------------------> 
+<H2>Demonstration of Implemented Features</H2>
+<!------------------------------------------------------------------------> 
+<!------------------------------------------------------------------------> 
+
+<!------------------------------------------------------------------------> 
+
+<H3><A name='primitive'>Ray-Primitive intersection</A></H3>
+<TABLE cellSpacing=0 cellPadding=10 border=0>
+<TBODY>
+  <TR>
+    <TD vAlign=top align=middle>
+       <A href="output/sphere.jpg"><IMG width=256 src="output/sphere.jpg"></A><BR>       
+       <A href="input/sphere.scn">sphere.scn</A>
+    </TD>
+    <TD vAlign=top align=middle>
+       <A href="output/box1.jpg"><IMG width=256 src="output/box1.jpg"></A><BR>       
+       <A href="input/box1.scn">box1.scn</A>
+    </TD>
+    <TD vAlign=top align=middle>
+       <A href="output/box2.jpg"><IMG width=256 src="output/box2.jpg"></A><BR>       
+       <A href="input/box2.scn">box2.scn</A>
+    </TD>
+  </TR>
+  </TR>
+    <TD vAlign=top align=middle>
+       <A href="output/tri.jpg"><IMG width=256 src="output/tri.jpg"></A><BR>       
+       <A href="input/tri.scn">tri.scn</A>
+    </TD>
+    <TD vAlign=top align=middle>
+       <A href="output/ico.jpg"><IMG width=256 src="output/ico.jpg"></A><BR>       
+       <A href="input/ico.scn">ico.scn</A>
+    </TD>
+    <TD vAlign=top align=middle>
+       <A href="output/teapot.jpg"><IMG width=256 src="output/teapot.jpg"></A><BR>       
+       <A href="input/teapot.scn">teapot.scn</A>
+    </TD>
+  </TR>
+  <TR>
+    <TD vAlign=top align=middle colspan="3">
+      Comments about implementations, interesting features, problems, etc.
+    </TD>
+  </TR>
+</TBODY>
+</TABLE>
+<HR><BR>
+
+
+
+<!------------------------------------------------------------------------> 
+
+<H3><A name='scene'>Ray-Scene intersection</A></H3>
+<TABLE cellSpacing=0 cellPadding=10 border=0>
+<TBODY>
+  <TR>
+    <TD vAlign=top align=middle>
+       <A href="output/fourspheres.jpg"><IMG width=256 src="output/fourspheres.jpg"></A><BR>       
+       <A href="input/fourspheres.scn">fourspheres.scn</A>
+    </TD>
+    <TD vAlign=top align=middle>
+       <A href="output/sixtriangles.jpg"><IMG width=256 src="output/sixtriangles.jpg"></A><BR>       
+       <A href="input/sixtriangles.scn">sixtriangles.scn</A>
+    </TD>
+  </TR>
+  <TR>
+    <TD vAlign=top align=middle>
+       <A href="output/mixedprimitives1.jpg"><IMG width=256 src="output/mixedprimitives1.jpg"></A><BR>       
+       <A href="input/mixedprimitives1.scn">mixedprimitives1.scn</A>
+    </TD>
+    <TD vAlign=top align=middle>
+       <A href="output/mixedprimitives2.jpg"><IMG width=256 src="output/mixedprimitives2.jpg"></A><BR>       
+       <A href="input/mixedprimitives2.scn">mixedprimitives2.scn</A>
+    </TD>
+  </TR>
+  <TR>
+    <TD vAlign=top align=middle colspan="3">
+      Comments about implementations, interesting features, problems, etc.
+    </TD>
+  </TR>
+</TBODY>
+</TABLE>
+<HR><BR>
+
+
+<!------------------------------------------------------------------------> 
+
+<H3><A name='illumination'>Phong Illumination</A></H3>
+<TABLE cellSpacing=0 cellPadding=10 border=0>
+<TBODY>
+  <TR>
+    <TD vAlign=top align=middle>
+       <A href="output/diffuse.jpg"><IMG width=256 src="output/diffuse.jpg"></A><BR>       
+       <A href="input/diffuse.scn">diffuse.scn</A>
+    </TD>
+    <TD vAlign=top align=middle>
+       <A href="output/specular.jpg"><IMG width=256 src="output/specular.jpg"></A><BR>       
+       <A href="input/specular.scn">specular.scn</A>
+    </TD>
+    <TD vAlign=top align=middle>
+       <A href="output/shininess.jpg"><IMG width=256 src="output/shininess.jpg"></A><BR>       
+       <A href="input/shininess.scn">shininess.scn</A>
+    </TD>
+  </TR>
+  <TR>
+    <TD vAlign=top align=middle>
+       <A href="output/dirlight1.jpg"><IMG width=256 src="output/dirlight1.jpg"></A><BR>       
+       <A href="input/dirlight1.scn">dirlight1.scn</A>
+    </TD>
+    <TD vAlign=top align=middle>
+       <A href="output/pointlight1.jpg"><IMG width=256 src="output/pointlight1.jpg"></A><BR>       
+       <A href="input/pointlight1.scn">pointlight1.scn</A> 
+    </TD>
+    <TD vAlign=top align=middle>
+       <A href="output/spotlight1.jpg"><IMG width=256 src="output/spotlight1.jpg"></A><BR>       
+       <A href="input/spotlight1.scn">spotlight1.scn</A> 
+    </TD>
+    <TD vAlign=top align=middle>
+    </TD>
+  </TR>
+  <TR>
+    <TD vAlign=top align=middle>
+       <A href="output/dirlight2.jpg"><IMG width=256 src="output/dirlight2.jpg"></A><BR>       
+       <A href="input/dirlight2.scn">dirlight2.scn</A>
+    </TD>
+    <TD vAlign=top align=middle>
+       <A href="output/pointlight2.jpg"><IMG width=256 src="output/pointlight2.jpg"></A><BR>       
+       <A href="input/pointlight2.scn">pointlight2.scn</A> 
+    </TD>
+    <TD vAlign=top align=middle>
+       <A href="output/spotlight2.jpg"><IMG width=256 src="output/spotlight2.jpg"></A><BR>       
+       <A href="input/spotlight2.scn">spotlight2.scn</A> 
+    </TD>
+    <TD vAlign=top align=middle>
+    </TD>
+  </TR>
+  <TR>
+    <TD vAlign=top align=middle colspan="3">
+      Comments about implementations, interesting features, problems, etc.
+    </TD>
+  </TR>
+</TBODY>
+</TABLE>
+<HR><BR>
+
+
+<!------------------------------------------------------------------------> 
+<!------------------------------------------------------------------------> 
+<H2>Feedback</H2>
+<!------------------------------------------------------------------------> 
+<!------------------------------------------------------------------------> 
+
+<DL>
+  <DT>How long did you spend on this assignment?
+  <DD>Your answer goes here
+  <BR>&nbsp;<BR>
+
+  <DT>Was it too hard, too easy, or just right?
+  <DD>Your answer goes here
+  <BR>&nbsp;<BR>
+
+  <DT>What was the best part of the assignment?
+  <DD>Your answer goes here
+  <BR>&nbsp;<BR>
+
+  <DT>What was the worst part of the assignment?
+  <DD>Your answer goes here
+  <BR>&nbsp;<BR>
+
+  <DT>How could it be improved for next year?
+  <DD>Your answer goes here
+  <BR>&nbsp;<BR>
+
+</DL>
+<HR><BR>
+
+
+
+<!------------------------------------------------------------------------> 
+
+</BODY>
+</HTML>

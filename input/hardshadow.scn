@@ -1,0 +1,16 @@
+# A camera
+camera -0.469 10.273 10.643  0.033 -0.701 -0.713  -0.012 0.713 -0.701  0.25  0.01 100
+
+# An point light source with color (1,1,1) at (0,3,0),
+# The last three numbers indicate no attenuation with distance.
+point_light   1 1 1   0 3 0   1.0 0.0 0.0   
+
+# Three materials
+material  0 0 0  1 0 0    1 1 1   0 0 0  0 0 0  10 1 0
+material  0 0 0  0 1 0    1 1 1   0 0 0  0 0 0  10 1 0
+material  0 0 0  0.2 0.2 0.2  1 1 1  0 0 0  0 0 0  10 1 0
+
+# A triangle with material 0 with corners (-1,-1,0), (1,-1,0), and (0,1,0)
+sphere   0  -1 1 0  1   
+sphere   1   1 1 0  1   
+box      2   -4 -1 -4  4 0 4

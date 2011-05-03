@@ -1,0 +1,7 @@
+# This scene has a textured sphere
+
+# A gray surface material with a checkerboard texture
+material  0 0 0  0.5 0.5 0.5  0.5 0.5 0.5  0 0 0  0 0 0  10 1 checker.bmp
+
+# A sphere 
+sphere   0  0 0 0  1   

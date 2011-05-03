@@ -1,0 +1,360 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Support Libraries">
+      <UniqueIdentifier>{92e0b5ce-949a-48f2-afd3-a403de3b1c10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Support Libraries\R2 Library">
+      <UniqueIdentifier>{14b3ead2-48bf-47df-8a0c-ef3fce6a26b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Support Libraries\R2 Library\R2 Source Files">
+      <UniqueIdentifier>{5be1b16a-fa33-4d82-9e9d-e34b8848a77a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Support Libraries\R2 Library\R2 Header Files">
+      <UniqueIdentifier>{fb65658b-207b-4bd1-8579-904a0236facd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Support Libraries\jpeg Library">
+      <UniqueIdentifier>{11aae5a4-7fda-4994-ad1c-4c2b7b07c525}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Support Libraries\jpeg Library\jpeg Header Files">
+      <UniqueIdentifier>{1b6dc65b-4214-45ca-9015-bf6dcc6c88b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Support Libraries\jpeg Library\jpeg Source Files">
+      <UniqueIdentifier>{fb140e67-0acd-46c2-9be0-d87e6a3a9a46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Support Libraries\R3 Library">
+      <UniqueIdentifier>{e42f1346-549d-4715-a33b-fbebf17cfddc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Support Libraries\R3 Library\R3 Header Files">
+      <UniqueIdentifier>{68a9e379-74b1-40d8-87a9-797353a0af2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Support Libraries\R3 Library\R3 Source Files">
+      <UniqueIdentifier>{b60ff242-710a-4fbe-8867-e6e37870ab17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main Program">
+      <UniqueIdentifier>{cb1298fe-fc9c-44f4-9763-b9afbac9ed4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main Program\Main Source Files">
+      <UniqueIdentifier>{e47d524d-d283-4d3e-af90-08dee2d2feb6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main Program\Main Header Files">
+      <UniqueIdentifier>{3503de9d-cf0d-4a8e-b122-ba79db06b5a6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="R2\R2Distance.cpp">
+      <Filter>Support Libraries\R2 Library\R2 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R2\R2Image.cpp">
+      <Filter>Support Libraries\R2 Library\R2 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R2\R2Line.cpp">
+      <Filter>Support Libraries\R2 Library\R2 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R2\R2Pixel.cpp">
+      <Filter>Support Libraries\R2 Library\R2 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R2\R2Point.cpp">
+      <Filter>Support Libraries\R2 Library\R2 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R2\R2Segment.cpp">
+      <Filter>Support Libraries\R2 Library\R2 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R2\R2Vector.cpp">
+      <Filter>Support Libraries\R2 Library\R2 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jcapimin.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jcapistd.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jccoefct.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jccolor.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jcdctmgr.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jchuff.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jcinit.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jcmainct.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jcmarker.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jcmaster.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jcomapi.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jcparam.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jcphuff.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jcprepct.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jcsample.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jctrans.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jdapimin.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jdapistd.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jdatadst.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jdatasrc.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jdcoefct.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jdcolor.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jddctmgr.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jdhuff.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jdinput.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jdmainct.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jdmarker.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jdmaster.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jdmerge.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jdphuff.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jdpostct.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jdsample.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jdtrans.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jerror.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jfdctflt.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jfdctfst.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jfdctint.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jidctflt.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jidctfst.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jidctint.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jidctred.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jmemmgr.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jmemnobs.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jquant1.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jquant2.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="jpeg\jutils.c">
+      <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R3\R3Box.cpp">
+      <Filter>Support Libraries\R3 Library\R3 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R3\R3Cone.cpp">
+      <Filter>Support Libraries\R3 Library\R3 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R3\R3Cylinder.cpp">
+      <Filter>Support Libraries\R3 Library\R3 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R3\R3Distance.cpp">
+      <Filter>Support Libraries\R3 Library\R3 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R3\R3Line.cpp">
+      <Filter>Support Libraries\R3 Library\R3 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R3\R3Matrix.cpp">
+      <Filter>Support Libraries\R3 Library\R3 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R3\R3Mesh.cpp">
+      <Filter>Support Libraries\R3 Library\R3 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R3\R3Plane.cpp">
+      <Filter>Support Libraries\R3 Library\R3 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R3\R3Point.cpp">
+      <Filter>Support Libraries\R3 Library\R3 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R3\R3Ray.cpp">
+      <Filter>Support Libraries\R3 Library\R3 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R3\R3Segment.cpp">
+      <Filter>Support Libraries\R3 Library\R3 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R3\R3Sphere.cpp">
+      <Filter>Support Libraries\R3 Library\R3 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R3\R3Vector.cpp">
+      <Filter>Support Libraries\R3 Library\R3 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R3Scene.cpp">
+      <Filter>Main Program\Main Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="raypro.cpp">
+      <Filter>Main Program\Main Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="raytrace.cpp">
+      <Filter>Main Program\Main Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="R2\R2.h">
+      <Filter>Support Libraries\R2 Library\R2 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R2\R2Distance.h">
+      <Filter>Support Libraries\R2 Library\R2 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R2\R2Image.h">
+      <Filter>Support Libraries\R2 Library\R2 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R2\R2Line.h">
+      <Filter>Support Libraries\R2 Library\R2 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R2\R2Pixel.h">
+      <Filter>Support Libraries\R2 Library\R2 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R2\R2Point.h">
+      <Filter>Support Libraries\R2 Library\R2 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R2\R2Segment.h">
+      <Filter>Support Libraries\R2 Library\R2 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R2\R2Vector.h">
+      <Filter>Support Libraries\R2 Library\R2 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="jpeg\jchuff.h">
+      <Filter>Support Libraries\jpeg Library\jpeg Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="jpeg\jconfig.h">
+      <Filter>Support Libraries\jpeg Library\jpeg Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="jpeg\jdct.h">
+      <Filter>Support Libraries\jpeg Library\jpeg Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="jpeg\jdhuff.h">
+      <Filter>Support Libraries\jpeg Library\jpeg Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="jpeg\jerror.h">
+      <Filter>Support Libraries\jpeg Library\jpeg Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="jpeg\jinclude.h">
+      <Filter>Support Libraries\jpeg Library\jpeg Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="jpeg\jmemsys.h">
+      <Filter>Support Libraries\jpeg Library\jpeg Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="jpeg\jmorecfg.h">
+      <Filter>Support Libraries\jpeg Library\jpeg Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="jpeg\jpegint.h">
+      <Filter>Support Libraries\jpeg Library\jpeg Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="jpeg\jpeglib.h">
+      <Filter>Support Libraries\jpeg Library\jpeg Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="jpeg\jversion.h">
+      <Filter>Support Libraries\jpeg Library\jpeg Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R3\R3.h">
+      <Filter>Support Libraries\R3 Library\R3 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R3\R3Box.h">
+      <Filter>Support Libraries\R3 Library\R3 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R3\R3Cone.h">
+      <Filter>Support Libraries\R3 Library\R3 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R3\R3Cylinder.h">
+      <Filter>Support Libraries\R3 Library\R3 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R3\R3Distance.h">
+      <Filter>Support Libraries\R3 Library\R3 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R3\R3Line.h">
+      <Filter>Support Libraries\R3 Library\R3 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R3\R3Matrix.h">
+      <Filter>Support Libraries\R3 Library\R3 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R3\R3Mesh.h">
+      <Filter>Support Libraries\R3 Library\R3 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R3\R3Plane.h">
+      <Filter>Support Libraries\R3 Library\R3 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R3\R3Point.h">
+      <Filter>Support Libraries\R3 Library\R3 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R3\R3Ray.h">
+      <Filter>Support Libraries\R3 Library\R3 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R3\R3Segment.h">
+      <Filter>Support Libraries\R3 Library\R3 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R3\R3Sphere.h">
+      <Filter>Support Libraries\R3 Library\R3 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R3\R3Vector.h">
+      <Filter>Support Libraries\R3 Library\R3 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R3Scene.h">
+      <Filter>Main Program\Main Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="raytrace.h">
+      <Filter>Main Program\Main Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

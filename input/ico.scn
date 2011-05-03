@@ -1,0 +1,6 @@
+# This scene shows a close-up view of a icosahedron mesh 
+# with default camera, materials, and lighting.
+# It is useful for testing ray-mesh intersection.
+
+# A mesh with default material (-1) read from ico.off
+mesh   -1    ico.off

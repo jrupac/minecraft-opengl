@@ -1,0 +1,6 @@
+# This scene shows one cone
+# with default camera, materials, and lighting.
+# It is useful to test ray-cone intersection.
+
+# A cone with default material (-1) centered at (0,0,0) with radius 1 and height 1
+cone   -1    0 0 0    1 1

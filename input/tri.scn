@@ -1,0 +1,6 @@
+# This scene shows a close-up view of one triangle.
+# It is useful for testing ray-triangle intersection.
+
+# A triangle with default material (-1) and 
+# with corners (-1,-1,0), (1,-1,0), and (0,1,0)
+tri   -1    -1 -1 0    1 -1 0     0 1 0

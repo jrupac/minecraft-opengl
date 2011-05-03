@@ -1,0 +1,20 @@
+# Basic sample Minecraft scene
+
+box   -1   0 -1 0 
+box   -1   0 -1 -2 
+box   -1   0 -1 -4 
+box   -1   0 -1 -6 
+box   -1   0 -1 -8 
+box   -1   0 -1 -10 
+box   -1  -2 -1 0 
+box   -1  -2 -1 -2 
+box   -1  -2 -1 -4 
+box   -1  -2 -1 -6 
+box   -1  -2 -1 -8 
+box   -1  -2 -1 -10 
+box   -1  2 -1 0 
+box   -1  2 -1 -2 
+box   -1  2 -1 -4 
+box   -1  2 -1 -6 
+box   -1  2 -1 -8 
+box   -1  2 -1 -10 

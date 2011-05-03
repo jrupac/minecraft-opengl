@@ -1,0 +1,74 @@
+# This scene shows a mixture of primitives with different colors.
+# It is the same as mixedprimitives2.scn, but with transformations
+# in the grouping nodes.
+# It is useful for testing ray-scene intersections with transformations.
+
+# A camera 
+camera  0 0 15  0 0 -1  0 1 0  0.25   0.01 100
+
+# Two directional lights
+dir_light  1 1 1        -3 -4 -5
+dir_light  0.5 0.5 0.5   3 2 3
+
+# Five shiny materials (yellow, cyan, magenta, red, green)
+material  0 0 0  1 1 0    1 1 0   0 0 0  0 0 0  10 1 0
+material  0 0 0  0 1 1    0 1 1   0 0 0  0 0 0  10 1 0
+material  0 0 0  1 0 1    1 0 1   0 0 0  0 0 0  10 1 0
+material  0 0 0  1 0 0    1 0 0   0 0 0  0 0 0  10 1 0
+material  0 0 0  0 1 0    0 1 0   0 0 0  0 0 0  10 1 0
+
+# Group with material 0 and identity transformation
+begin  0  
+  1 0 0 -2  
+  0 1 0 -2
+  0 0 1 0
+  0 0 0 1
+
+  sphere   0   0 0 0  1
+end
+
+
+# Group with material 1 and identity transformation
+begin  1  
+  1 0 0 2  
+  0 1 0 2 
+  0 0 1 0
+  0 0 0 1
+
+  box   -1   -1 -1 -1  1 1 1
+end
+
+
+# Group with material 2 and identity transformation
+begin  2  
+  1 0 0 0  
+  0 1 0 0 
+  0 0 1 0
+  0 0 0 1
+
+  mesh     -1   ico.off 
+end
+
+
+# Group with default material and identity transformation
+begin  -1
+  1 0 0 -2  
+  0 1 0 2 
+  0 0 1 0
+  0 0 0 1
+
+  sphere   3   0 0 0  1
+end
+
+
+# Group with default material and identity transformation
+begin  -1  
+  1 0 0 2  
+  0 1 0 -2 
+  0 0 1 0
+  0 0 0 1
+
+  box   4   -1 -1 -1  1 1 1
+end
+
+

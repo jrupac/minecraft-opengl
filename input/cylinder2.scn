@@ -1,0 +1,14 @@
+# This scene shows one cylinder from the side
+# with default camera, materials, and lighting.
+# It is useful to test ray-cylinder intersection.
+
+# Camera looking at cone from corner angle
+# It's eye point is (-4.772 -1.572 1.158).
+# It's view direction (towards vector) is (0.922 0.317 -0.223).
+# It's up vector is (-0.048 0.664 0.746).
+# The xfov is 0.25, while the yfov will be computed to match the aspect ratio of the image
+# The near and far distances are 0.01 and 1000, which conservatively contain the scene
+camera  -4.772 -1.572 1.158    0.922 0.317 -0.223    -0.048 0.664 0.746   0.25   0.01 1000
+
+# A cylinder with default material (-1) centered at (0,0,0) with radius 1 and height 1
+cylinder   -1    0 0 0    1 1
