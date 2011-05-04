@@ -9,7 +9,7 @@
 RAYPRO_SRCS=raypro.cpp raytrace.cpp R3Scene.cpp
 RAYPRO_OBJS=$(RAYPRO_SRCS:.cpp=.o)
 
-RAYVIEW_SRCS=rayview.cpp raytrace.cpp R3Scene.cpp
+RAYVIEW_SRCS=main.cpp raytrace.cpp R3Scene.cpp
 RAYVIEW_OBJS=$(RAYVIEW_SRCS:.cpp=.o)
 
 #
@@ -51,7 +51,7 @@ endif
 
 LIBS=R3/libR3.a R2/libR2.a jpeg/libjpeg.a
 
-all: raypro rayview
+all: raypro minecraft
 
 R3/libR3.a: 
 	    $(MAKE) -C R3
@@ -66,12 +66,12 @@ raypro: $(RAYPRO_OBJS) $(LIBS)
 		rm -f $@ 
 	    $(CXX) $(CXXFLAGS) $^ -lm -o $@ $(GLLIBS)
 
-rayview: $(RAYVIEW_OBJS) $(LIBS)
+minecraft: $(RAYVIEW_OBJS) $(LIBS)
 	    rm -f $@ 
 	    $(CXX) $(CXXFLAGS) $^ -lm -o $@ $(GLLIBS)
 	    
 clean:
-	    rm -f *.o raypro rayview
+	    rm -f *.o raypro minecraft
 		$(MAKE) -C R3 clean
 		$(MAKE) -C R2 clean
 		$(MAKE) -C jpeg clean
