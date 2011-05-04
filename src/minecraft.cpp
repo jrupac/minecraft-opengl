@@ -35,6 +35,7 @@ static R3Rgb background = R3Rgb(0.529, 0.807, 0.980, 1.);
 static float picker_height = 10;
 static float picker_width = 10;
 static bool CAPTURE_MOUSE = false;
+static bool SNAPPED_CURSOR = false;
 
 // GLUT variables 
 
@@ -581,64 +582,36 @@ void GLUTRedraw(void)
 
 void GLUTPassiveMotion(int x, int y)
 {
-
-	if(CAPTURE_MOUSE == false) {
-		GLUTmouse[0] = x;
-		GLUTmouse[1] = y;
-		return;
-	}
-	// Invert y coordinate
-	y = GLUTwindow_height - y;
-
-	// Compute mouse movement
-	int dx = x - GLUTmouse[0];
-	int dy = y - GLUTmouse[1];
-
-	if (x < 30 || x > GLUTwindow_width - 30 || y < 30 || y > GLUTwindow_height - 30)
-	{
-		glutWarpPointer(GLUTwindow_width / 2, GLUTwindow_height / 2);
-		glutPostRedisplay();
-
-		GLUTmouse[0] = x;
-  GLUTmouse[1] = y;
-  return;
-
+  if (!CAPTURE_MOUSE || SNAPPED_CURSOR) 
+  {
+      GLUTmouse[0] = x;
+      GLUTmouse[1] = y;
+      SNAPPED_CURSOR = false;
+      return;
   }
-  if( x == GLUTwindow_width / 2){
-	  glutPostRedisplay();
-	  
-  GLUTmouse[0] = x;
-  GLUTmouse[1] = y;
-	  return;
-  }
-  
-       double vx = (double) dx / (double) GLUTwindow_width;
-      double vy = (double) dy / (double) GLUTwindow_height;
-	  vx = vx;
-	  vy = vy;
-      camera.towards.Rotate(R3posy_vector, -vx);
-      camera.right.Rotate(R3posy_vector, -vx);
-      camera.up.Rotate(R3posy_vector, -vx);
-	  camera.towards.Rotate(camera.right, vy);
-	  camera.up.Rotate(camera.right, vy);
-      camera.right.Rotate(camera.right, vy);
-	  glutPostRedisplay();
 
-	  
-  GLUTmouse[0] = x;
-  GLUTmouse[1] = y;
-  // Rotate world
-	  /*
+  // Invert y coordinate
+  y = GLUTwindow_height - y;
+
+  // Compute mouse movement
+  int dx = x - GLUTmouse[0];
+  int dy = y - GLUTmouse[1];
+
+  // Compute ratios to approximate angle of rotation
   double vx = (double) dx / (double) GLUTwindow_width;
   double vy = (double) dy / (double) GLUTwindow_height;
-  R3Vector tmp = R3Vector(camera.right);
 
-  camera.towards.Rotate(R3posy_vector, vx);
-  camera.right.Rotate(R3posy_vector, vx);
-  camera.towards.Rotate(camera.right, -vy);
-  camera.up.Rotate(camera.right, -vy);
+  // Transform camera RTU frame by appropriate angles
+  camera.towards.Rotate(R3posy_vector, -vx);
+  camera.right.Rotate(R3posy_vector, -vx);
+  camera.up.Rotate(R3posy_vector, -vx);
+  camera.towards.Rotate(camera.right, vy);
+  camera.up.Rotate(camera.right, vy);
+  camera.right.Rotate(camera.right, vy);
+
+  GLUTmouse[0] = x;
+  GLUTmouse[1] = y;
   glutPostRedisplay();
-  */
 }
 
 void GLUTMouse(int button, int state, int x, int y)
@@ -647,16 +620,21 @@ void GLUTMouse(int button, int state, int x, int y)
   y = GLUTwindow_height - y;
   
   // Process mouse button event
-  if (state == GLUT_DOWN) {
-    if (button == GLUT_LEFT_BUTTON) {
-		if(CAPTURE_MOUSE == false) {
-			glutSetCursor(GLUT_CURSOR_NONE);
-			CAPTURE_MOUSE = true;
-		}
+  if (state == GLUT_DOWN) 
+  {
+    if (button == GLUT_LEFT_BUTTON) 
+    {
+      if (CAPTURE_MOUSE == false) 
+      {
+        glutSetCursor(GLUT_CURSOR_NONE);
+        CAPTURE_MOUSE = true;
+      }
     }
-    else if (button == GLUT_MIDDLE_BUTTON) {
+    else if (button == GLUT_MIDDLE_BUTTON) 
+    {
     }
-    else if (button == GLUT_RIGHT_BUTTON) {
+    else if (button == GLUT_RIGHT_BUTTON) 
+    {
     }
   }
 
@@ -682,8 +660,14 @@ void GLUTMouseEntry(int state)
 
   switch (state)
   {
-    case GLUT_ENTERED: break;
-    case GLUT_LEFT:    break;
+    case GLUT_ENTERED: 
+      break;
+    case GLUT_LEFT:    
+      // Snap cursor back to center of the screen to simulate infinite scrolling
+      glutWarpPointer(GLUTwindow_width / 2, 
+                     GLUTwindow_height / 2);
+      SNAPPED_CURSOR = true;
+      break;
   }
 }
 
@@ -710,83 +694,75 @@ void GLUTSpecial(int key, int x, int y)
   glutPostRedisplay();
 }
 
-
 void GLUTKeyboard(unsigned char key, int x, int y)
 {
   // Invert y coordinate
   y = GLUTwindow_height - y;
 
   // Process keyboard button event 
-  switch (key) {
-  case 'B':
-  case 'b':
-    AddBlock();
-    break;
+  switch (key) 
+  {
+    case 'B':
+    case 'b':
+      AddBlock();
+      break;
 
-  case 'C':
-  case 'c':
-    show_camera = !show_camera;
-    break;
-	
-  case 'E':
-  case 'e':
-    show_edges = !show_edges;
-    break;
-	
-  case 'F':
-  case 'f':
-    show_faces = !show_faces;
-    break;
+    case 'C':
+    case 'c':
+      show_camera = !show_camera;
+      break;
+    
+    case 'E':
+    case 'e':
+      show_edges = !show_edges;
+      break;
+    
+    case 'F':
+    case 'f':
+      show_faces = !show_faces;
+      break;
 
-  case 'L':
-  case 'l':
-    show_lights = !show_lights;
-    break;
+    case 'L':
+    case 'l':
+      show_lights = !show_lights;
+      break;
 
-  case 'Q':
-  case 'q':
-    quit = 1;
-    break;
+    case 'Q':
+    case 'q':
+      quit = 1;
+      break;
 
-	
+    case 27: // ESCAPE
+      CAPTURE_MOUSE = false;
+      // Restore cursor
+      glutSetCursor(GLUT_CURSOR_INHERIT);
+      break;
 
-  case 27: // ESCAPE
-	  
-	  CAPTURE_MOUSE = false;
-	  glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
-	  glutPostRedisplay();
-	  break;
+    case 'w': 
+      camera.eye.SetX(camera.eye.X() + camera.towards.X());
+      camera.eye.SetZ(camera.eye.Z() + camera.towards.Z());
+      break;
 
-  case 'w': 
-	  camera.eye.SetX(camera.eye.X() + camera.towards.X());
-	  camera.eye.SetZ(camera.eye.Z() + camera.towards.Z());
-	  glutPostRedisplay();
-	  break;
+    case 's': 
+      camera.eye.SetX(camera.eye.X() - camera.towards.X());
+      camera.eye.SetZ(camera.eye.Z() - camera.towards.Z());
+      break;
 
-  case 's': 
-	  camera.eye.SetX(camera.eye.X() - camera.towards.X());
-	  camera.eye.SetZ(camera.eye.Z() - camera.towards.Z());
-	  glutPostRedisplay();
-	  break;
+   case 'd': 
+      camera.eye += camera.right;
+      break;
 
- case 'd': 
-	 camera.eye += camera.right;
-	  glutPostRedisplay();
-	  break;
+   case 'a': 
+     camera.eye -= camera.right;
+     break;
 
- case 'a': 
-	 camera.eye -= camera.right;
-	 glutPostRedisplay();
-	 break;
-
-
-  case ' ': {
-    printf("camera %g %g %g  %g %g %g  %g %g %g  %g  %g %g \n",
-           camera.eye[0], camera.eye[1], camera.eye[2], 
-           camera.towards[0], camera.towards[1], camera.towards[2], 
-           camera.up[0], camera.up[1], camera.up[2], 
-           camera.xfov, camera.neardist, camera.fardist); 
-    break; }
+    case ' ': 
+      printf("camera %g %g %g  %g %g %g  %g %g %g  %g  %g %g \n",
+             camera.eye[0], camera.eye[1], camera.eye[2], 
+             camera.towards[0], camera.towards[1], camera.towards[2], 
+             camera.up[0], camera.up[1], camera.up[2], 
+             camera.xfov, camera.neardist, camera.fardist); 
+      break; 
   }
 
   // Remember mouse position 
