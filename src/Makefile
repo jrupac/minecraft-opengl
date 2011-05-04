@@ -9,7 +9,7 @@
 RAYPRO_SRCS=raypro.cpp raytrace.cpp R3Scene.cpp
 RAYPRO_OBJS=$(RAYPRO_SRCS:.cpp=.o)
 
-RAYVIEW_SRCS=main.cpp raytrace.cpp R3Scene.cpp
+RAYVIEW_SRCS=minecraft.cpp raytrace.cpp R3Scene.cpp
 RAYVIEW_OBJS=$(RAYVIEW_SRCS:.cpp=.o)
 
 #
