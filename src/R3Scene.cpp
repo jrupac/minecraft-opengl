@@ -115,6 +115,7 @@ Read(const char *filename, R3Node *node)
       shape->cone = NULL;
       shape->mesh = mesh;
       shape->segment = NULL;
+      shape->block = NULL;
 
       // Create shape node
       R3Node *node = new R3Node();
@@ -170,6 +171,7 @@ Read(const char *filename, R3Node *node)
       shape->cone = NULL;
       shape->mesh = NULL;
       shape->segment = NULL;
+      shape->block = NULL;
 
       // Create shape node
       R3Node *node = new R3Node();
@@ -184,6 +186,109 @@ Read(const char *filename, R3Node *node)
       group_nodes[depth]->children.push_back(node);
       node->parent = group_nodes[depth];
     }
+
+
+
+
+
+
+/*                 NEW ADDITION: CHUNK                     */
+    else if (!strcmp(cmd, "chunk")) {
+      // Read data
+      int id, m;
+      double block_side;
+      R3Point start_point;
+      
+      //R3Point center, del = R3Point(1., 1., 1.);
+      int read = fscanf(fp, "%d%d%lf%lf%lf%lf", &id, &m, &start_point[0],
+                &start_point[1], &start_point[2], &block_side);
+      if (read != 6)
+      {
+        fprintf(stderr, "Unable to read chunk at command %d in file %s, read %i things\n", command_number, filename, read);
+        return 0;
+      }
+      //p1 = (center - del).Point();
+      //p2 = (center + del);
+
+      //if (fscanf(fp, "%d%lf%lf%lf%lf%lf%lf", &m, &p1[0], &p1[1], &p1[2], &p2[0], &p2[1], &p2[2]) != 7) {
+        //fprintf(stderr, "Unable to read box at command %d in file %s\n", command_number, filename);
+        //return 0;
+      //}
+
+      // Get material
+      R3Material *material = group_materials[depth];
+      if (m >= 0) {
+        if (m < (int) materials.size()) {
+          material = materials[m];
+        }
+        else {
+          fprintf(stderr, "Invalid material id at box command %d in file %s\n", command_number, filename);
+          return 0;
+        }
+      }
+
+      for (int dz = 0; dz < CHUNK_Z; dz++)
+      {
+        for (int dy = 0; dy < CHUNK_Y; dy++)
+        {
+          for (int dx = 0; dx < CHUNK_X; dx++)
+          {
+            int block_type;
+            if (fscanf(fp, "%d", &block_type) != 1)
+            {
+              fprintf(stderr, "Unable to read chunk block at command %d in file %s\n", command_number, filename);
+              return 0;
+            }
+            else
+              fprintf(stderr, "Chunk block %d, %d, %d read with type %d\n", dx, dy, dz, block_type);
+
+            //fprintf(stderr, "AIR_BLOCK has type %d\n", AIR_BLOCK);
+            R3Point block_start = start_point + R3Point(dx * block_side,
+                                dy * block_side, dz * block_side);
+            R3Point block_end = block_start + R3Point(block_side, block_side,
+                                block_side);
+            // Create box
+            R3Box box = R3Box(block_start, block_end);
+            R3Block* block = new R3Block(box, block_type);
+
+            //fprintf(stderr, "scanning block %d, %d, %d of type %f\n", dx, dy,
+            //                    dz, block_side);
+            // Create shape
+            R3Shape *shape = new R3Shape();
+            shape->type = R3_BLOCK_SHAPE;
+            shape->box = NULL;
+            shape->sphere = NULL;
+            shape->cylinder = NULL;
+            shape->cone = NULL;
+            shape->mesh = NULL;
+            shape->segment = NULL;
+            shape->block = block;
+
+            // Create shape node
+            R3Node *node = new R3Node();
+            node->transformation = R3identity_matrix;
+            node->material = material;
+            node->shape = shape;
+            node->bbox = box;
+            node->selected = false;
+
+            // Insert node
+            //group_nodes[depth]->bbox.Union(node->bbox);
+            //group_nodes[depth]->children.push_back(node);
+            //node->parent = group_nodes[depth];
+            //               block_side);
+            chunk[dx][dy][dz] = node;
+          }
+        }
+      }
+          }
+/*                CHUNK DONE                      */
+
+
+
+
+
+
     else if (!strcmp(cmd, "sphere")) {
       // Read data
       int m;
@@ -218,6 +323,7 @@ Read(const char *filename, R3Node *node)
       shape->cone = NULL;
       shape->mesh = NULL;
       shape->segment = NULL;
+      shape->block = NULL;
 
       // Create shape node
       R3Node *node = new R3Node();
@@ -265,6 +371,7 @@ Read(const char *filename, R3Node *node)
       shape->cone = NULL;
       shape->mesh = NULL;
       shape->segment = NULL;
+      shape->block = NULL;
 
       // Create shape node
       R3Node *node = new R3Node();
@@ -329,6 +436,7 @@ Read(const char *filename, R3Node *node)
       shape->cone = NULL;
       shape->mesh = mesh;
       shape->segment = NULL;
+      shape->block = NULL;
 
       // Create shape node
       R3Node *node = new R3Node();
@@ -376,6 +484,7 @@ Read(const char *filename, R3Node *node)
       shape->cone = cone;
       shape->mesh = NULL;
       shape->segment = NULL;
+      shape->block = NULL;
 
       // Create shape node
       R3Node *node = new R3Node();
@@ -422,6 +531,7 @@ Read(const char *filename, R3Node *node)
       shape->cone = NULL;
       shape->mesh = NULL;
       shape->segment = segment;
+      shape->block = NULL;
 
       // Create shape node
       R3Node *node = new R3Node();

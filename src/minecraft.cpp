@@ -120,6 +120,12 @@ void DrawShape(R3Shape *shape)
   else if (shape->type == R3_CONE_SHAPE) shape->cone->Draw();
   else if (shape->type == R3_MESH_SHAPE) shape->mesh->Draw();
   else if (shape->type == R3_SEGMENT_SHAPE) shape->segment->Draw();
+  else if (shape->type == R3_BLOCK_SHAPE)
+  {
+    //if (shape->block->getBlockType() != AIR_BLOCK)
+      shape->block->Draw();
+  }
+  
   else fprintf(stderr, "Unrecognized shape type: %d\n", shape->type);
 }
 
@@ -394,6 +400,13 @@ void DrawScene(R3Scene *scene)
 {
   // Draw nodes recursively
   DrawNode(scene, scene->root);
+
+  /* ADDED: draw the new array of nodes */
+  for (int dz = 0; dz < CHUNK_Z; dz++)
+    for (int dy = 0; dy < CHUNK_Y; dy++)
+      for (int dx = 0; dx < CHUNK_X; dx++)
+        DrawNode(scene, scene->chunk[dx][dy][dz]); 
+        //what the fuck is scene here for
 }
 
 ////////////////////////////////////////////////////////////
@@ -870,6 +883,20 @@ R3Scene *ReadScene(const char *filename)
   camera.up = R3posy_vector;
   camera.right = R3posx_vector;
 
+
+  /*for (int i = 0; i < 16; i ++)
+  {
+    for (int j = 0; j < 16; j ++)
+    {
+      for (int k = 0; k < 16; k++)
+      {
+        fprintf(stderr, "%d ", scene->chunk[k][j][i]->shape->
+                block->getBlockType());
+      }
+      fprintf(stderr, "\n");
+    }
+    fprintf(stderr, "\n\n\n");
+  }*/
   // Return scene
   return scene;
 }

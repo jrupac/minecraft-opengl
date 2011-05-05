@@ -41,6 +41,7 @@ class R3Cylinder;
 class R3Cone;
 class R3Sphere;
 class R3Matrix;
+class R3Block;
 
 
 
@@ -58,6 +59,7 @@ class R3Matrix;
 #include "R3Sphere.h"
 #include "R3Mesh.h"
 #include "R3Matrix.h"
+#include "R3Block.h"
 
 
 

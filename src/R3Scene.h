@@ -1,6 +1,9 @@
 // Include file for the R3 scene stuff
 
 #define R3Rgb R2Pixel
+#define CHUNK_Z 16
+#define CHUNK_X 16
+#define CHUNK_Y 16
 
 #include "R3/R3.h"
 
@@ -13,7 +16,8 @@ typedef enum {
   R3_CONE_SHAPE,
   R3_MESH_SHAPE,
   R3_SEGMENT_SHAPE,
-  R3_NUM_SHAPE_TYPES
+  R3_BLOCK_SHAPE,
+  R3_NUM_SHAPE_TYPES,
 } R3ShapeType;
 
 typedef enum {
@@ -36,6 +40,7 @@ struct R3Shape {
   R3Cone *cone;
   R3Mesh *mesh;
   R3Segment *segment;
+  R3Block *block;
 };  
 
 struct R3Material {
@@ -104,6 +109,7 @@ struct R3Scene {
 
  public:
   R3Node *root;
+  R3Node* chunk[CHUNK_X][CHUNK_Y][CHUNK_Z];
   vector<R3Light *> lights;
   R3Camera camera;
   R3Box bbox;
