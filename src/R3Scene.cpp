@@ -1,12 +1,15 @@
-// Source file for the R3 scene graph class 
+//Source file for the R3 scene graph class 
 
 
 
 // Include files 
+#include <string>
+#include <sstream>
 
 #include "R3Scene.h"
 
 
+using namespace std;
 
 R3Scene::
 R3Scene(void)
@@ -33,7 +36,48 @@ R3Scene(void)
   root->bbox = R3null_box;
 }
 
+int R3Scene::
+WriteChunk(const char *filename)
+{
+  // Open file
+  FILE *fp;
+  if (!(fp = fopen(filename, "w")))
+  {
+    fprintf(stderr, "Unable to write to file %s", filename);
+    return 0;
+  }
+  // assumes blocks
+  R3Point chunkStart = chunk[0][0][0]->shape->block->getBox().Min();
 
+  std:: string s;
+  std:: stringstream out;
+  out << "# chunk chunk_id mat_id\n# low_x low_y low_z\n" <<
+         "# block_size (1 side)\n# 16x16x16 (z, y, x) block types\n";
+  out << "chunk 1 -1       " << chunkStart[0] << " " << chunkStart[1] <<
+         " " << chunkStart[2] << " " << "1\n";
+
+  s = out.str();
+  fputs(s.c_str(), fp);
+
+  for (int dz = 0; dz < CHUNK_Z; dz++)
+  {
+    for (int dy = 0; dy < CHUNK_Y; dy++)
+    {
+      std:: string tempS;
+      std:: stringstream tempOut;
+      for (int dx = 0; dx < CHUNK_X; dx++)
+      {
+        tempOut << chunk[dx][dy][dz]->shape->block->getBlockType() << " ";
+      }
+      tempOut << "\n";
+      fputs(tempOut.str().c_str(), fp);
+    }
+    fputs("\n", fp);
+  }
+
+  return 1;
+
+}
 
 int R3Scene::
 Read(const char *filename, R3Node *node)

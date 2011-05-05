@@ -106,6 +106,7 @@ struct R3Scene {
 
   // I/O functions
   int Read(const char *filename, R3Node *root = NULL);
+  int WriteChunk(const char *filename);
 
  public:
   R3Node *root;

@@ -542,6 +542,12 @@ void GLUTRedraw(void)
   // Quit here so that can save image before exit
   if (quit) {
     if (output_image_name) GLUTSaveImage(output_image_name);
+    //write new scene based on changes
+    
+    if (!scene->WriteChunk(input_scene_name))
+    {
+      fprintf(stderr, "WARNING: Couldn't save new scene!!!\n");
+    }
     GLUTStop();
   }
 
