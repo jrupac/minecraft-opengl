@@ -35,6 +35,7 @@ static R3Rgb background = R3Rgb(0.529, 0.807, 0.980, 1.);
 static float picker_height = 10;
 static float picker_width = 10;
 static bool CAPTURE_MOUSE = false;
+static R3Vector rot;
 
 // GLUT variables 
 
@@ -132,7 +133,7 @@ void LoadMatrix(R3Matrix *matrix)
 {
   // Multiply matrix by top of stack
   // Take transpose of matrix because OpenGL represents vectors with 
-  // column-vectors and R3 represents them with row-vectors
+// column-vectors and R3 represents them with row-vectors
   R3Matrix m = matrix->Transpose();
   glMultMatrixd((double *) &m);
 }
@@ -234,20 +235,22 @@ void LoadMaterial(R3Material *material)
 
 void LoadCamera(R3Camera *camera)
 {
+  glPushMatrix();
   // Set projection transformation
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(2*180.0*camera->yfov/M_PI, (GLdouble) GLUTwindow_width /(GLdouble) GLUTwindow_height, 0.01, 10000);
+  gluPerspective(2 * 180.0 * camera->yfov / M_PI, 
+                 (GLdouble) GLUTwindow_width /(GLdouble) GLUTwindow_height, 
+                 0.01, 10000);
 
   // Set camera transformation
-  R3Vector t = -(camera->towards);
-  R3Vector& u = camera->up;
-  R3Vector& r = camera->right;
-  GLdouble camera_matrix[16] = { r[0], u[0], t[0], 0, r[1], u[1], t[1], 0, r[2], u[2], t[2], 0, 0, 0, 0, 1 };
+  R3Point e = camera->eye;
   glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  glMultMatrixd(camera_matrix);
-  glTranslated(-(camera->eye[0]), -(camera->eye[1]), -(camera->eye[2]));
+  glPopMatrix();
+
+  glRotatef(rot[1] * 180 / M_PI, 1., 0., 0);
+  glRotatef(rot[0] * 180 / M_PI, 0., 1., 0);
+  glTranslated(-e[0], -e[1], -e[2]);
 }
 
 void LoadLights(R3Scene *scene)
@@ -487,11 +490,6 @@ void GLUTResize(int w, int h)
 
 void GLUTRedraw(void)
 {
-  // Initialize OpenGL drawing modes
-  glEnable(GL_LIGHTING);
-  glDisable(GL_BLEND);
-  glBlendFunc(GL_ONE, GL_ZERO);
-  glDepthMask(true);
 
   // Clear window 
   glClearColor(background[0], background[1], background[2], background[3]);
@@ -600,12 +598,13 @@ void GLUTRedraw(void)
 
 void GLUTPassiveMotion(int x, int y)
 {
- 
-	if(CAPTURE_MOUSE == false) {
-		GLUTmouse[0] = x;
+	if (!CAPTURE_MOUSE) 
+  {
+    GLUTmouse[0] = x;
 		GLUTmouse[1] = y;
 		return;
 	}
+
 	// Invert y coordinate
 	y = GLUTwindow_height - y;
 
@@ -613,57 +612,44 @@ void GLUTPassiveMotion(int x, int y)
 	int dx = x - GLUTmouse[0];
 	int dy = y - GLUTmouse[1];
 
-	if (x < 30 || x > GLUTwindow_width - 30 || y < 30 || y > GLUTwindow_height - 30)
+	if (x < 30 || x > GLUTwindow_width - 30 || 
+      y < 30 || y > GLUTwindow_height - 30)
 	{
 		glutWarpPointer(GLUTwindow_width / 2, GLUTwindow_height / 2);
-		glutPostRedisplay();
-
 		GLUTmouse[0] = x;
 		GLUTmouse[1] = y;
-		return;
-
-	}
-	if( x == GLUTwindow_width / 2 && y == GLUTwindow_height/2){
 		glutPostRedisplay();
+		return;
+	}
 
+	if (x == GLUTwindow_width / 2 && y == GLUTwindow_height / 2)
+  {
 		GLUTmouse[0] = x;
-  GLUTmouse[1] = y;
-          return;
+    GLUTmouse[1] = y;
+		glutPostRedisplay();
+    return;
   }
-  
 
+  // Compute ratios to approximate angle of rotation
   double vx = (double) dx / (double) GLUTwindow_width;
   double vy = (double) dy / (double) GLUTwindow_height;
-  vx = vx;
-  vy = vy;
-  camera.towards.Rotate(R3posy_vector, -vx);
-  camera.right.Rotate(R3posy_vector, -vx);
-  camera.up.Rotate(R3posy_vector, -vx);
 
-
-  /*only rotate up or down if you aren't facing down. */
-  /* this is to prevent the world turning upside down. */
-  if(camera.up.Dot(R3posy_vector) > 0.05) {
-	  camera.towards.Rotate(camera.right, vy);
-	  camera.up.Rotate(camera.right, vy);
-	  camera.right.Rotate(camera.right, vy);
-  }
-  if(camera.up.Dot(R3posy_vector) <= 0.05) {
-	  if(vy > 0) {
-		  camera.towards.Rotate(camera.right, vy);
-		  camera.up.Rotate(camera.right, vy);
-		  camera.right.Rotate(camera.right, vy);
-	  }
-  }
-
-  glutPostRedisplay();
+  // Transform camera RTU frame by appropriate angles
+  rot[0] += vx;
+  if (abs(rot[0]) > 2 * M_PI)
+      rot[0] = 0.;
+  rot[1] -= vy;
+  if (abs(rot[1]) > 2 * M_PI)
+      rot[1] = 0.;
 
   GLUTmouse[0] = x;
   GLUTmouse[1] = y;
+  glutPostRedisplay();
 }
 
 void GLUTMouse(int button, int state, int x, int y)
 {
+    fprintf(stderr, "HERE\n");
   // Invert y coordinate
   y = GLUTwindow_height - y;
   
@@ -696,8 +682,6 @@ void GLUTMouse(int button, int state, int x, int y)
    // Remember mouse position 
   GLUTmouse[0] = x;
   GLUTmouse[1] = y;
-
-  // Redraw
   glutPostRedisplay();
 }
 
@@ -780,7 +764,6 @@ void GLUTKeyboard(unsigned char key, int x, int y)
       CAPTURE_MOUSE = false;
       // Restore cursor
       glutSetCursor(GLUT_CURSOR_INHERIT);
-	  glutPostRedisplay();
       break;
 
     case 'w': 
@@ -884,6 +867,12 @@ void GLUTInit(int *argc, char **argv)
  
   // Create menus
   GLUTCreateMenu();
+
+  // Initialize OpenGL drawing modes
+  glEnable(GL_LIGHTING);
+  glDisable(GL_BLEND);
+  glBlendFunc(GL_ONE, GL_ZERO);
+  glDepthMask(true);
 }
 
 ////////////////////////////////////////////////////////////
@@ -908,27 +897,12 @@ R3Scene *ReadScene(const char *filename)
   // Remember initial camera
   camera = scene->camera;
   
-
   // Set up default properties of camera
   camera.towards = R3negz_vector;
   camera.eye = R3zero_point + 1. * R3posy_vector;
   camera.up = R3posy_vector;
   camera.right = R3posx_vector;
-
-
-  /*for (int i = 0; i < 16; i ++)
-  {
-    for (int j = 0; j < 16; j ++)
-    {
-      for (int k = 0; k < 16; k++)
-      {
-        fprintf(stderr, "%d ", scene->chunk[k][j][i]->shape->
-                block->getBlockType());
-      }
-      fprintf(stderr, "\n");
-    }
-    fprintf(stderr, "\n\n\n");
-  }*/
+    
   // Return scene
   return scene;
 }
