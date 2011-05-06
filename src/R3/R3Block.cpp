@@ -3,6 +3,8 @@
 
 #define DIRT_HEALTH 10
 #define AIR_HEALTH -1
+#define LEAF_HEALTH 1
+#define BRANCH_HEALTH 2
 
 R3Block::
 R3Block(const R3Box& box, int type)
@@ -24,6 +26,16 @@ R3Block(const R3Box& box, int type)
     walkable = false;
     transparent = true;
   }
+	if (type == LEAF_BLOCK) {
+		health = LEAF_HEALTH;
+		walkable = false;
+		transparent = false;
+	}
+	if (type == BRANCH_BLOCK) {
+		health = BRANCH_HEALTH;
+		walkable = false;
+		transparent = false;
+	}
 }
 
 void R3Block::

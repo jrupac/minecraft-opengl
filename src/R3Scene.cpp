@@ -102,6 +102,7 @@ Read(const char *filename, R3Node *node)
   default_material->shininess = 10;
   default_material->indexofrefraction = 1;
   default_material->texture = NULL;
+
   default_material->id = 0;
 
   // Create stack of group information
@@ -112,6 +113,71 @@ Read(const char *filename, R3Node *node)
   group_materials[0] = default_material;
   int depth = 0;
 
+	
+	
+	
+	R3Material *leaf_material = new R3Material();
+	leaf_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	leaf_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	leaf_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	leaf_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	leaf_material->emission = R3Rgb(0, 0, 0, 0);
+	leaf_material->shininess = 10;
+	leaf_material->indexofrefraction = 1;
+	//	char buffer[] = "input/checker.bmp";
+	char leaf[] = "input/leaf.jpg";
+	// Read texture image
+	leaf_material->texture = new R2Image();
+	if (!leaf_material->texture->Read(leaf)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	leaf_material->id = 1;
+	group_materials[1] = leaf_material;
+	
+	
+	R3Material *dirt_material = new R3Material();
+	dirt_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	dirt_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	dirt_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	dirt_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	dirt_material->emission = R3Rgb(0, 0, 0, 0);
+	dirt_material->shininess = 10;
+	dirt_material->indexofrefraction = 1;
+	//	char buffer[] = "input/checker.bmp";
+	char dirt[] = "input/dirt.jpg";
+	// Read texture image
+	dirt_material->texture = new R2Image();
+	if (!dirt_material->texture->Read(dirt)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	dirt_material->id = 2;
+	group_materials[2] = dirt_material;
+	
+	
+	R3Material *grass_material = new R3Material();
+	grass_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	grass_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	grass_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	grass_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	grass_material->emission = R3Rgb(0, 0, 0, 0);
+	grass_material->shininess = 10;
+	grass_material->indexofrefraction = 1;
+	//	char buffer[] = "input/checker.bmp";
+	char grass[] = "input/grass.jpg";
+	// Read texture image
+	grass_material->texture = new R2Image();
+	if (!grass_material->texture->Read(grass)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	grass_material->id = 3;
+	group_materials[3] = dirt_material;
+	
+	
+	
+	
   // Read body
   char cmd[128];
   int command_number = 1;
@@ -142,7 +208,7 @@ Read(const char *filename, R3Node *node)
         }
       }
 
-      // Create mesh
+      // Create mesh 
       R3Mesh *mesh = new R3Mesh();
       vector<R3MeshVertex *> vertices;
       vertices.push_back(mesh->CreateVertex(p1, R3zero_vector, R2zero_point));
@@ -180,7 +246,8 @@ Read(const char *filename, R3Node *node)
       // Read data
       int m;
       R3Point p1, p2;
-      
+	//	char boxType[50];
+		
       R3Point center, del = R3Point(1., 1., 1.);
       fscanf(fp, "%d%lf%lf%lf", &m, &center[0], &center[1], &center[2]);
       p1 = (center - del).Point();
@@ -193,9 +260,11 @@ Read(const char *filename, R3Node *node)
 
       // Get material
       R3Material *material = group_materials[depth];
+		
+		
       if (m >= 0) {
         if (m < (int) materials.size()) {
-          material = materials[m];
+          material = group_materials[1];
         }
         else {
           fprintf(stderr, "Invalid material id at box command %d in file %s\n", command_number, filename);
@@ -203,6 +272,9 @@ Read(const char *filename, R3Node *node)
         }
       }
 
+
+		
+		
       // Create box
       R3Box *box = new R3Box(p1, p2);
 
@@ -224,7 +296,7 @@ Read(const char *filename, R3Node *node)
       node->shape = shape;
       node->bbox = *box;
       node->selected = false;
-
+		
       // Insert node
       group_nodes[depth]->bbox.Union(node->bbox);
       group_nodes[depth]->children.push_back(node);
@@ -261,7 +333,9 @@ Read(const char *filename, R3Node *node)
 
       // Get material
       R3Material *material = group_materials[depth];
-      if (m >= 0) {
+	//	 R3Material *material_top = group_materials[depth];
+	//	 R3Material *material_sides = group_materials[depth];
+     /* if (m >= 0) {
         if (m < (int) materials.size()) {
           material = materials[m];
         }
@@ -269,7 +343,7 @@ Read(const char *filename, R3Node *node)
           fprintf(stderr, "Invalid material id at box command %d in file %s\n", command_number, filename);
           return 0;
         }
-      }
+      }*/
 
       for (int dz = 0; dz < CHUNK_Z; dz++)
       {
@@ -284,7 +358,8 @@ Read(const char *filename, R3Node *node)
               return 0;
             }
             else
-              fprintf(stderr, "Chunk block %d, %d, %d read with type %d\n", dx, dy, dz, block_type);
+				;
+            //  fprintf(stderr, "Chunk block %d, %d, %d read with type %d\n", dx, dy, dz, block_type);
 
             //fprintf(stderr, "AIR_BLOCK has type %d\n", AIR_BLOCK);
             R3Point block_start = start_point + R3Point(dx * block_side,
@@ -311,7 +386,18 @@ Read(const char *filename, R3Node *node)
             // Create shape node
             R3Node *node = new R3Node();
             node->transformation = R3identity_matrix;
+			  if (block_type == LEAF_BLOCK) {
+				  material = group_materials[1];
+			  }
+			  if (block_type == DIRT_BLOCK) {
+				  material = group_materials[3];
+		//		  material_top = group_materials[3];
+		//		  material_sides = group_materials[2];
+			  }
+			  
             node->material = material;
+		//	  node->material_top = material_top;
+		//	  node->material_sides = material_sides;
             node->shape = shape;
             node->bbox = box;
             node->selected = false;
