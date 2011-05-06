@@ -30,8 +30,14 @@ static R3Rgb background = R3Rgb(0.529, 0.807, 0.980, 1.);
 static float picker_height = 10;
 static float picker_width = 10;
 static bool CAPTURE_MOUSE = false;
-static R3Vector rot;
+static R3Vector rot;	
 
+
+void DrawHUD();
+
+void DrawHUD_Hearts();
+void DrawHUD_Inventory();
+static R3Character Main_Character;
 // GLUT variables 
 
 static int GLUTwindow = 0;
@@ -553,7 +559,22 @@ void GLUTRedraw(void)
 
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_LIGHTING); 
-  glLineWidth(3);
+
+  DrawHUD();
+
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_LIGHTING); 
+
+  // Swap buffers 
+  glutSwapBuffers();
+}    
+
+
+
+void DrawHUD() {  
+	int y = GLUTwindow_height;
+	int x = GLUTwindow_width;
+	glLineWidth(3);
   glColor3d(.1, .1, .1);
  
   // Make "+" ticker on the middle of the screen 
@@ -573,24 +594,143 @@ void GLUTRedraw(void)
 
   // Draw bottom pane
   glColor3d(.7, .7, .7);
-
+  /*
   glBegin(GL_QUADS);
       glVertex2f((GLUTwindow_width / 2) - 200, GLUTwindow_height - 100); 
       glVertex2f((GLUTwindow_width / 2) - 200, GLUTwindow_height - 40); 
       glVertex2f((GLUTwindow_width / 2) + 200, GLUTwindow_height - 40); 
       glVertex2f((GLUTwindow_width / 2) + 200, GLUTwindow_height - 100); 
   glEnd();
-  
+  */
+
+  //Draw Hearts
+  DrawHUD_Hearts();
+
+  //Draw Inventory
+  DrawHUD_Inventory();
+ 
   // This is just temporary text
   glColor3d(.1, .1, .1);
   GLUTDrawText(R3Point(GLUTwindow_width / 2 - 10, GLUTwindow_height - 70, 0), "I am a dock!");
 
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_LIGHTING); 
+}
 
-  // Swap buffers 
-  glutSwapBuffers();
-}    
+void DrawHUD_Hearts() {
+
+	glColor3d(.9, .1, .1);
+	int y = GLUTwindow_height;
+	int x = GLUTwindow_width;
+
+	for(int i = 0; i < Main_Character.health; i++) {
+		glBegin(GL_QUADS);
+		glVertex2f(4*x/16 + 5*i*x/128, y - y/10); 
+		glVertex2f(4*x/16 + x/64 + 5*i*x/128, y - y/10 - y/64); 
+		glVertex2f(4*x/16 + x/32 + 5*i*x/128, y - y/10); 
+		glVertex2f(4*x/16 + x/64 + 5*i*x/128, y - y/10 + y/64); 
+		glEnd();
+	}
+
+	
+  glColor3d(.7, .7, .7);
+	for(int i = Main_Character.health; i < Main_Character.maxhealth; i++) {
+		glBegin(GL_QUADS);
+		glVertex2f(4*x/16 + 5*i*x/128, y - y/10); 
+		glVertex2f(4*x/16 + x/64 + 5*i*x/128, y - y/10 - y/64); 
+		glVertex2f(4*x/16 + x/32 + 5*i*x/128, y - y/10); 
+		glVertex2f(4*x/16 + x/64 + 5*i*x/128, y - y/10 + y/64); 
+		glEnd();
+	}
+}
+
+void DrawHUD_Inventory() {
+
+	int y = GLUTwindow_height;
+	int x = GLUTwindow_width;
+	 //Draw Inventory
+  glBegin(GL_QUADS);
+      glVertex2f(4*x/16, y - y/100); 
+      glVertex2f(4*x/16, y - .0725*y); 
+      glVertex2f(5*x/16 - x/100, y - .0725*y); 
+      glVertex2f(5*x/16 - x/100, y - y/100); 
+  glEnd();
+  
+  glBegin(GL_QUADS);
+      glVertex2f(5*x/16, y - y/100); 
+      glVertex2f(5*x/16, y - .0725*y); 
+      glVertex2f(6*x/16 - x/100, y - .0725*y); 
+      glVertex2f(6*x/16 - x/100, y - y/100); 
+  glEnd();
+  
+  
+  glBegin(GL_QUADS);
+      glVertex2f(6*x/16, y - y/100); 
+      glVertex2f(6*x/16, y - .0725*y); 
+      glVertex2f(7*x/16 - x/100, y - .0725*y); 
+      glVertex2f(7*x/16 - x/100, y - y/100); 
+  glEnd();
+  
+  
+  glBegin(GL_QUADS);
+      glVertex2f(7*x/16, y - y/100); 
+      glVertex2f(7*x/16, y - .0725*y); 
+      glVertex2f(8*x/16 - x/100, y - .0725*y); 
+      glVertex2f(8*x/16 - x/100, y - y/100); 
+  glEnd();
+  
+  
+  glBegin(GL_QUADS);
+      glVertex2f(8*x/16, y - y/100); 
+      glVertex2f(8*x/16, y - .0725*y); 
+      glVertex2f(9*x/16 - x/100, y - .0725*y); 
+      glVertex2f(9*x/16 - x/100, y - y/100); 
+  glEnd();
+  
+  
+  glBegin(GL_QUADS);
+      glVertex2f(9*x/16, y - y/100); 
+      glVertex2f(9*x/16, y - .0725*y); 
+      glVertex2f(10*x/16 - x/100, y - .0725*y); 
+      glVertex2f(10*x/16 - x/100, y - y/100); 
+  glEnd();
+  
+  
+  glBegin(GL_QUADS);
+      glVertex2f(10*x/16, y - y/100); 
+      glVertex2f(10*x/16, y - .0725*y); 
+      glVertex2f(11*x/16 - x/100, y - .0725*y); 
+      glVertex2f(11*x/16 - x/100, y - y/100); 
+  glEnd();
+  
+  glBegin(GL_QUADS);
+      glVertex2f(11*x/16, y - y/100); 
+      glVertex2f(11*x/16, y - .0725*y); 
+      glVertex2f(12*x/16 - x/100, y - .0725*y); 
+      glVertex2f(12*x/16 - x/100, y - y/100); 
+  glEnd();
+  
+  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void GLUTPassiveMotion(int x, int y)
 {
@@ -865,6 +1005,9 @@ void GLUTInit(int *argc, char **argv)
   glDisable(GL_BLEND);
   glBlendFunc(GL_ONE, GL_ZERO);
   glDepthMask(true);
+
+  //Initialize Character
+  Main_Character = R3Character();
 }
 
 ////////////////////////////////////////////////////////////
