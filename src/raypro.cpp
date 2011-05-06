@@ -23,7 +23,7 @@ static char options[] =
 
 
 static void 
-ShowUsage(void)
+ShowUsage(void) 
 {
   // Print usage message and exit
   fprintf(stderr,  "Usage: raypro input_scene output_image [  -option [arg ...] ...]\n");
