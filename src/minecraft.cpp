@@ -35,7 +35,6 @@ static R3Rgb background = R3Rgb(0.529, 0.807, 0.980, 1.);
 static float picker_height = 10;
 static float picker_width = 10;
 static bool CAPTURE_MOUSE = false;
-static bool SNAPPED_CURSOR = false;
 
 // GLUT variables 
 
@@ -601,36 +600,66 @@ void GLUTRedraw(void)
 
 void GLUTPassiveMotion(int x, int y)
 {
-  if (!CAPTURE_MOUSE || SNAPPED_CURSOR) 
-  {
-      GLUTmouse[0] = x;
-      GLUTmouse[1] = y;
-      SNAPPED_CURSOR = false;
-      return;
+ 
+	if(CAPTURE_MOUSE == false) {
+		GLUTmouse[0] = x;
+		GLUTmouse[1] = y;
+		return;
+	}
+	// Invert y coordinate
+	y = GLUTwindow_height - y;
+
+	// Compute mouse movement
+	int dx = x - GLUTmouse[0];
+	int dy = y - GLUTmouse[1];
+
+	if (x < 30 || x > GLUTwindow_width - 30 || y < 30 || y > GLUTwindow_height - 30)
+	{
+		glutWarpPointer(GLUTwindow_width / 2, GLUTwindow_height / 2);
+		glutPostRedisplay();
+
+		GLUTmouse[0] = x;
+		GLUTmouse[1] = y;
+		return;
+
+	}
+	if( x == GLUTwindow_width / 2 && y == GLUTwindow_height/2){
+		glutPostRedisplay();
+
+		GLUTmouse[0] = x;
+  GLUTmouse[1] = y;
+          return;
   }
+  
 
-  // Invert y coordinate
-  y = GLUTwindow_height - y;
-
-  // Compute mouse movement
-  int dx = x - GLUTmouse[0];
-  int dy = y - GLUTmouse[1];
-
-  // Compute ratios to approximate angle of rotation
   double vx = (double) dx / (double) GLUTwindow_width;
   double vy = (double) dy / (double) GLUTwindow_height;
-
-  // Transform camera RTU frame by appropriate angles
+  vx = vx;
+  vy = vy;
   camera.towards.Rotate(R3posy_vector, -vx);
   camera.right.Rotate(R3posy_vector, -vx);
   camera.up.Rotate(R3posy_vector, -vx);
-  camera.towards.Rotate(camera.right, vy);
-  camera.up.Rotate(camera.right, vy);
-  camera.right.Rotate(camera.right, vy);
+
+
+  /*only rotate up or down if you aren't facing down. */
+  /* this is to prevent the world turning upside down. */
+  if(camera.up.Dot(R3posy_vector) > 0.05) {
+	  camera.towards.Rotate(camera.right, vy);
+	  camera.up.Rotate(camera.right, vy);
+	  camera.right.Rotate(camera.right, vy);
+  }
+  if(camera.up.Dot(R3posy_vector) <= 0.05) {
+	  if(vy > 0) {
+		  camera.towards.Rotate(camera.right, vy);
+		  camera.up.Rotate(camera.right, vy);
+		  camera.right.Rotate(camera.right, vy);
+	  }
+  }
+
+  glutPostRedisplay();
 
   GLUTmouse[0] = x;
   GLUTmouse[1] = y;
-  glutPostRedisplay();
 }
 
 void GLUTMouse(int button, int state, int x, int y)
@@ -682,10 +711,6 @@ void GLUTMouseEntry(int state)
     case GLUT_ENTERED: 
       break;
     case GLUT_LEFT:    
-      // Snap cursor back to center of the screen to simulate infinite scrolling
-      glutWarpPointer(GLUTwindow_width / 2, 
-                     GLUTwindow_height / 2);
-      SNAPPED_CURSOR = true;
       break;
   }
 }
@@ -755,6 +780,7 @@ void GLUTKeyboard(unsigned char key, int x, int y)
       CAPTURE_MOUSE = false;
       // Restore cursor
       glutSetCursor(GLUT_CURSOR_INHERIT);
+	  glutPostRedisplay();
       break;
 
     case 'w': 
