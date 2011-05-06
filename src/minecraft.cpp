@@ -109,6 +109,93 @@ void AddBlock()
   scene->root->children.push_back(newNode);
 }
 
+void DrawHUD() 
+{  
+	glLineWidth(3);
+  glColor3d(.1, .1, .1);
+ 
+  // Make "+" ticker on the middle of the screen 
+  glBegin(GL_LINES);
+      glVertex2f((GLUTwindow_width / 2) - picker_width, GLUTwindow_height / 2); 
+      glVertex2f((GLUTwindow_width / 2) + picker_width, GLUTwindow_height / 2); 
+  glEnd();
+  glBegin(GL_LINES);
+      glVertex2f(GLUTwindow_width / 2, (GLUTwindow_height / 2) - picker_height); 
+      glVertex2f(GLUTwindow_width / 2, (GLUTwindow_height / 2) + picker_height); 
+  glEnd();
+
+  glLineWidth(1);
+
+  // Draw text
+  GLUTDrawText(R3Point(5, 13, 0), "Minecraft v0.0.0.0.0.1/2");
+
+  // Draw bottom pane
+  glColor3d(.7, .7, .7);
+
+  //Draw Hearts
+  DrawHUD_Hearts();
+
+  //Draw Inventory
+  DrawHUD_Inventory();
+ 
+  // This is just temporary text
+  glColor3d(.1, .1, .1);
+  GLUTDrawText(R3Point(GLUTwindow_width / 2 - 10, GLUTwindow_height - 70, 0), "I am a dock!");
+
+}
+
+void DrawHUD_Hearts() 
+{
+	int x = GLUTwindow_width;
+	int y = GLUTwindow_height;
+
+	glColor3d(.9, .1, .1);
+
+  glPushMatrix();
+  glTranslatef(.25 * x, .9 * y, 0);
+
+	for (int i = 0; i < Main_Character.maxhealth; i++) 
+  {
+    if (i >= Main_Character.health)
+      glColor3d(.7, .7, .7);
+
+		glBegin(GL_QUADS);
+      glVertex2f(0, 0); 
+      glVertex2f(x/64, - y/64); 
+      glVertex2f(x/32, 0); 
+      glVertex2f(x/64, y/64); 
+		glEnd();
+    glTranslatef(5 * x / 128, 0, 0);
+	}
+
+  glPopMatrix();
+  glColor3d(.7, .7, .7);
+}
+
+void DrawHUD_Inventory() 
+{
+	int x = GLUTwindow_width;
+	int y = GLUTwindow_height;
+  int boxWidth = .0525 * x;
+  int boxHeight = .0625 * y;
+
+  glPushMatrix();
+  glTranslatef(.1875 * x, .99 * y, 0.);
+
+  for (int i = 4; i <= 12; i++) 
+  {
+    glTranslatef(x / 16, 0, 0.);
+    glBegin(GL_QUADS);
+        glVertex2f(0, 0); 
+        glVertex2f(0, -boxHeight); 
+        glVertex2f(boxWidth, -boxHeight); 
+        glVertex2f(boxWidth, 0); 
+    glEnd();
+  }
+
+  glPopMatrix(); 
+}
+
 ////////////////////////////////////////////////////////////
 // SCENE DRAWING CODE
 ////////////////////////////////////////////////////////////
@@ -569,147 +656,6 @@ void GLUTRedraw(void)
   glutSwapBuffers();
 }    
 
-
-
-void DrawHUD() {  
-	int y = GLUTwindow_height;
-	int x = GLUTwindow_width;
-	glLineWidth(3);
-  glColor3d(.1, .1, .1);
- 
-  // Make "+" ticker on the middle of the screen 
-  glBegin(GL_LINES);
-      glVertex2f((GLUTwindow_width / 2) - picker_width, GLUTwindow_height / 2); 
-      glVertex2f((GLUTwindow_width / 2) + picker_width, GLUTwindow_height / 2); 
-  glEnd();
-  glBegin(GL_LINES);
-      glVertex2f(GLUTwindow_width / 2, (GLUTwindow_height / 2) - picker_height); 
-      glVertex2f(GLUTwindow_width / 2, (GLUTwindow_height / 2) + picker_height); 
-  glEnd();
-
-  glLineWidth(1);
-
-  // Draw text
-  GLUTDrawText(R3Point(5, 13, 0), "Minecraft v0.0.0.0.0.1/2");
-
-  // Draw bottom pane
-  glColor3d(.7, .7, .7);
-  /*
-  glBegin(GL_QUADS);
-      glVertex2f((GLUTwindow_width / 2) - 200, GLUTwindow_height - 100); 
-      glVertex2f((GLUTwindow_width / 2) - 200, GLUTwindow_height - 40); 
-      glVertex2f((GLUTwindow_width / 2) + 200, GLUTwindow_height - 40); 
-      glVertex2f((GLUTwindow_width / 2) + 200, GLUTwindow_height - 100); 
-  glEnd();
-  */
-
-  //Draw Hearts
-  DrawHUD_Hearts();
-
-  //Draw Inventory
-  DrawHUD_Inventory();
- 
-  // This is just temporary text
-  glColor3d(.1, .1, .1);
-  GLUTDrawText(R3Point(GLUTwindow_width / 2 - 10, GLUTwindow_height - 70, 0), "I am a dock!");
-
-}
-
-void DrawHUD_Hearts() {
-
-	glColor3d(.9, .1, .1);
-	int y = GLUTwindow_height;
-	int x = GLUTwindow_width;
-
-	for(int i = 0; i < Main_Character.health; i++) {
-		glBegin(GL_QUADS);
-		glVertex2f(4*x/16 + 5*i*x/128, y - y/10); 
-		glVertex2f(4*x/16 + x/64 + 5*i*x/128, y - y/10 - y/64); 
-		glVertex2f(4*x/16 + x/32 + 5*i*x/128, y - y/10); 
-		glVertex2f(4*x/16 + x/64 + 5*i*x/128, y - y/10 + y/64); 
-		glEnd();
-	}
-
-	
-  glColor3d(.7, .7, .7);
-	for(int i = Main_Character.health; i < Main_Character.maxhealth; i++) {
-		glBegin(GL_QUADS);
-		glVertex2f(4*x/16 + 5*i*x/128, y - y/10); 
-		glVertex2f(4*x/16 + x/64 + 5*i*x/128, y - y/10 - y/64); 
-		glVertex2f(4*x/16 + x/32 + 5*i*x/128, y - y/10); 
-		glVertex2f(4*x/16 + x/64 + 5*i*x/128, y - y/10 + y/64); 
-		glEnd();
-	}
-}
-
-void DrawHUD_Inventory() {
-
-	int y = GLUTwindow_height;
-	int x = GLUTwindow_width;
-	 //Draw Inventory
-  glBegin(GL_QUADS);
-      glVertex2f(4*x/16, y - y/100); 
-      glVertex2f(4*x/16, y - .0725*y); 
-      glVertex2f(5*x/16 - x/100, y - .0725*y); 
-      glVertex2f(5*x/16 - x/100, y - y/100); 
-  glEnd();
-  
-  glBegin(GL_QUADS);
-      glVertex2f(5*x/16, y - y/100); 
-      glVertex2f(5*x/16, y - .0725*y); 
-      glVertex2f(6*x/16 - x/100, y - .0725*y); 
-      glVertex2f(6*x/16 - x/100, y - y/100); 
-  glEnd();
-  
-  
-  glBegin(GL_QUADS);
-      glVertex2f(6*x/16, y - y/100); 
-      glVertex2f(6*x/16, y - .0725*y); 
-      glVertex2f(7*x/16 - x/100, y - .0725*y); 
-      glVertex2f(7*x/16 - x/100, y - y/100); 
-  glEnd();
-  
-  
-  glBegin(GL_QUADS);
-      glVertex2f(7*x/16, y - y/100); 
-      glVertex2f(7*x/16, y - .0725*y); 
-      glVertex2f(8*x/16 - x/100, y - .0725*y); 
-      glVertex2f(8*x/16 - x/100, y - y/100); 
-  glEnd();
-  
-  
-  glBegin(GL_QUADS);
-      glVertex2f(8*x/16, y - y/100); 
-      glVertex2f(8*x/16, y - .0725*y); 
-      glVertex2f(9*x/16 - x/100, y - .0725*y); 
-      glVertex2f(9*x/16 - x/100, y - y/100); 
-  glEnd();
-  
-  
-  glBegin(GL_QUADS);
-      glVertex2f(9*x/16, y - y/100); 
-      glVertex2f(9*x/16, y - .0725*y); 
-      glVertex2f(10*x/16 - x/100, y - .0725*y); 
-      glVertex2f(10*x/16 - x/100, y - y/100); 
-  glEnd();
-  
-  
-  glBegin(GL_QUADS);
-      glVertex2f(10*x/16, y - y/100); 
-      glVertex2f(10*x/16, y - .0725*y); 
-      glVertex2f(11*x/16 - x/100, y - .0725*y); 
-      glVertex2f(11*x/16 - x/100, y - y/100); 
-  glEnd();
-  
-  glBegin(GL_QUADS);
-      glVertex2f(11*x/16, y - y/100); 
-      glVertex2f(11*x/16, y - .0725*y); 
-      glVertex2f(12*x/16 - x/100, y - .0725*y); 
-      glVertex2f(12*x/16 - x/100, y - y/100); 
-  glEnd();
-  
-  
-}
 
 
 

@@ -38,6 +38,9 @@ void InterpolateMotion(R3Point *start, R3Vector direction);
 
 void AlignReticle();
 void AddBlock();
+void DrawHUD(); 
+void DrawHUD_Hearts();
+void DrawHUD_Inventory();
 
 ////////////////////////////////////////////////////////////
 // SCENE DRAWING CODE
