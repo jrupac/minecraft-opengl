@@ -42,6 +42,7 @@ void DrawHUD();
 void DrawHUD_Hearts();
 void DrawHUD_Inventory();
 void LoadMaterial(R3Material *material);
+void MakeMaterials(void);
 
 ////////////////////////////////////////////////////////////
 // SCENE DRAWING CODE
