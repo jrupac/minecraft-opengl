@@ -4,15 +4,6 @@
     <Filter Include="Support Libraries">
       <UniqueIdentifier>{1aa2b167-c68c-47a7-9579-ae5eee43ef5c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Support Libraries\R2 Library">
-      <UniqueIdentifier>{a92a978f-7016-433f-a15b-9e926dfbe727}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Support Libraries\R2 Library\R2 Source Files">
-      <UniqueIdentifier>{cd545020-c117-4238-ae62-428c27b0ad03}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Support Libraries\R2 Library\R2 Header Files">
-      <UniqueIdentifier>{9947e2ab-6972-4493-bcc6-aa44341deb2f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Support Libraries\jpeg Library">
       <UniqueIdentifier>{b5aa97e8-4f4e-4b6b-b792-231cc20a6133}</UniqueIdentifier>
     </Filter>
@@ -40,28 +31,37 @@
     <Filter Include="Main Program\Main Header Files">
       <UniqueIdentifier>{09b4dfd5-9d9b-461d-a961-49855b79a805}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Support Libraries\R3 Library\R2 Library">
+      <UniqueIdentifier>{a92a978f-7016-433f-a15b-9e926dfbe727}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Support Libraries\R3 Library\R2 Library\R2 Source Files">
+      <UniqueIdentifier>{cd545020-c117-4238-ae62-428c27b0ad03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Support Libraries\R3 Library\R2 Library\R2 Header Files">
+      <UniqueIdentifier>{9947e2ab-6972-4493-bcc6-aa44341deb2f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="R2\R2Distance.cpp">
-      <Filter>Support Libraries\R2 Library\R2 Source Files</Filter>
+      <Filter>Support Libraries\R3 Library\R2 Library\R2 Source Files</Filter>
     </ClCompile>
     <ClCompile Include="R2\R2Image.cpp">
-      <Filter>Support Libraries\R2 Library\R2 Source Files</Filter>
+      <Filter>Support Libraries\R3 Library\R2 Library\R2 Source Files</Filter>
     </ClCompile>
     <ClCompile Include="R2\R2Line.cpp">
-      <Filter>Support Libraries\R2 Library\R2 Source Files</Filter>
+      <Filter>Support Libraries\R3 Library\R2 Library\R2 Source Files</Filter>
     </ClCompile>
     <ClCompile Include="R2\R2Pixel.cpp">
-      <Filter>Support Libraries\R2 Library\R2 Source Files</Filter>
+      <Filter>Support Libraries\R3 Library\R2 Library\R2 Source Files</Filter>
     </ClCompile>
     <ClCompile Include="R2\R2Point.cpp">
-      <Filter>Support Libraries\R2 Library\R2 Source Files</Filter>
+      <Filter>Support Libraries\R3 Library\R2 Library\R2 Source Files</Filter>
     </ClCompile>
     <ClCompile Include="R2\R2Segment.cpp">
-      <Filter>Support Libraries\R2 Library\R2 Source Files</Filter>
+      <Filter>Support Libraries\R3 Library\R2 Library\R2 Source Files</Filter>
     </ClCompile>
     <ClCompile Include="R2\R2Vector.cpp">
-      <Filter>Support Libraries\R2 Library\R2 Source Files</Filter>
+      <Filter>Support Libraries\R3 Library\R2 Library\R2 Source Files</Filter>
     </ClCompile>
     <ClCompile Include="jpeg\jcapimin.c">
       <Filter>Support Libraries\jpeg Library\jpeg Source Files</Filter>
@@ -261,28 +261,28 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="R2\R2.h">
-      <Filter>Support Libraries\R2 Library\R2 Header Files</Filter>
+      <Filter>Support Libraries\R3 Library\R2 Library\R2 Header Files</Filter>
     </ClInclude>
     <ClInclude Include="R2\R2Distance.h">
-      <Filter>Support Libraries\R2 Library\R2 Header Files</Filter>
+      <Filter>Support Libraries\R3 Library\R2 Library\R2 Header Files</Filter>
     </ClInclude>
     <ClInclude Include="R2\R2Image.h">
-      <Filter>Support Libraries\R2 Library\R2 Header Files</Filter>
+      <Filter>Support Libraries\R3 Library\R2 Library\R2 Header Files</Filter>
     </ClInclude>
     <ClInclude Include="R2\R2Line.h">
-      <Filter>Support Libraries\R2 Library\R2 Header Files</Filter>
+      <Filter>Support Libraries\R3 Library\R2 Library\R2 Header Files</Filter>
     </ClInclude>
     <ClInclude Include="R2\R2Pixel.h">
-      <Filter>Support Libraries\R2 Library\R2 Header Files</Filter>
+      <Filter>Support Libraries\R3 Library\R2 Library\R2 Header Files</Filter>
     </ClInclude>
     <ClInclude Include="R2\R2Point.h">
-      <Filter>Support Libraries\R2 Library\R2 Header Files</Filter>
+      <Filter>Support Libraries\R3 Library\R2 Library\R2 Header Files</Filter>
     </ClInclude>
     <ClInclude Include="R2\R2Segment.h">
-      <Filter>Support Libraries\R2 Library\R2 Header Files</Filter>
+      <Filter>Support Libraries\R3 Library\R2 Library\R2 Header Files</Filter>
     </ClInclude>
     <ClInclude Include="R2\R2Vector.h">
-      <Filter>Support Libraries\R2 Library\R2 Header Files</Filter>
+      <Filter>Support Libraries\R3 Library\R2 Library\R2 Header Files</Filter>
     </ClInclude>
     <ClInclude Include="jpeg\jchuff.h">
       <Filter>Support Libraries\jpeg Library\jpeg Header Files</Filter>

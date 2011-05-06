@@ -1,7 +1,5 @@
 // Include file for the R3 Box class 
 
-
-
 // Class definition 
 
 class R3Box {
@@ -63,7 +61,8 @@ class R3Box {
   bool operator!=(const R3Box& box) const;
 
   // Output functions
-  void Draw(void) const;
+  void Draw() const;
+	void DrawFace(int face_num) const;
   void Outline(void) const;
   void Print(FILE *fp = stdout) const;
 

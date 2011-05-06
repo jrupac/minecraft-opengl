@@ -1,3 +1,4 @@
+
 // Source file for the R3 Box class 
 
 
@@ -274,7 +275,7 @@ Reset(const R3Point& min, const R3Point& max)
 
 
 void R3Box::
-Draw(void) const
+Draw() const
 {
   // Get box corner points 
   R3Point corners[8];
@@ -298,9 +299,9 @@ Draw(void) const
   };
   static GLdouble texcoords[4][2] = {
     { 0.0, 0.0 },
+    { 0.0, 1.0 },
     { 1.0, 0.0 },
-    { 1.0, 1.0 },
-    { 0.0, 1.0 }
+    { 1.0, 1.0 }
   };
   static int surface_paths[6][4] = {
     { 3, 0, 1, 2 },
@@ -313,7 +314,7 @@ Draw(void) const
 
   // Draw box
   glBegin(GL_QUADS);
-  for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < 6; i++) {
     glNormal3d(normals[i][0], normals[i][1], normals[i][2]);
     for (int j = 0; j < 4; j++) {
       const R3Point& p = corners[surface_paths[i][j]];
@@ -324,6 +325,56 @@ Draw(void) const
   glEnd();
 }
 
+void R3Box::
+DrawFace(int face_num) const
+{
+	// Get box corner points 
+	R3Point corners[8];
+	corners[0] = Corner(0, 0, 0);
+	corners[1] = Corner(0, 0, 1);
+	corners[2] = Corner(0, 1, 1);
+	corners[3] = Corner(0, 1, 0);
+	corners[4] = Corner(1, 0, 0);
+	corners[5] = Corner(1, 0, 1);
+	corners[6] = Corner(1, 1, 1);
+	corners[7] = Corner(1, 1, 0);
+	
+	// Get normals, texture coordinates, etc.
+	static GLdouble normals[6][3] = {
+		{ -1.0, 0.0, 0.0 },
+		{ 1.0, 0.0, 0.0 },
+		{ 0.0, -1.0, 0.0 },
+		{ 0.0, 1.0, 0.0 },
+		{ 0.0, 0.0, -1.0 },
+		{ 0.0, 0.0, 1.0 }
+	};
+	static GLdouble texcoords[4][2] = {
+		{ 0.0, 0.0 },
+		{ 1.0, 0.0 },
+		{ 1.0, 1.0 },
+		{ 0.0, 1.0 }
+	};
+	static int surface_paths[6][4] = {
+		{ 0, 1, 2, 3 },
+		{ 5, 4, 7, 6 },
+		{ 0, 4, 5, 1 },
+		{ 7, 3, 2, 6 },
+		{ 4, 0, 3, 7 },
+		{ 1, 5, 6, 2 }
+	};
+	
+	// Draw box
+	glBegin(GL_QUADS);
+	for (int i = face_num; i < face_num+1; i++) {
+		glNormal3d(normals[i][0], normals[i][1], normals[i][2]);
+		for (int j = 0; j < 4; j++) {
+			const R3Point& p = corners[surface_paths[i][j]];
+			glTexCoord2d(texcoords[j][0], texcoords[j][1]);
+			glVertex3d(p[0], p[1], p[2]);
+		}
+	}
+	glEnd();
+}
 
 
 void R3Box::

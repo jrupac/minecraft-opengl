@@ -41,12 +41,14 @@ void AddBlock();
 void DrawHUD(); 
 void DrawHUD_Hearts();
 void DrawHUD_Inventory();
+void LoadMaterial(R3Material *material);
 
 ////////////////////////////////////////////////////////////
 // SCENE DRAWING CODE
 ////////////////////////////////////////////////////////////
 
 void DrawShape(R3Shape *shape);
+void DrawShape(R3Node *node);
 void LoadMatrix(R3Matrix *matrix);
 void LoadMaterial(R3Material *material);
 void LoadCamera(R3Camera *camera);

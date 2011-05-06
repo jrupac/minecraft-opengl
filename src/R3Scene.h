@@ -29,7 +29,6 @@ typedef enum {
 } R3LightType;
 
 
-
 // Scene element definitions
 
 struct R3Shape {
@@ -53,6 +52,7 @@ struct R3Material {
   double indexofrefraction;
   R2Image *texture;
   int texture_index;
+	//R3BlockType blockType;
   int id;
 };
 
@@ -84,6 +84,8 @@ struct R3Node {
   R3Shape *shape;
   R3Matrix transformation;
   R3Material *material;
+	R3Material *material_top;
+	R3Material *material_sides;
   R3Box bbox;
   bool selected;
 };
