@@ -35,11 +35,16 @@ static R3Character Main_Character;
 
 //Materials
 void LoadMaterial(R3Material *material);
+void MakeMaterials(void);
 R3Material *default_material;
 R3Material *branch_material;
 R3Material *dirt_material;
 R3Material *grass_material;
 R3Material *leaf_material;
+R3Material *alldirt_material;
+
+R3Material *heart_material;
+R3Material *empty_heart_material;
 
 // GLUT variables 
 
@@ -226,15 +231,21 @@ void DrawShape(R3Shape *shape)
 	  }
 	  else if (shape->block->getBlockType() == DIRT_BLOCK) 
       {
-		  LoadMaterial(dirt_material);
-		  shape->block->getBox().DrawFace(0);
-		  shape->block->getBox().DrawFace(1);
-		  shape->block->getBox().DrawFace(2);
-		  LoadMaterial(grass_material);
-		  shape->block->getBox().DrawFace(3);
-          LoadMaterial(dirt_material);
-		  shape->block->getBox().DrawFace(4);
-		  shape->block->getBox().DrawFace(5);
+		  if (shape->block->getUpper()->getBlockType() == AIR_BLOCK) {
+			  LoadMaterial(dirt_material);
+			  shape->block->getBox().DrawFace(0);
+			  shape->block->getBox().DrawFace(1);
+			  shape->block->getBox().DrawFace(2);
+			  LoadMaterial(grass_material);
+			  shape->block->getBox().DrawFace(3);
+			  LoadMaterial(dirt_material);
+			  shape->block->getBox().DrawFace(4);
+			  shape->block->getBox().DrawFace(5);
+		  }
+		  else {
+			  LoadMaterial(alldirt_material);
+			  shape->block->getBox().Draw();
+		  }
 	  }
 	  else if (shape->block->getBlockType() == BRANCH_BLOCK) 
       {
@@ -1079,6 +1090,23 @@ int main(int argc, char **argv)
   // Initialize GLUT
   GLUTInit(&argc, argv);
 
+	MakeMaterials();
+  // Parse program arguments
+  if (!ParseArgs(argc, argv)) exit(1);
+
+  // Read scene
+  scene = ReadScene(input_scene_name);
+  if (!scene) exit(-1);
+
+  // Run GLUT interface
+  GLUTMainLoop();
+
+  // Return success 
+  return 0;
+}
+
+void MakeMaterials(void) {
+	
 	//Load materials
 	default_material = new R3Material();
 	default_material->ka = R3Rgb(0.2, 0.2, 0.2, 1);
@@ -1090,7 +1118,45 @@ int main(int argc, char **argv)
 	default_material->indexofrefraction = 1;
 	default_material->texture = NULL;
 	default_material->id = 0;
-
+	
+	alldirt_material = new R3Material();
+	alldirt_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	alldirt_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	alldirt_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	alldirt_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	alldirt_material->emission = R3Rgb(0, 0, 0, 0);
+	alldirt_material->shininess = 10;
+	alldirt_material->indexofrefraction = 1;
+	//	char buffer[] = "input/checker.bmp";
+	char alldirt[] = "input/alldirt.jpg";
+	// Read texture image
+	alldirt_material->texture = new R2Image();
+	if (!alldirt_material->texture->Read(alldirt)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	alldirt_material->id = 5;
+	
+	dirt_material = new R3Material();
+	dirt_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	dirt_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	dirt_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	dirt_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	dirt_material->emission = R3Rgb(0, 0, 0, 0);
+	dirt_material->shininess = 10;
+	dirt_material->indexofrefraction = 1;
+	//	char buffer[] = "input/checker.bmp";
+	char dirt[] = "input/dirt.jpg";
+	// Read texture image
+	dirt_material->texture = new R2Image();
+	if (!dirt_material->texture->Read(dirt)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	dirt_material->id = 2;
+	
+	//group_materials[2] = dirt_material;
+	
 	branch_material = new R3Material();
 	branch_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
 	branch_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
@@ -1112,28 +1178,6 @@ int main(int argc, char **argv)
 	
 	//group_materials[1] = branch_material;
 	
-	
-	
-	
-	dirt_material = new R3Material();
-	dirt_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
-	dirt_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
-	dirt_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
-	dirt_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
-	dirt_material->emission = R3Rgb(0, 0, 0, 0);
-	dirt_material->shininess = 10;
-	dirt_material->indexofrefraction = 1;
-	//	char buffer[] = "input/checker.bmp";
-	char dirt[] = "input/dirt.jpg";
-	// Read texture image
-	dirt_material->texture = new R2Image();
-	if (!dirt_material->texture->Read(dirt)) {
-		fprintf(stderr, "Unable to read texture from file");
-		//	return 0;
-	}	
-	dirt_material->id = 2;
-	
-	//group_materials[2] = dirt_material;
 	
 	
 	grass_material = new R3Material();
@@ -1171,18 +1215,52 @@ int main(int argc, char **argv)
 		//	return 0;
 	}	
 	leaf_material->id = 4;
-
-  // Parse program arguments
-  if (!ParseArgs(argc, argv)) exit(1);
-
-  // Read scene
-  scene = ReadScene(input_scene_name);
-  if (!scene) exit(-1);
-
-  // Run GLUT interface
-  GLUTMainLoop();
-
-  // Return success 
-  return 0;
+	
+	/*if (block_type == LEAF_BLOCK) {
+	 material = group_materials[1];
+	 }
+	 if (block_type == DIRT_BLOCK) {
+	 material = group_materials[2];
+	 //		  material_top = group_materials[3];
+	 //		  material_sides = group_materials[2];
+	 }
+	 if (block_type == BRANCH_BLOCK) {
+	 material = group_materials[4];
+	 }*/
+	heart_material = new R3Material();
+	heart_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	heart_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	heart_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	heart_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	heart_material->emission = R3Rgb(0, 0, 0, 0);
+	heart_material->shininess = 10;
+	heart_material->indexofrefraction = 1;
+	//	char buffer[] = "input/checker.bmp";
+	char heart[] = "input/dirt.jpg";
+	// Read texture image
+	heart_material->texture = new R2Image();
+	if (!heart_material->texture->Read(heart)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	heart_material->id = 9;
+	
+	empty_heart_material = new R3Material();
+	empty_heart_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	empty_heart_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	empty_heart_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	empty_heart_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	empty_heart_material->emission = R3Rgb(0, 0, 0, 0);
+	empty_heart_material->shininess = 10;
+	empty_heart_material->indexofrefraction = 1;
+	//	char buffer[] = "input/checker.bmp";
+	char empty_heart[] = "input/grass.jpg";
+	// Read texture image
+	empty_heart_material->texture = new R2Image();
+	if (!empty_heart_material->texture->Read(empty_heart)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	empty_heart_material->id = 10;
 }
 

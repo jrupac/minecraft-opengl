@@ -411,6 +411,23 @@ Read(const char *filename, R3Node *node)
           }
         }
       }
+		//set adjacent chunks
+		for (int dz = 0; dz < CHUNK_Z; dz++)
+		{
+			for (int dy = 0; dy < CHUNK_Y; dy++)
+			{
+				for (int dx = 0; dx < CHUNK_X; dx++)
+				{
+					if (dy == (CHUNK_Y -1)) {
+						//		printf("set\n");
+						chunk[dx][dy][dz]->shape->block->setUpper(NULL);
+					}
+					else if (dy != (CHUNK_Y -1)) {
+						chunk[dx][dy][dz]->shape->block->setUpper(chunk[dx][dy+1][dz]->shape->block);
+					}
+				}
+			}
+		}
           }
 /*                CHUNK DONE                      */
 
