@@ -252,6 +252,12 @@
     <ClCompile Include="R3\R3Block.cpp">
       <Filter>Support Libraries\R3 Library\R3 Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="R3\R3Character.cpp">
+      <Filter>Support Libraries\R3 Library\R3 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R3\R3Item.cpp">
+      <Filter>Support Libraries\R3 Library\R3 Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="R2\R2.h">
@@ -360,6 +366,12 @@
       <Filter>Main Program\Main Header Files</Filter>
     </ClInclude>
     <ClInclude Include="R3\R3Block.h">
+      <Filter>Support Libraries\R3 Library\R3 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R3\R3Character.h">
+      <Filter>Support Libraries\R3 Library\R3 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R3\R3Item.h">
       <Filter>Support Libraries\R3 Library\R3 Header Files</Filter>
     </ClInclude>
   </ItemGroup>
