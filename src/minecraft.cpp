@@ -35,7 +35,7 @@ static R3Rgb background = R3Rgb(0.529, 0.807, 0.980, 1.);
 static float picker_height = 10;
 static float picker_width = 10;
 static bool CAPTURE_MOUSE = false;
-static R3Vector rot;
+static R3Vector rot;	
 
 
 void DrawHUD();
