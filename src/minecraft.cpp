@@ -2,13 +2,7 @@
 // INCLUDE FILES
 ////////////////////////////////////////////////////////////
 
-#include "R3/R3.h"
-#include "R3Scene.h"
-#include "raytrace.h"
-#include "cos426_opengl.h"
-
-// Zero is even
-#define SIGN(x) ((x) >= 0 ? 1 : -1)
+#include "minecraft.h"
 
 ////////////////////////////////////////////////////////////
 // GLOBAL VARIABLES
@@ -30,6 +24,7 @@ static int show_lights = 0;
 static int show_camera = 0;
 static int save_image = 0;
 static int quit = 0;
+static int INTERPOLATION = 10;
 static R3Node *currentSelection = NULL;
 static R3Rgb background = R3Rgb(0.529, 0.807, 0.980, 1.);
 static float picker_height = 10;
@@ -46,17 +41,18 @@ static int GLUTmouse[2] = { 0, 0 };
 static int GLUTbutton[3] = { 0, 0, 0 };
 static int GLUTmodifiers = 0;
 
-// GLUT command list
+////////////////////////////////////////////////////////////
+// HELPER METHODS
+////////////////////////////////////////////////////////////
 
-enum {
-  DISPLAY_FACE_TOGGLE_COMMAND,
-  DISPLAY_EDGE_TOGGLE_COMMAND,
-  DISPLAY_BBOXES_TOGGLE_COMMAND,
-  DISPLAY_LIGHTS_TOGGLE_COMMAND,
-  DISPLAY_CAMERA_TOGGLE_COMMAND,
-  SAVE_IMAGE_COMMAND,
-  QUIT_COMMAND,
-};
+void InterpolateMotion(R3Point *start, R3Vector direction)
+{
+  for (int i = 0; i < INTERPOLATION; i++) 
+  {
+    *start += direction / INTERPOLATION;
+    GLUTRedraw();
+  }
+}
 
 ////////////////////////////////////////////////////////////
 // GAME LOGIC CODE
@@ -634,13 +630,9 @@ void GLUTPassiveMotion(int x, int y)
   double vx = (double) dx / (double) GLUTwindow_width;
   double vy = (double) dy / (double) GLUTwindow_height;
 
-  // Transform camera RTU frame by appropriate angles
-  rot[0] += vx;
-  if (abs(rot[0]) > 2 * M_PI)
-      rot[0] = 0.;
-  rot[1] -= vy;
-  if (abs(rot[1]) > 2 * M_PI)
-      rot[1] = 0.;
+  // Update and clamp x-rotation and y-rotation
+  rot[0] = CLAMP(rot[0] + vx, -M_PI / 2, M_PI / 2);
+  rot[1] = CLAMP(rot[1] - vy, -M_PI / 2, M_PI / 10);
 
   GLUTmouse[0] = x;
   GLUTmouse[1] = y;
@@ -649,7 +641,6 @@ void GLUTPassiveMotion(int x, int y)
 
 void GLUTMouse(int button, int state, int x, int y)
 {
-    fprintf(stderr, "HERE\n");
   // Invert y coordinate
   y = GLUTwindow_height - y;
   
@@ -739,12 +730,12 @@ void GLUTKeyboard(unsigned char key, int x, int y)
     case 'c':
       show_camera = !show_camera;
       break;
-    
+
     case 'E':
     case 'e':
       show_edges = !show_edges;
       break;
-    
+
     case 'F':
     case 'f':
       show_faces = !show_faces;
@@ -767,29 +758,30 @@ void GLUTKeyboard(unsigned char key, int x, int y)
       break;
 
     case 'w': 
-      camera.eye.SetX(camera.eye.X() + camera.towards.X());
-      camera.eye.SetZ(camera.eye.Z() + camera.towards.Z());
+      InterpolateMotion(&(camera.eye), 
+                        -(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point));
       break;
 
     case 's': 
-      camera.eye.SetX(camera.eye.X() - camera.towards.X());
-      camera.eye.SetZ(camera.eye.Z() - camera.towards.Z());
+      InterpolateMotion(&(camera.eye), 
+                        (cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point));
       break;
 
-   case 'd': 
-      camera.eye += camera.right;
+    case 'd': 
+      InterpolateMotion(&(camera.eye), 
+                        (sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector());
       break;
 
-   case 'a': 
-     camera.eye -= camera.right;
-     break;
+    case 'a': 
+      InterpolateMotion(&(camera.eye), 
+                        -(sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector());
+      break;
 
     case ' ': 
-      printf("camera %g %g %g  %g %g %g  %g %g %g  %g  %g %g \n",
-             camera.eye[0], camera.eye[1], camera.eye[2], 
-             camera.towards[0], camera.towards[1], camera.towards[2], 
-             camera.up[0], camera.up[1], camera.up[2], 
-             camera.xfov, camera.neardist, camera.fardist); 
+      printf("camera %g %g %g  %g %g %g  %g  %g %g \n",
+          camera.eye[0], camera.eye[1], camera.eye[2], 
+          rot[0], rot[1], rot[2],
+          camera.xfov, camera.neardist, camera.fardist); 
       break; 
   }
 
