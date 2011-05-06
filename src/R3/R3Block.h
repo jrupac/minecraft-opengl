@@ -17,7 +17,8 @@ class R3Block {
   int getBlockType() const;
   int getHealth() const;
   void changeBlock(int newType);
-
+	R3Block *getUpper() const;
+	void setUpper(R3Block *up);
   //output
   void Draw(void) const;
 
@@ -28,6 +29,7 @@ class R3Block {
   bool walkable;
   bool transparent;
   //int x, y, z; // chunk x, y, z coords
+	R3Block *upper; //block above this one
 
 };
 
@@ -50,3 +52,14 @@ getHealth (void) const
   return health;
 }
 
+inline R3Block *R3Block::
+getUpper (void) const 
+{
+	return upper;
+}
+
+inline void R3Block::
+setUpper (R3Block *up)
+{
+	upper = up;
+}

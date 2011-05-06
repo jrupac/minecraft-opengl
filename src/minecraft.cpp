@@ -35,12 +35,16 @@ static R3Vector rot;
 
 //Materials
 void LoadMaterial(R3Material *material);
+void MakeMaterials(void);
 R3Material *default_material;
 R3Material *branch_material;
 R3Material *dirt_material;
 R3Material *grass_material;
 R3Material *leaf_material;
+R3Material *alldirt_material;
 
+R3Material *heart_material;
+R3Material *empty_heart_material;
 
 void DrawHUD();
 
@@ -165,14 +169,18 @@ void DrawShape(R3Shape *shape)
 	  if (shape->block->getBlockType() == LEAF_BLOCK) {
 		  //  printf("drawgrass");
 		  LoadMaterial(leaf_material);
-		  shape->block->getBox().Draw();
+		  shape->block->getBox().Draw();    
+		//  glDisable(GL_TEXTURE_2D);
 	  }
 	  else if (shape->block->getBlockType() == DIRT_BLOCK) {
 		//  printf("drawgrass");
 
 	//	  LoadMaterial(dirt_material);
 	//	  shape->block->getBox().Draw();
-		  
+		  if (shape->block->getUpper()->getBlockType() == AIR_BLOCK) {
+			//  printf("draw one\n"); 
+//LoadMaterial(default_material);
+		//	  shape->block->getBox().Draw();
 		  LoadMaterial(dirt_material);
 		  shape->block->getBox().DrawFace(0);
 		  shape->block->getBox().DrawFace(1);
@@ -182,12 +190,19 @@ void DrawShape(R3Shape *shape)
 		    LoadMaterial(dirt_material);
 		  shape->block->getBox().DrawFace(4);
 		  shape->block->getBox().DrawFace(5);
-	 
+		  }
+		  else {
+			 // printf("bottom\n");
+			  LoadMaterial(alldirt_material);
+			   shape->block->getBox().Draw();
+		//	      glDisable(GL_TEXTURE_2D);
+		  }
 
 	  }
 	  else if (shape->block->getBlockType() == BRANCH_BLOCK) {
 		  LoadMaterial(branch_material);
 		   shape->block->getBox().Draw();
+		 //     glDisable(GL_TEXTURE_2D);
 	  }
   }
   
@@ -233,22 +248,25 @@ void DrawShape(R3Node *node)
 	else if (node->shape->type == R3_BLOCK_SHAPE)
 	{
 		//if (shape->block->getBlockType() != AIR_BLOCK)
-		//  shape->block->Draw();
+	//	  node->shape->block->getBox().Draw();
 		if (node->shape->block->getBlockType() == LEAF_BLOCK) {
 			//  printf("drawgrass");
 			//  LoadMaterial(water_material);
 			node->shape->block->getBox().Draw();
+			    glDisable(GL_TEXTURE_2D);
 		}
 		else if (node->shape->block->getBlockType() == WATER_BLOCK) {
 			//  printf("draw");
 			//	  LoadMaterial(water_material);
 			node->shape->block->getBox().Draw();
+			    glDisable(GL_TEXTURE_2D);
 		}
 		else if (node->shape->block->getBlockType() == DIRT_BLOCK) {
 			//  printf("drawgrass");
 			
 			//	  LoadMaterial(dirt_material);
 		node->shape->block->getBox().Draw();
+			    glDisable(GL_TEXTURE_2D);
 			
 	/*				  LoadMaterial(node->material_sides);
 			 node->shape->block->getBox().DrawFace(0);
@@ -261,6 +279,10 @@ void DrawShape(R3Node *node)
 			 node->shape->block->getBox().DrawFace(5);
 			 
 			*/
+		}
+		else if (node->shape->block->getBlockType() == BRANCH_BLOCK) {
+			node->shape->block->getBox().Draw();
+			    glDisable(GL_TEXTURE_2D);
 		}
 	}
 	
@@ -518,7 +540,7 @@ void DrawNode(R3Scene *scene, R3Node *node)
   LoadMatrix(&node->transformation);
 
   // Load material
- // if (node->material) LoadMaterial(node->material);
+  //if (node->material) LoadMaterial(node->material);
 
   
   // Draw shape
@@ -563,11 +585,33 @@ void DrawScene(R3Scene *scene)
   // Draw nodes recursively
   DrawNode(scene, scene->root);
 
+	
+/*	for (int dz = 0; dz < CHUNK_Z; dz++)
+	{
+		for (int dy = 0; dy < CHUNK_Y; dy++)
+		{
+			for (int dx = 0; dx < CHUNK_X; dx++)
+			{
+				if (dy == (CHUNK_Y -1)) {
+						//	printf("set\n");
+					scene->chunk[dx][dy][dz]->shape->block->setUpper(NULL);
+				}
+				else if (dy != (CHUNK_Y -1)) {
+					scene->chunk[dx][dy][dz]->shape->block->setUpper(scene->chunk[dx][dy+1][dz]->shape->block);
+				}
+			}
+			}
+		}
+	*/
+	
   /* ADDED: draw the new array of nodes */
-  for (int dz = 0; dz < CHUNK_Z; dz++)
-    for (int dy = 0; dy < CHUNK_Y; dy++)
-      for (int dx = 0; dx < CHUNK_X; dx++)
+	for (int dz = 0; dz < CHUNK_Z; dz++) {
+	  for (int dy = 0; dy < CHUNK_Y; dy++) {
+		for (int dx = 0; dx < CHUNK_X; dx++) {
         DrawNode(scene, scene->chunk[dx][dy][dz]); 
+		}
+	  }
+	}
         //what the fuck is scene here for
 }
 
@@ -782,16 +826,32 @@ void DrawHUD() {
 
 void DrawHUD_Hearts() {
 
-	glColor3d(.9, .1, .1);
+	//glColor3d(.9, .1, .1);
 	int y = GLUTwindow_height;
 	int x = GLUTwindow_width;
 
-	for(int i = 0; i < Main_Character.health; i++) {
+	
+	LoadMaterial(grass_material);
+/*	for(int i = 0; i < Main_Character.health; i++) {
 		glBegin(GL_QUADS);
 		glVertex2f(4*x/16 + 5*i*x/128, y - y/10); 
 		glVertex2f(4*x/16 + x/64 + 5*i*x/128, y - y/10 - y/64); 
 		glVertex2f(4*x/16 + x/32 + 5*i*x/128, y - y/10); 
 		glVertex2f(4*x/16 + x/64 + 5*i*x/128, y - y/10 + y/64); 
+		glEnd();
+	}*/
+	
+	for(int i = 0; i < Main_Character.health; i++) {
+		glBegin(GL_QUADS);
+		glNormal3d(0,0,1);
+		glTexCoord2f(0.0, 1.0);
+		glVertex3d(4*x/16 + 5*i*x/128, y - y/10 -y/64, 0.0); 
+		glTexCoord2f(1.0, 1.0);
+		glVertex3d(4*x/16 + x/32 +5*i*x/128, y - y/10 - y/64, 0.0); 
+		glTexCoord2f(1.0, 0.0);
+		glVertex3d(4*x/16 +x/32 + 5*i*x/128, y - y/10+y/64, 0.0); 
+		glTexCoord2f(0.0, 0.0);
+		glVertex3d(4*x/16 + 5*i*x/128, y - y/10 + y/64, 0.0); 
 		glEnd();
 	}
 
@@ -1252,7 +1312,35 @@ int main(int argc, char **argv)
   // Initialize GLUT
   GLUTInit(&argc, argv);
 
+	MakeMaterials();
+	
+  // Parse program arguments
+  if (!ParseArgs(argc, argv)) exit(1);
 
+  // Read scene
+  scene = ReadScene(input_scene_name);
+  if (!scene) exit(-1);
+
+	
+/*	for (int dz = 0; dz < CHUNK_Z; dz++) {
+		for (int dy = 0; dy < CHUNK_Y; dy++) {
+			for (int dx = 0; dx < CHUNK_X; dx++) {
+				if (scene->chunk[dx][dy][dz]->shape->block->getUpper() == NULL) {
+					printf("null!\n");
+				}
+			}
+		}
+	}
+	*/
+  // Run GLUT interface
+  GLUTMainLoop();
+
+  // Return success 
+  return 0;
+}
+
+void MakeMaterials(void) {
+	
 	//Load materials
 	default_material = new R3Material();
 	default_material->ka = R3Rgb(0.2, 0.2, 0.2, 1);
@@ -1264,7 +1352,45 @@ int main(int argc, char **argv)
 	default_material->indexofrefraction = 1;
 	default_material->texture = NULL;
 	default_material->id = 0;
-
+	
+	alldirt_material = new R3Material();
+	alldirt_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	alldirt_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	alldirt_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	alldirt_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	alldirt_material->emission = R3Rgb(0, 0, 0, 0);
+	alldirt_material->shininess = 10;
+	alldirt_material->indexofrefraction = 1;
+	//	char buffer[] = "input/checker.bmp";
+	char alldirt[] = "input/alldirt.jpg";
+	// Read texture image
+	alldirt_material->texture = new R2Image();
+	if (!alldirt_material->texture->Read(alldirt)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	alldirt_material->id = 5;
+	
+	dirt_material = new R3Material();
+	dirt_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	dirt_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	dirt_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	dirt_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	dirt_material->emission = R3Rgb(0, 0, 0, 0);
+	dirt_material->shininess = 10;
+	dirt_material->indexofrefraction = 1;
+	//	char buffer[] = "input/checker.bmp";
+	char dirt[] = "input/dirt.jpg";
+	// Read texture image
+	dirt_material->texture = new R2Image();
+	if (!dirt_material->texture->Read(dirt)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	dirt_material->id = 2;
+	
+	//group_materials[2] = dirt_material;
+	
 	branch_material = new R3Material();
 	branch_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
 	branch_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
@@ -1288,26 +1414,6 @@ int main(int argc, char **argv)
 	
 	
 	
-	
-	dirt_material = new R3Material();
-	dirt_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
-	dirt_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
-	dirt_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
-	dirt_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
-	dirt_material->emission = R3Rgb(0, 0, 0, 0);
-	dirt_material->shininess = 10;
-	dirt_material->indexofrefraction = 1;
-	//	char buffer[] = "input/checker.bmp";
-	char dirt[] = "input/dirt.jpg";
-	// Read texture image
-	dirt_material->texture = new R2Image();
-	if (!dirt_material->texture->Read(dirt)) {
-		fprintf(stderr, "Unable to read texture from file");
-		//	return 0;
-	}	
-	dirt_material->id = 2;
-	
-	//group_materials[2] = dirt_material;
 	
 	
 	grass_material = new R3Material();
@@ -1346,17 +1452,50 @@ int main(int argc, char **argv)
 	}	
 	leaf_material->id = 4;
 	
-  // Parse program arguments
-  if (!ParseArgs(argc, argv)) exit(1);
-
-  // Read scene
-  scene = ReadScene(input_scene_name);
-  if (!scene) exit(-1);
-
-  // Run GLUT interface
-  GLUTMainLoop();
-
-  // Return success 
-  return 0;
+	/*if (block_type == LEAF_BLOCK) {
+	 material = group_materials[1];
+	 }
+	 if (block_type == DIRT_BLOCK) {
+	 material = group_materials[2];
+	 //		  material_top = group_materials[3];
+	 //		  material_sides = group_materials[2];
+	 }
+	 if (block_type == BRANCH_BLOCK) {
+	 material = group_materials[4];
+			  }*/
+	heart_material = new R3Material();
+	heart_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	heart_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	heart_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	heart_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	heart_material->emission = R3Rgb(0, 0, 0, 0);
+	heart_material->shininess = 10;
+	heart_material->indexofrefraction = 1;
+	//	char buffer[] = "input/checker.bmp";
+	char heart[] = "input/heart.jpg";
+	// Read texture image
+	heart_material->texture = new R2Image();
+	if (!heart_material->texture->Read(heart)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	heart_material->id = 9;
+	
+	empty_heart_material = new R3Material();
+	empty_heart_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	empty_heart_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	empty_heart_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	empty_heart_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	empty_heart_material->emission = R3Rgb(0, 0, 0, 0);
+	empty_heart_material->shininess = 10;
+	empty_heart_material->indexofrefraction = 1;
+	//	char buffer[] = "input/checker.bmp";
+	char empty_heart[] = "input/empty_heart.jpg";
+	// Read texture image
+	empty_heart_material->texture = new R2Image();
+	if (!empty_heart_material->texture->Read(empty_heart)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	empty_heart_material->id = 10;
 }
-

@@ -115,8 +115,7 @@ Read(const char *filename, R3Node *node)
 
 	
 	
-	
-	R3Material *leaf_material = new R3Material();
+/*	R3Material *leaf_material = new R3Material();
 	leaf_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
 	leaf_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
 	leaf_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
@@ -145,7 +144,7 @@ Read(const char *filename, R3Node *node)
 	dirt_material->shininess = 10;
 	dirt_material->indexofrefraction = 1;
 	//	char buffer[] = "input/checker.bmp";
-	char dirt[] = "input/dirt.jpg";
+	char dirt[] = "input/alldirt.jpg";
 	// Read texture image
 	dirt_material->texture = new R2Image();
 	if (!dirt_material->texture->Read(dirt)) {
@@ -175,10 +174,29 @@ Read(const char *filename, R3Node *node)
 	grass_material->id = 3;
 	group_materials[3] = dirt_material;
 	
+	R3Material *branch_material = new R3Material();
+	branch_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	branch_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	branch_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	branch_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	branch_material->emission = R3Rgb(0, 0, 0, 0);
+	branch_material->shininess = 10;
+	branch_material->indexofrefraction = 1;
+	//	char buffer[] = "input/checker.bmp";
+	char branch[] = "input/branch.jpg";
+	// Read texture image
+	branch_material->texture = new R2Image();
+	if (!branch_material->texture->Read(branch)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	//branch_material->texture = NULL;
+	branch_material->id = 4;
+	group_materials[4] = branch_material;
 	
+	*/
 	
-	
-  // Read body
+	// Read body
   char cmd[128];
   int command_number = 1;
   while (fscanf(fp, "%s", cmd) == 1) {
@@ -382,19 +400,23 @@ Read(const char *filename, R3Node *node)
             shape->mesh = NULL;
             shape->segment = NULL;
             shape->block = block;
-
+			  
             // Create shape node
             R3Node *node = new R3Node();
             node->transformation = R3identity_matrix;
-			  if (block_type == LEAF_BLOCK) {
+			  
+		/*	  if (block_type == LEAF_BLOCK) {
 				  material = group_materials[1];
 			  }
 			  if (block_type == DIRT_BLOCK) {
-				  material = group_materials[3];
+				  material = group_materials[2];
 		//		  material_top = group_materials[3];
 		//		  material_sides = group_materials[2];
 			  }
-			  
+			  if (block_type == BRANCH_BLOCK) {
+				  material = group_materials[4];
+			  }*/
+		
             node->material = material;
 		//	  node->material_top = material_top;
 		//	  node->material_sides = material_sides;
@@ -411,6 +433,24 @@ Read(const char *filename, R3Node *node)
           }
         }
       }
+		//set adjacent chunks
+		for (int dz = 0; dz < CHUNK_Z; dz++)
+		{
+			for (int dy = 0; dy < CHUNK_Y; dy++)
+			{
+				for (int dx = 0; dx < CHUNK_X; dx++)
+				{
+			if (dy == (CHUNK_Y -1)) {
+		//		printf("set\n");
+				chunk[dx][dy][dz]->shape->block->setUpper(NULL);
+			}
+			else if (dy != (CHUNK_Y -1)) {
+				chunk[dx][dy][dz]->shape->block->setUpper(chunk[dx][dy+1][dz]->shape->block);
+			}
+				}
+			}
+		}
+											
           }
 /*                CHUNK DONE                      */
 
