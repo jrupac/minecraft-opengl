@@ -36,7 +36,6 @@ static R3Character Main_Character;
 static R3Vector towards;
 
 R3Intersection closestintersect;
-static int tempinteger;
 
 // Materials
 
@@ -111,7 +110,6 @@ void InterpolateMotion(R3Point *start, R3Vector direction)
       LegalBlock(coords)))
     return;
 
-  fprintf(stderr, "%d %d %d\n", coords.x, coords.y, coords.z);
   *start += direction / INTERPOLATION;
   
   // Starting from below character, keep going down until you find something
@@ -132,32 +130,15 @@ void InterpolateMotion(R3Point *start, R3Vector direction)
     (*start) -= (coords.y - fallIndex - 1) * R3posy_vector;
 }
 
-void GetTowards() 
-{
-	towards.Reset(0, 0, -1);
-  float n[16], *nn = n;
-
-  glPushMatrix();
-    glRotatef(rot[1] * 180 / M_PI, 1., 0., 0);
-    glRotatef(rot[0] * 180 / M_PI, 0., 1., 0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, n);
-  glPopMatrix();
-
-  R3Matrix rotation = R3Matrix(nn);
-  towards.Transform(rotation);
-}
-
 ////////////////////////////////////////////////////////////
 // GAME LOGIC CODE
 ////////////////////////////////////////////////////////////
 
 void AlignReticle()
 {
-	GetTowards();
-	towards.Normalize();
 	R3Ray ray = R3Ray(camera.eye, towards);
 	R3Intersection intersect;
-	R3Intersection closestintersect;
+	R3Intersection closestIntersect;
 	double smallest = DBL_MAX;
 
 	for (int dz = 0; dz < CHUNK_Z; dz++) 
@@ -166,29 +147,25 @@ void AlignReticle()
     {
 			for (int dx = 0; dx < CHUNK_X; dx++) 
       {
-				if(scene->chunk[dx][dy][dz]->shape->block->getBlockType() != AIR_BLOCK) 
-        {
-					intersect = IntersectBox(ray, scene->chunk[dx][dy][dz]->shape->block->getBox());
+        R3Node *currentNode = scene->chunk[dx][dy][dz];
 
-					if(intersect.hit && intersect.t < smallest) 
+				if (currentNode->shape->block->getBlockType() != AIR_BLOCK) 
+        {
+					intersect = IntersectBox(ray, currentNode->shape->block->getBox());
+
+					if (intersect.hit && intersect.t < smallest) 
           {
             smallest = intersect.t;
-            closestintersect.t = intersect.t;
-            closestintersect.hit = intersect.hit;
-            closestintersect.node = scene->chunk[dx][dy][dz];
-            closestintersect.position = intersect.position;
-            closestintersect.normal = intersect.normal;
-            
-            if (closestintersect.node->shape == NULL)
-              printf("Why are you null?!? %d", tempinteger++);
+            closestIntersect = intersect;
+            closestIntersect.node = currentNode;
 					}
 				}
 			}
 		}
 	}
 
-	if (closestintersect.hit) 
-		currentSelection = closestintersect.node;
+	if (closestIntersect.hit) 
+		currentSelection = closestIntersect.node;
 }	
 
 void AddBlock()
@@ -678,22 +655,31 @@ void LoadMaterial(R3Material *material)
 
 void LoadCamera(R3Camera *camera)
 {
-    glPushMatrix();
-    // Set projection transformation
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(2 * 180.0 * camera->yfov / M_PI, 
-            (GLdouble) GLUTwindow_width /(GLdouble) GLUTwindow_height, 
-            0.01, 10000);
+	towards.Reset(0, 0, -1);
+  float n[16], *nn = n;
 
-    // Set camera transformation
-    R3Point e = camera->eye;
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
+  // Set projection transformation
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluPerspective(2 * 180.0 * camera->yfov / M_PI, 
+          (GLdouble) GLUTwindow_width /(GLdouble) GLUTwindow_height, 
+          0.01, 10000);
 
-    glRotatef(rot[1] * 180 / M_PI, 1., 0., 0);
-    glRotatef(rot[0] * 180 / M_PI, 0., 1., 0);
-    glTranslated(-e[0], -e[1], -e[2]);
+  // Set camera transformation
+  R3Point e = camera->eye;
+
+  glMatrixMode(GL_MODELVIEW);
+
+  glRotatef(rot[1] * 180 / M_PI, 1., 0., 0);
+  glRotatef(rot[0] * 180 / M_PI, 0., 1., 0);
+  glTranslated(-e[0], -e[1], -e[2]);
+
+  // Get the current transformation matrix
+  glGetFloatv(GL_MODELVIEW_MATRIX, n);
+
+  R3Matrix rotation = R3Matrix(nn);
+  towards.Transform(rotation);
+  towards.Normalize();
 }
 
 void LoadLights(R3Scene *scene)
@@ -1357,9 +1343,9 @@ int ParseArgs(int argc, char **argv)
     return 1;
 }
 
-/////////
-// OpenAL 
-///////////
+////////////////////////////////////////////////////////////
+// OPENAL CODE 
+////////////////////////////////////////////////////////////
 
 #ifdef __linux__
 

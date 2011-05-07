@@ -43,7 +43,6 @@ typedef struct
 bool LegalBlock(R3Index index);
 R3Index getChunkCoordinates(R3Point p);
 void InterpolateMotion(R3Point *start, R3Vector direction);
-void GetTowards();
 
 ////////////////////////////////////////////////////////////
 // GAME LOGIC CODE
