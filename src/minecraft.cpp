@@ -16,7 +16,7 @@ static char *input_scene_name = NULL;
 static char *output_image_name = NULL;
 
 // Display variables
-
+ 
 static R3Scene *scene = NULL;
 static R3Camera camera;
 static int show_faces = 1;
