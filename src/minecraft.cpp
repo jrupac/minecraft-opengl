@@ -202,56 +202,57 @@ void InterpolateMotion(R3Point *start, R3Vector direction)
 
 void AlignReticle()
 {
-	currentSelection = NULL;
-	R3Ray ray = R3Ray(camera.eye, towards);
-	R3Intersection intersect;
-	intersect.hit = false;
-	R3Intersection closestIntersect;
-	closestIntersect.hit = false;
-	currentSelectedCreature = -1;
-	double smallest = DBL_MAX;
+    currentSelection = NULL;
+    R3Ray ray = R3Ray(camera.eye, towards);
+    R3Intersection intersect;
+    intersect.hit = false;
+    R3Intersection closestIntersect;
+    closestIntersect.hit = false;
+    currentSelectedCreature = -1;
+    double smallest = DBL_MAX;
 
-	for (int dz = 0; dz < CHUNK_Z; dz++) 
-  {
-		for (int dy = 0; dy < CHUNK_Y; dy++) 
+    for (int dz = 0; dz < CHUNK_Z; dz++) 
     {
-			for (int dx = 0; dx < CHUNK_X; dx++) 
-      {
-		  R3Node *currentNode = scene->chunk[dx][dy][dz];
+        for (int dy = 0; dy < CHUNK_Y; dy++) 
+        {
+            for (int dx = 0; dx < CHUNK_X; dx++) 
+            {
+                R3Node *currentNode = scene->chunk[dx][dy][dz];
 
-		  if (currentNode->shape->block->getBlockType() != AIR_BLOCK) {
-			  intersect = IntersectBox(ray, currentNode->shape->block->getBox());
+                if (currentNode->shape->block->getBlockType() != AIR_BLOCK) {
+                    intersect = IntersectBox(ray, currentNode->shape->block->getBox());
 
-			  if (intersect.hit && intersect.t < smallest) {
-				  smallest = intersect.t;
-				  closestIntersect = intersect;
-				  closestIntersect.node = currentNode;
-			  }
-		  }
-			}
-		}
-	}
+                    if (intersect.hit && intersect.t < smallest) 
+                    {
+                        smallest = intersect.t;
+                        closestIntersect = intersect;
+                        closestIntersect.node = currentNode;
+                    }
+                }
+            }
+        }
+    }
 
 
-	//Find if it intersects a creature
+    //Find if it intersects a creature
 
-	for(int k = 0; k < creatures.size(); k++) {
-		intersect = IntersectBox(ray, creatures[k]->box);
-		if (intersect.hit && intersect.t < smallest) {
-			smallest = intersect.t;
-			currentSelectedCreature = k;
-		}
+    for (unsigned int k = 0; k < creatures.size(); k++) 
+    {
+        intersect = IntersectBox(ray, creatures[k]->box);
+        if (intersect.hit && intersect.t < smallest) 
+        {
+            smallest = intersect.t;
+            currentSelectedCreature = k;
+        }
+    }
 
-	}
-
-	if(currentSelectedCreature != -1) {
-		return;
-	}
-	if (closestIntersect.hit) 
-  {
-		currentSelection = closestIntersect.node;
-		currentNormal = closestIntersect.normal;
-	}
+    if (currentSelectedCreature != -1)
+        return;
+    if (closestIntersect.hit) 
+    {
+        currentSelection = closestIntersect.node;
+        currentNormal = closestIntersect.normal;
+    }
 }	
 
 void AddBlock()
@@ -1012,23 +1013,25 @@ void DrawScene(R3Scene *scene)
 
 void DrawCreatures() 
 {
-	for(int i = 0; i < creatures.size(); i++) {
-		if(creatures[i]->creaturetype == R3COW_CREATURE) LoadMaterial(cow_material);
-		else if(creatures[i]->creaturetype == R3DEER_CREATURE) LoadMaterial(deer_material);
+	for (unsigned int i = 0; i < creatures.size(); i++) 
+  {
+		if (creatures[i]->creaturetype == R3COW_CREATURE) 
+      LoadMaterial(cow_material);
+		else if (creatures[i]->creaturetype == R3DEER_CREATURE) 
+      LoadMaterial(deer_material);
 		creatures[i]->box.Draw();
-		if(currentSelectedCreature == i) {
-		
-            glDisable(GL_LIGHTING);
-            glColor3d(0., 0., 0.);
-            glLineWidth(15);
-            glPolygonMode(GL_FRONT, GL_LINE);
-			creatures[i]->box.Draw();
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            glLineWidth(1);
-            glEnable(GL_LIGHTING);
-		}
+		if (currentSelectedCreature == (int)i) 
+    {
+      glDisable(GL_LIGHTING);
+      glColor3d(0., 0., 0.);
+      glLineWidth(15);
+      glPolygonMode(GL_FRONT, GL_LINE);
+      creatures[i]->box.Draw();
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glLineWidth(1);
+      glEnable(GL_LIGHTING);
+    }
 	}
-	//First_Creature.box.Draw();
 }
 
 void UpdateCharacter() 
@@ -1049,10 +1052,10 @@ void GLUTMainLoop(void)
 void GLUTIdleFunction(void) 
 {
 	UpdateCharacter();
-	for(int i = 0; i < creatures.size(); i++) {
+
+	for (unsigned int i = 0; i < creatures.size(); i++) 
 		creatures[i]->UpdateCreature(Main_Character);
-	}
-	//First_Creature.UpdateCreature(Main_Character);
+
   glutPostRedisplay();
 }
 
