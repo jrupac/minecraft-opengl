@@ -9,6 +9,12 @@
 // GLOBAL VARIABLES
 ////////////////////////////////////////////////////////////
 
+#ifdef _WIN32
+#  include <windows.h>
+#else
+#  include <sys/time.h>
+#endif
+
 // Program arguments
 
 static char *input_scene_name = NULL;
@@ -34,6 +40,9 @@ static bool CAPTURE_MOUSE = false;
 static R3Vector rot;	
 static R3Character Main_Character;
 static R3Vector towards;
+double previous_time = 0;
+double current_time = 0;
+int FPS = 0;
 
 R3Intersection closestintersect;
 
@@ -81,6 +90,53 @@ ALfloat ListenerOri[] = { 0.0, 0.0, -1.0,
 ////////////////////////////////////////////////////////////
 // HELPER METHODS
 ////////////////////////////////////////////////////////////
+
+static double GetTime(void)
+{
+#ifdef _WIN32
+  // Return number of seconds since start of execution
+  static int first = 1;
+  static LARGE_INTEGER timefreq;
+  static LARGE_INTEGER start_timevalue;
+
+  // Check if this is the first time
+  if (first) {
+    // Initialize first time
+    QueryPerformanceFrequency(&timefreq);
+    QueryPerformanceCounter(&start_timevalue);
+    first = 0;
+    return 0;
+  }
+  else {
+    // Return time since start
+    LARGE_INTEGER current_timevalue;
+    QueryPerformanceCounter(&current_timevalue);
+    return ((double) current_timevalue.QuadPart - 
+            (double) start_timevalue.QuadPart) / 
+            (double) timefreq.QuadPart;
+  }
+#else
+  // Return number of seconds since start of execution
+  static int first = 1;
+  static struct timeval start_timevalue;
+
+  // Check if this is the first time
+  if (first) {
+    // Initialize first time
+    gettimeofday(&start_timevalue, NULL);
+    first = 0;
+    return 0;
+  }
+  else {
+    // Return time since start
+    struct timeval current_timevalue;
+    gettimeofday(&current_timevalue, NULL);
+    int secs = current_timevalue.tv_sec - start_timevalue.tv_sec;
+    int usecs = current_timevalue.tv_usec - start_timevalue.tv_usec;
+    return (double) (secs + 1.0E-6F * usecs);
+  }
+#endif
+}
 
 bool LegalBlock(R3Index index)
 {
@@ -264,6 +320,10 @@ void DrawHUD()
 
     // Draw text
     GLUTDrawText(R3Point(5, 13, 0), "Minecraft v0.0.0.0.0.1/2");
+    GLUTDrawText(R3Point(400, 13, 0), "FPS: " );
+    stringstream ss;
+    ss << FPS;
+    GLUTDrawText(R3Point(450, 13, 0), ss.str().c_str()); 
 
     // Draw bottom pane
     glColor3d(.7, .7, .7);
@@ -977,6 +1037,14 @@ void GLUTResize(int w, int h)
 void GLUTRedraw(void)
 {
 
+    // Time stuff
+    current_time = GetTime();
+    // program just started up?
+    if (previous_time == 0) previous_time = current_time;
+    double delta_time = current_time - previous_time;
+    FPS = (int)1.0/delta_time;
+    
+
     // Clear window 
     glClearColor(background[0], background[1], background[2], background[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1051,6 +1119,8 @@ void GLUTRedraw(void)
 
     // Swap buffers 
     glutSwapBuffers();
+    
+    previous_time = current_time;
 }    
 
 void GLUTPassiveMotion(int x, int y)

@@ -5,6 +5,7 @@
 #include "R3Scene.h"
 #include "raytrace.h"
 #include "cos426_opengl.h"
+#include <sstream>
 
 #define M_2PI (2. *M_PI)
 #define RAD2DEG (180. / M_PI)
@@ -40,6 +41,7 @@ typedef struct
 // HELPER METHODS
 ////////////////////////////////////////////////////////////
 
+static double GetTime(void);
 bool LegalBlock(R3Index index);
 R3Index getChunkCoordinates(R3Point p);
 void InterpolateMotion(R3Point *start, R3Vector direction);
