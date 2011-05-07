@@ -1515,12 +1515,16 @@ int ParseArgs(int argc, char **argv)
 
 ALboolean LoadALData()
 {
-    // Variables to load into.
+
+/* For backwards compatible MacOS ALUT support */
+#if 0
+  // Variables to load into.
     ALenum format;
     ALsizei size;
     ALvoid* data;
     ALsizei freq;
     ALboolean loop;
+#endif
 
     // Load wav data into a buffer
     alGenBuffers(1, &Buffer);
@@ -1528,9 +1532,15 @@ ALboolean LoadALData()
     if(alGetError() != AL_NO_ERROR)
         return AL_FALSE;
 
-    alutLoadWAVFile((ALbyte*) "sounds/ninth.wav", &format, &data, &size, &freq, &loop);
-    alBufferData(Buffer, format, data, size, freq);
-    alutUnloadWAV(format, data, size, freq);
+/* For backwards compatible MacOS ALUT support */
+#if 0
+    //alutLoadWAVFile((ALbyte*) "sounds/ninth.wav", &format, &data, &size, &freq, &loop);
+    //alBufferData(Buffer, format, data, size, freq);
+    //alutUnloadWAV(format, data, size, freq);
+#endif
+#ifdef __linux__
+    Buffer = alutCreateBufferFromFile("sounds/ninth.wav");
+#endif
 
     // Bind the buffer with the source
     alGenSources(1, &Source);
