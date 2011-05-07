@@ -106,6 +106,15 @@ R3Matrix(const double *a)
 }
 
 
+R3Matrix::
+R3Matrix(const float *a)
+{
+  // Assign matrix entries
+  m[0][0] = a[0]; m[0][1] = a[1]; m[0][2] = a[2]; m[0][3] = a[3];
+  m[1][0] = a[4]; m[1][1] = a[5]; m[1][2] = a[6]; m[1][3] = a[7];
+  m[2][0] = a[8]; m[2][1] = a[9]; m[2][2] = a[10]; m[2][3] = a[11];
+  m[3][0] = a[12]; m[3][1] = a[13]; m[3][2] = a[14]; m[3][3] = a[15];
+}
 
 const bool R3Matrix::
 IsZero (void) const

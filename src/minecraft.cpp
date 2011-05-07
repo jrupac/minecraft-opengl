@@ -3,6 +3,7 @@
 ////////////////////////////////////////////////////////////
 
 #include "minecraft.h"
+#include "float.h"
 
 ////////////////////////////////////////////////////////////
 // GLOBAL VARIABLES
@@ -56,7 +57,6 @@ static int GLUTwindow_width = 512;
 static int GLUTmouse[2] = { 0, 0 };
 static int GLUTbutton[3] = { 0, 0, 0 };
 static int GLUTmodifiers = 0;
-
 
 // OpenAL nonsense
 
@@ -132,19 +132,20 @@ void InterpolateMotion(R3Point *start, R3Vector direction)
     (*start) -= (coords.y - fallIndex - 1) * R3posy_vector;
 }
 
-
-
-void GetTowards() {
+void GetTowards() 
+{
 	towards.Reset(0, 0, -1);
-	double phi = -1*rot[0];
-	double theta = -1*rot[1];
-	R3Matrix rotation(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1);
-	rotation.YRotate(phi);
-	rotation.XRotate(theta);
-	towards.Transform(rotation);
+  float n[16], *nn = n;
 
+  glPushMatrix();
+    glRotatef(rot[1] * 180 / M_PI, 1., 0., 0);
+    glRotatef(rot[0] * 180 / M_PI, 0., 1., 0);
+    glGetFloatv(GL_MODELVIEW_MATRIX, n);
+  glPopMatrix();
+
+  R3Matrix rotation = R3Matrix(nn);
+  towards.Transform(rotation);
 }
-
 
 ////////////////////////////////////////////////////////////
 // GAME LOGIC CODE
@@ -153,42 +154,41 @@ void GetTowards() {
 void AlignReticle()
 {
 	GetTowards();
-	//printf("Towards (%f, %f, %f) \n", towards.X(), towards.Y(), towards.Z());
 	towards.Normalize();
-	//printf("Eye: (%f, %f, %f) \n", camera.eye.X(), camera.eye.Y(), camera.eye.Z());
 	R3Ray ray = R3Ray(camera.eye, towards);
 	R3Intersection intersect;
 	R3Intersection closestintersect;
-	double smallest = INT_MAX;
+	double smallest = DBL_MAX;
 
-	for (int dz = 0; dz < CHUNK_Z; dz++) {
-		for (int dy = 0; dy < CHUNK_Y; dy++) {
-			for (int dx = 0; dx < CHUNK_X; dx++) {
-
-				if(scene->chunk[dx][dy][dz]->shape->block->getBlockType() != AIR_BLOCK) {
+	for (int dz = 0; dz < CHUNK_Z; dz++) 
+  {
+		for (int dy = 0; dy < CHUNK_Y; dy++) 
+    {
+			for (int dx = 0; dx < CHUNK_X; dx++) 
+      {
+				if(scene->chunk[dx][dy][dz]->shape->block->getBlockType() != AIR_BLOCK) 
+        {
 					intersect = IntersectBox(ray, scene->chunk[dx][dy][dz]->shape->block->getBox());
-					if(intersect.hit) {
 
-						if(intersect.t < smallest) {
-							smallest = intersect.t;
-							closestintersect.t = intersect.t;
-							closestintersect.hit = intersect.hit;
-							closestintersect.node = scene->chunk[dx][dy][dz];
-							closestintersect.position = intersect.position;
-							closestintersect.normal = intersect.normal;
-							
-							if(closestintersect.node->shape == NULL)printf("Why are you null?!? %d", tempinteger++);
-						}
+					if(intersect.hit && intersect.t < smallest) 
+          {
+            smallest = intersect.t;
+            closestintersect.t = intersect.t;
+            closestintersect.hit = intersect.hit;
+            closestintersect.node = scene->chunk[dx][dy][dz];
+            closestintersect.position = intersect.position;
+            closestintersect.normal = intersect.normal;
+            
+            if (closestintersect.node->shape == NULL)
+              printf("Why are you null?!? %d", tempinteger++);
 					}
 				}
-
 			}
 		}
 	}
-	if(closestintersect.hit == true) {
-		currentSelection = closestintersect.node;
-	}
 
+	if (closestintersect.hit) 
+		currentSelection = closestintersect.node;
 }	
 
 void AddBlock()

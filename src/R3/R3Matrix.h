@@ -14,6 +14,7 @@ class R3Matrix {
            double a20, double a21, double a22, double a23,
            double a30, double a31, double a32, double a33);
   R3Matrix(const double* array);
+  R3Matrix(const float* array);
 
   // Entry acccess
   double *operator[](int i);
