@@ -26,6 +26,7 @@ static int show_lights = 0;
 static int show_camera = 0;
 static int save_image = 0;
 static int quit = 0;
+static int toSave = 0;
 static int INTERPOLATION = 1;
 static R3Node *currentSelection = NULL;
 static R3Vector currentNormal;
@@ -34,7 +35,9 @@ static float picker_height = 10;
 static float picker_width = 10;
 static bool CAPTURE_MOUSE = false;
 static R3Vector rot;	
-static R3Creature First_Creature;
+static vector <R3Creature *>creatures;
+//location of creature in vector
+static int currentSelectedCreature;
 static R3Character *Main_Character;
 static R3Vector towards;
 static double previous_time = 0;
@@ -54,6 +57,7 @@ static R3Material *stone_material;
 static R3Material *heart_material;
 static R3Material *empty_heart_material;
 static R3Material *cow_material;
+static R3Material *deer_material;
 
 // GLUT variables 
 
@@ -195,6 +199,7 @@ void InterpolateMotion(R3Point *start, R3Vector direction)
 // GAME LOGIC CODE
 ////////////////////////////////////////////////////////////
 
+
 void AlignReticle()
 {
 	currentSelection = NULL;
@@ -203,29 +208,45 @@ void AlignReticle()
 	intersect.hit = false;
 	R3Intersection closestIntersect;
 	closestIntersect.hit = false;
-  double smallest = DBL_MAX;
+	currentSelectedCreature = -1;
+	double smallest = DBL_MAX;
 
-  for (int dz = 0; dz < CHUNK_Z; dz++) 
+	for (int dz = 0; dz < CHUNK_Z; dz++) 
   {
-    for (int dy = 0; dy < CHUNK_Y; dy++) 
+		for (int dy = 0; dy < CHUNK_Y; dy++) 
     {
-      for (int dx = 0; dx < CHUNK_X; dx++) 
+			for (int dx = 0; dx < CHUNK_X; dx++) 
       {
-        R3Node *currentNode = scene->chunk[dx][dy][dz];
+		  R3Node *currentNode = scene->chunk[dx][dy][dz];
 
-        if (currentNode->shape->block->getBlockType() != AIR_BLOCK) {
-          intersect = IntersectBox(ray, currentNode->shape->block->getBox());
+		  if (currentNode->shape->block->getBlockType() != AIR_BLOCK) {
+			  intersect = IntersectBox(ray, currentNode->shape->block->getBox());
 
-          if (intersect.hit && intersect.t < smallest) {
-            smallest = intersect.t;
-            closestIntersect = intersect;
-            closestIntersect.node = currentNode;
-          }
-        }
-      }
-    }
-  }
+			  if (intersect.hit && intersect.t < smallest) {
+				  smallest = intersect.t;
+				  closestIntersect = intersect;
+				  closestIntersect.node = currentNode;
+			  }
+		  }
+			}
+		}
+	}
 
+
+	//Find if it intersects a creature
+
+	for(int k = 0; k < creatures.size(); k++) {
+		intersect = IntersectBox(ray, creatures[k]->box);
+		if (intersect.hit && intersect.t < smallest) {
+			smallest = intersect.t;
+			currentSelectedCreature = k;
+		}
+
+	}
+
+	if(currentSelectedCreature != -1) {
+		return;
+	}
 	if (closestIntersect.hit) 
   {
 		currentSelection = closestIntersect.node;
@@ -287,6 +308,10 @@ void RemoveBlock()
 
     lowerBlock->changeBlock(AIR_BLOCK);
   }
+}
+
+void RemoveCreature() {
+	creatures.erase(creatures.begin() + currentSelectedCreature);
 }
 
 void DrawHUD() 
@@ -405,8 +430,8 @@ void MakeMaterials(void)
     alldirt_material->shininess = 10;
     alldirt_material->indexofrefraction = 1;
 
-    //	char buffer[] = "input/checker.bmp";
-    char alldirt[] = "input/alldirt.jpg";
+    //	char buffer[] = "textures/checker.bmp";
+    char alldirt[] = "textures/alldirt.jpg";
 
     // Read texture image
     alldirt_material->texture = new R2Image();
@@ -425,8 +450,8 @@ void MakeMaterials(void)
     dirt_material->shininess = 10;
     dirt_material->indexofrefraction = 1;
 
-    //	char buffer[] = "input/checker.bmp";
-    char dirt[] = "input/dirt.jpg";
+    //	char buffer[] = "textures/checker.bmp";
+    char dirt[] = "textures/dirt.jpg";
 
     // Read texture image
     dirt_material->texture = new R2Image();
@@ -445,8 +470,8 @@ void MakeMaterials(void)
     branch_material->shininess = 10;
     branch_material->indexofrefraction = 1;
 
-    //	char buffer[] = "input/checker.bmp";
-    char branch[] = "input/branch.jpg";
+    //	char buffer[] = "textures/checker.bmp";
+    char branch[] = "textures/branch.jpg";
 
     // Read texture image
     branch_material->texture = new R2Image();
@@ -466,8 +491,8 @@ void MakeMaterials(void)
     grass_material->shininess = 10;
     grass_material->indexofrefraction = 1;
 
-    //	char buffer[] = "input/checker.bmp";
-    char grass[] = "input/grass.jpg";
+    //	char buffer[] = "textures/checker.bmp";
+    char grass[] = "textures/grass.jpg";
 
     // Read texture image
     grass_material->texture = new R2Image();
@@ -486,8 +511,8 @@ void MakeMaterials(void)
     leaf_material->shininess = 10;
     leaf_material->indexofrefraction = 1;
 
-    //	char buffer[] = "input/checker.bmp";
-    char leaf[] = "input/leaf.jpg";
+    //	char buffer[] = "textures/checker.bmp";
+    char leaf[] = "textures/leaf.jpg";
 
     // Read texture image
     leaf_material->texture = new R2Image();
@@ -506,8 +531,8 @@ void MakeMaterials(void)
     stone_material->shininess = 10;
     stone_material->indexofrefraction = 1;
 	
-    //	char buffer[] = "input/checker.bmp";
-    char stone[] = "input/stone.jpg";
+    //	char buffer[] = "textures/checker.bmp";
+    char stone[] = "textures/stone.jpg";
 	
     // Read texture image
     stone_material->texture = new R2Image();
@@ -526,8 +551,8 @@ void MakeMaterials(void)
     heart_material->shininess = 10;
     heart_material->indexofrefraction = 1;
 
-    //	char buffer[] = "input/checker.bmp";
-    char heart[] = "input/alldirt.jpg";
+    //	char buffer[] = "textures/checker.bmp";
+    char heart[] = "textures/alldirt.jpg";
 
     // Read texture image
     heart_material->texture = new R2Image();
@@ -546,8 +571,8 @@ void MakeMaterials(void)
     empty_heart_material->shininess = 10;
     empty_heart_material->indexofrefraction = 1;
 
-    //	char buffer[] = "input/checker.bmp";
-    char empty_heart[] = "input/grass.jpg";
+    //	char buffer[] = "textures/checker.bmp";
+    char empty_heart[] = "textures/grass.jpg";
 
     // Read texture image
     empty_heart_material->texture = new R2Image();
@@ -563,18 +588,39 @@ void MakeMaterials(void)
     cow_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
     cow_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
     cow_material->emission = R3Rgb(0, 0, 0, 0);
-    cow_material->shininess = 10;
-    cow_material->indexofrefraction = 1;
+	cow_material->shininess = 10;
+	cow_material->indexofrefraction = 1;
 
-    //	char buffer[] = "input/checker.bmp";
-    char cow[] = "input/cow.jpg";
+	//	char buffer[] = "textures/checker.bmp";
+	char cow[] = "textures/cow.jpg";
 
-    // Read texture image
-    cow_material->texture = new R2Image();
-    if (!cow_material->texture->Read(cow)) {
-        fprintf(stderr, "Unable to read texture from file");
-    }	
-    cow_material->id = 30;
+	// Read texture image
+	cow_material->texture = new R2Image();
+	if (!cow_material->texture->Read(cow)) {
+		fprintf(stderr, "Unable to read texture from file");
+	}	
+	cow_material->id = 30;
+
+
+
+	deer_material = new R3Material();
+	deer_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	deer_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	deer_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	deer_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	deer_material->emission = R3Rgb(0, 0, 0, 0);
+	deer_material->shininess = 10;
+	deer_material->indexofrefraction = 1;
+
+	//	char buffer[] = "textures/checker.bmp";
+	char deer[] = "textures/deer.jpg";
+
+	// Read texture image
+	deer_material->texture = new R2Image();
+	if (!deer_material->texture->Read(deer)) {
+		fprintf(stderr, "Unable to read texture from file");
+	}	
+	deer_material->id = 31;
 }
 
 ////////////////////////////////////////////////////////////
@@ -966,8 +1012,23 @@ void DrawScene(R3Scene *scene)
 
 void DrawCreatures() 
 {
-	LoadMaterial(cow_material);
-	First_Creature.box.Draw();
+	for(int i = 0; i < creatures.size(); i++) {
+		if(creatures[i]->creaturetype == R3COW_CREATURE) LoadMaterial(cow_material);
+		else if(creatures[i]->creaturetype == R3DEER_CREATURE) LoadMaterial(deer_material);
+		creatures[i]->box.Draw();
+		if(currentSelectedCreature == i) {
+		
+            glDisable(GL_LIGHTING);
+            glColor3d(0., 0., 0.);
+            glLineWidth(15);
+            glPolygonMode(GL_FRONT, GL_LINE);
+			creatures[i]->box.Draw();
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            glLineWidth(1);
+            glEnable(GL_LIGHTING);
+		}
+	}
+	//First_Creature.box.Draw();
 }
 
 void UpdateCharacter() 
@@ -988,7 +1049,10 @@ void GLUTMainLoop(void)
 void GLUTIdleFunction(void) 
 {
 	UpdateCharacter();
-	First_Creature.UpdateCreature(Main_Character);
+	for(int i = 0; i < creatures.size(); i++) {
+		creatures[i]->UpdateCreature(Main_Character);
+	}
+	//First_Creature.UpdateCreature(Main_Character);
   glutPostRedisplay();
 }
 
@@ -1116,17 +1180,19 @@ void GLUTRedraw(void)
         save_image = 0;
     }
 
-    // Quit here so that can save image before exit
-    if (quit) {
-        if (output_image_name) GLUTSaveImage(output_image_name);
-        //write new scene based on changes
+	// Quit here so that can save image before exit
+	if (quit) {
+		if(toSave) {
+			if (output_image_name) GLUTSaveImage(output_image_name);
+			//write new scene based on changes
 
-        if (!scene->WriteChunk(input_scene_name))
-        {
-            fprintf(stderr, "WARNING: Couldn't save new scene!!!\n");
-        }
-        GLUTStop();
-    }
+			if (!scene->WriteChunk(input_scene_name))
+			{
+				fprintf(stderr, "WARNING: Couldn't save new scene!!!\n");
+			}
+		}
+		GLUTStop();
+	}
 
     // Get into 2D mode
     glMatrixMode (GL_PROJECTION);
@@ -1205,22 +1271,30 @@ void GLUTMouse(int button, int state, int x, int y)
   if (state == GLUT_DOWN) 
   {
     if (button == GLUT_LEFT_BUTTON) 
-    {
-      if (!CAPTURE_MOUSE) 
-      {
-        glutSetCursor(GLUT_CURSOR_NONE);
-        CAPTURE_MOUSE = true;
-      }
-      if (currentSelection != NULL) 
-      {
-        currentSelection->shape->block->health--;
-        if (currentSelection->shape->block->health <= 0) 
         {
-          RemoveBlock();
-        }
-      }
+						//printf("left click\n");
+            if (CAPTURE_MOUSE == false) 
+            {
+                glutSetCursor(GLUT_CURSOR_NONE);
+                CAPTURE_MOUSE = true;
+            }
+			else if(currentSelectedCreature != -1) {
+				creatures[currentSelectedCreature]->Health--;
+				if(creatures[currentSelectedCreature]->Health == 0) {
+					RemoveCreature();
+					//printf("Removed! \n");
+				}
+				//printf("health: %d\n",creatures[currentSelectedCreature]->Health);
+			}
+			else if (currentSelection != NULL) {
+				currentSelection->shape->block->health--;
+				if (currentSelection->shape->block->health <= 0) {
+				//	printf("out of health\n");
+					RemoveBlock();
+				}
+			}
 
-    }
+        }
     else if (button == GLUT_MIDDLE_BUTTON) 
     {
     }
@@ -1314,6 +1388,8 @@ void GLUTKeyboard(unsigned char key, int x, int y)
             break;
 
         case 'Q':
+			toSave = 1;
+			quit = 1;
         case 'q':
             quit = 1;
             break;
@@ -1434,8 +1510,12 @@ void GLUTInit(int *argc, char **argv)
     glBlendFunc(GL_ONE, GL_ZERO);
     glDepthMask(true);
 
-    //Initialize Character
-    Main_Character = new R3Character();
+    //Initialize Character    
+	Main_Character = new R3Character();
+	R3Creature *newcreature1 = new R3Creature(R3Point(-2, .5, -3), R3COW_CREATURE);
+	R3Creature *newcreature2 = new R3Creature(R3Point(2, .5, -3), R3DEER_CREATURE);
+	creatures.push_back(newcreature1);
+	creatures.push_back(newcreature2);
 }
 
 ////////////////////////////////////////////////////////////

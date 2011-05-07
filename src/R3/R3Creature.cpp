@@ -1,15 +1,6 @@
 #include "R3Creature.h"
 #include "minecraft.h"
 
-R3Creature::
-R3Creature(void)
-{
-	Health = 2;
-	MaxHealth = 2;
-	position = R3Point(2, .5, -3);
-	box = R3Box((position-R3Point(.5, .5, .5)).Point(), position+R3Point(.5, .5, .5));
-}
-
 double RandomNumber(void)
 {
 #ifdef _WIN32
@@ -40,9 +31,32 @@ double RandomNumber(void)
 #endif
 }
 
+
+R3Creature::
+R3Creature(void)
+{
+	Health = 2;
+	MaxHealth = 2;
+	position = R3Point(2, .5, -3);
+	box = R3Box((position-R3Point(.5, .5, .5)).Point(), position+R3Point(.5, .5, .5));
+	creaturetype = R3COW_CREATURE;
+}
+
+R3Creature::
+	R3Creature(R3Point init, R3CreatureType type)
+{
+	Health = 2;
+	MaxHealth = 2;
+	position = init;
+	box = R3Box((position-R3Point(.5, .5, .5)).Point(), position+R3Point(.5, .5, .5));
+	creaturetype = type;
+}
+
+
 void R3Creature::
 UpdateCreature(R3Character *character)
 {
+	if(creaturetype == R3COW_CREATURE) {
 	double x = RandomNumber();
 	double y = RandomNumber();
 	double z = RandomNumber();
@@ -63,4 +77,27 @@ UpdateCreature(R3Character *character)
     position = position + translated;
     box.Translate(translated);
   }
+	}
+	if(creaturetype == R3DEER_CREATURE) {
+	double x = RandomNumber();
+	double y = RandomNumber();
+	double z = RandomNumber();
+
+	x = (2 * x - 1) / 20;
+	y = 0;
+	z = (2 * z - 1) / 20;
+	
+	R3Vector translated;
+	translated = position - character->position;
+	translated.SetY(0);
+	translated.Normalize();
+	translated /= 20;
+  
+  // Give me some space!
+  if (R3Distance(position + translated, character->position) >= 2.f)
+  {
+    position = position + translated;
+    box.Translate(translated);
+  }
+	}
 }

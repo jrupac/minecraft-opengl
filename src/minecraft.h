@@ -79,6 +79,11 @@ void DrawScene(R3Scene *scene);
 void DrawCreatures();
 void UpdateCharacter();
 
+//creature functions
+
+void RemoveCreature();
+void DrawCreatures();
+
 ////////////////////////////////////////////////////////////
 // GLUT USER INTERFACE CODE
 ////////////////////////////////////////////////////////////
