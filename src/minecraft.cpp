@@ -9,11 +9,6 @@
 // GLOBAL VARIABLES
 ////////////////////////////////////////////////////////////
 
-#ifdef _WIN32
-#  include <windows.h>
-#else
-#  include <sys/time.h>
-#endif
 
 // Program arguments
 
@@ -39,25 +34,26 @@ static float picker_height = 10;
 static float picker_width = 10;
 static bool CAPTURE_MOUSE = false;
 static R3Vector rot;	
-static R3Character Main_Character;
+static R3Creature First_Creature;
+static R3Character *Main_Character;
 static R3Vector towards;
-double previous_time = 0;
-double current_time = 0;
-int FPS = 0;
-
-R3Intersection closestintersect;
+static double previous_time = 0;
+static double current_time = 0;
+static int FPS = 0;
+static R3Intersection closestintersect;
 
 // Materials
 
-R3Material *default_material;
-R3Material *branch_material;
-R3Material *dirt_material;
-R3Material *grass_material;
-R3Material *leaf_material;
-R3Material *alldirt_material;
-R3Material *stone_material;
-R3Material *heart_material;
-R3Material *empty_heart_material;
+static R3Material *default_material;
+static R3Material *branch_material;
+static R3Material *dirt_material;
+static R3Material *grass_material;
+static R3Material *leaf_material;
+static R3Material *alldirt_material;
+static R3Material *stone_material;
+static R3Material *heart_material;
+static R3Material *empty_heart_material;
+static R3Material *cow_material;
 
 // GLUT variables 
 
@@ -92,8 +88,10 @@ ALfloat ListenerOri[] = { 0.0, 0.0, -1.0,
 // HELPER METHODS
 ////////////////////////////////////////////////////////////
 
-static double GetTime(void)
+double GetTime(void)
 {
+
+/* Windows */
 #ifdef _WIN32
   // Return number of seconds since start of execution
   static int first = 1;
@@ -101,14 +99,16 @@ static double GetTime(void)
   static LARGE_INTEGER start_timevalue;
 
   // Check if this is the first time
-  if (first) {
+  if (first) 
+  {
     // Initialize first time
     QueryPerformanceFrequency(&timefreq);
     QueryPerformanceCounter(&start_timevalue);
     first = 0;
     return 0;
   }
-  else {
+  else 
+  {
     // Return time since start
     LARGE_INTEGER current_timevalue;
     QueryPerformanceCounter(&current_timevalue);
@@ -116,19 +116,22 @@ static double GetTime(void)
             (double) start_timevalue.QuadPart) / 
             (double) timefreq.QuadPart;
   }
+/* Linux or Mac OS */
 #else
   // Return number of seconds since start of execution
   static int first = 1;
   static struct timeval start_timevalue;
 
   // Check if this is the first time
-  if (first) {
+  if (first) 
+  {
     // Initialize first time
     gettimeofday(&start_timevalue, NULL);
     first = 0;
     return 0;
   }
-  else {
+  else 
+  {
     // Return time since start
     struct timeval current_timevalue;
     gettimeofday(&current_timevalue, NULL);
@@ -185,7 +188,7 @@ void InterpolateMotion(R3Point *start, R3Vector direction)
  
   // The art of falling
   if (fallIndex != -1)
-    (*start) -= (coords.y - fallIndex - 1) * R3posy_vector;
+    (*start) -= (coords.y - fallIndex - 2) * R3posy_vector;
 }
 
 ////////////////////////////////////////////////////////////
@@ -215,12 +218,8 @@ void AlignReticle()
 
 					if (intersect.hit && intersect.t < smallest) {
             smallest = intersect.t;
-						closestIntersect.t = intersect.t;
-						closestIntersect.hit = intersect.hit;
-						closestIntersect.position = intersect.position;
-						closestIntersect.normal = intersect.normal;
+            closestIntersect = intersect;
 						closestIntersect.node = currentNode;
-						//printf("find intersection");
 					}
 				}
 			}
@@ -248,7 +247,7 @@ void AddBlock()
     return;
 
 	if (currentNormal.Y() == 1.0) 
-    added = scene->chunk[currentBlock->dx][currentBlock->dy + 1][currentBlock->dz];
+        added = scene->chunk[currentBlock->dx][currentBlock->dy + 1][currentBlock->dz];
 	else if (currentNormal.X() == 1.0)
 		added = scene->chunk[currentBlock->dx + 1][currentBlock->dy][currentBlock->dz];
 	else if (currentNormal.X() == -1.0)
@@ -256,7 +255,7 @@ void AddBlock()
 	else if (currentNormal.Z() == 1.0)
 		added = scene->chunk[currentBlock->dx][currentBlock->dy][currentBlock->dz + 1];
 	else if (currentNormal.Z() == -1.0)
-		added = scene->chunk[currentBlock->dx][currentBlock->dy + 1][currentBlock->dz - 1];
+		added = scene->chunk[currentBlock->dx][currentBlock->dy][currentBlock->dz - 1];
 	
 	if (added) 
   {
@@ -341,9 +340,9 @@ void DrawHUD_Hearts()
     glPushMatrix();
     glTranslatef(.25 * x, .9 * y, 0);
 
-    for (int i = 0; i < Main_Character.MaxHealth; i++) 
+    for (int i = 0; i < Main_Character->MaxHealth; i++) 
     {
-        if (i >= Main_Character.Health)
+        if (i >= Main_Character->Health)
             glColor3d(.7, .7, .7);
 
         glBegin(GL_QUADS);
@@ -557,6 +556,25 @@ void MakeMaterials(void)
         //	return 0;
     }	
     empty_heart_material->id = 10;
+
+	cow_material = new R3Material();
+    cow_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+    cow_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+    cow_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+    cow_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+    cow_material->emission = R3Rgb(0, 0, 0, 0);
+    cow_material->shininess = 10;
+    cow_material->indexofrefraction = 1;
+
+    //	char buffer[] = "input/checker.bmp";
+    char cow[] = "input/cow.jpg";
+
+    // Read texture image
+    cow_material->texture = new R2Image();
+    if (!cow_material->texture->Read(cow)) {
+        fprintf(stderr, "Unable to read texture from file");
+    }	
+    cow_material->id = 30;
 }
 
 ////////////////////////////////////////////////////////////
@@ -946,6 +964,17 @@ void DrawScene(R3Scene *scene)
     //what the fuck is scene here for
 }
 
+void DrawCreatures() 
+{
+	LoadMaterial(cow_material);
+	First_Creature.box.Draw();
+}
+
+void UpdateCharacter() 
+{
+	Main_Character->position.Reset(camera.eye.X(), camera.eye.Y(), camera.eye.Z());
+}
+
 ////////////////////////////////////////////////////////////
 // GLUT USER INTERFACE CODE
 ////////////////////////////////////////////////////////////
@@ -954,6 +983,13 @@ void GLUTMainLoop(void)
 {
     // Run main loop -- never returns 
     glutMainLoop();
+}
+
+void GLUTIdleFunction(void) 
+{
+	UpdateCharacter();
+	First_Creature.UpdateCreature(Main_Character);
+  glutPostRedisplay();
 }
 
 void GLUTDrawText(const R3Point& p, const char *s)
@@ -1051,6 +1087,7 @@ void GLUTRedraw(void)
     if (show_faces) {
         glEnable(GL_LIGHTING);
         DrawScene(scene);
+		DrawCreatures();
     }
 
     // Draw scene edges
@@ -1151,7 +1188,7 @@ void GLUTPassiveMotion(int x, int y)
     double vy = (double) dy / (double) GLUTwindow_height;
 
     // Update and clamp x-rotation and y-rotation
-    rot[0] = WRAP(rot[0] + vx, -M_2PI, M_PI);
+    rot[0] = WRAP(rot[0] + vx, -M_2PI, M_2PI);
     rot[1] = CLAMP(rot[1] - vy, -M_PI / 2, M_PI / 2);
 
     GLUTmouse[0] = x;
@@ -1380,6 +1417,7 @@ void GLUTInit(int *argc, char **argv)
     glutMouseFunc(GLUTMouse);
     glutPassiveMotionFunc(GLUTPassiveMotion);
     glutEntryFunc(GLUTMouseEntry);
+	glutIdleFunc(GLUTIdleFunction);
 
     // Initialize graphics modes 
     glEnable(GL_NORMALIZE);
@@ -1397,7 +1435,7 @@ void GLUTInit(int *argc, char **argv)
     glDepthMask(true);
 
     //Initialize Character
-    Main_Character = R3Character();
+    Main_Character = new R3Character();
 }
 
 ////////////////////////////////////////////////////////////
@@ -1427,6 +1465,7 @@ R3Scene *ReadScene(const char *filename)
     camera.eye = R3zero_point + 2. * R3posy_vector;
     camera.up = R3posy_vector;
     camera.right = R3posx_vector;
+    camera.xfov = .5;
 
     // Return scene
     return scene;

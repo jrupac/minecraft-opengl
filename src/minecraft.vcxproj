@@ -153,6 +153,7 @@
     <ClCompile Include="R3\R3Box.cpp" />
     <ClCompile Include="R3\R3Character.cpp" />
     <ClCompile Include="R3\R3Cone.cpp" />
+    <ClCompile Include="R3\R3Creature.cpp" />
     <ClCompile Include="R3\R3Cylinder.cpp" />
     <ClCompile Include="R3\R3Distance.cpp" />
     <ClCompile Include="R3\R3Item.cpp" />
@@ -195,6 +196,7 @@
     <ClInclude Include="R3\R3Box.h" />
     <ClInclude Include="R3\R3Character.h" />
     <ClInclude Include="R3\R3Cone.h" />
+    <ClInclude Include="R3\R3Creature.h" />
     <ClInclude Include="R3\R3Cylinder.h" />
     <ClInclude Include="R3\R3Distance.h" />
     <ClInclude Include="R3\R3Item.h" />

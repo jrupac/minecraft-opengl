@@ -7,6 +7,12 @@
 #include "cos426_opengl.h"
 #include <sstream>
 
+#ifdef _WIN32
+#  include <windows.h>
+#else
+#  include <sys/time.h>
+#endif
+
 #define M_2PI (2. *M_PI)
 #define RAD2DEG (180. / M_PI)
 
@@ -41,7 +47,7 @@ typedef struct
 // HELPER METHODS
 ////////////////////////////////////////////////////////////
 
-static double GetTime(void);
+double GetTime(void);
 bool LegalBlock(R3Index index);
 R3Index getChunkCoordinates(R3Point p);
 void InterpolateMotion(R3Point *start, R3Vector direction);
