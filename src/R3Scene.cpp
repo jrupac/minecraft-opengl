@@ -361,6 +361,9 @@ Read(const char *filename, R3Node *node)
             node->selected = false;
 
             chunk[dx][dy][dz] = node;
+			  node->shape->block->dx = dx;
+			  node->shape->block->dy = dy;
+			  node->shape->block->dz = dz;
           }
         }
       }

@@ -181,10 +181,16 @@ void AddBlock()
     R3Box *lower = currentSelection->shape->box;
 
     // Create new block and add it to the scene graph
-    R3Box *upper = new R3Box(lower->Min() + 2 * R3posy_vector, 
-            lower->Max() + 2 * R3posy_vector);
-
-    R3Shape *shape = new R3Shape();
+    R3Node *upper = scene->
+	chunk[currentSelection->shape->block->dx][currentSelection->shape->block->dy + 1][currentSelection->shape->block->dz];
+	
+	if (upper->shape->block->blockType == AIR_BLOCK) {
+	upper->shape->block->blockType = currentSelection->shape->block->blockType;
+	}
+	else {
+		return;
+	}
+/*    R3Shape *shape = new R3Shape();
     shape->type = R3_BOX_SHAPE;
     shape->box = upper;
     shape->sphere = NULL;
@@ -199,7 +205,7 @@ void AddBlock()
     newNode->transformation = R3identity_matrix;
     newNode->bbox = *upper;
     newNode->selected = false;
-    scene->root->children.push_back(newNode);
+    scene->root->children.push_back(newNode);*/
 }
 
 void DrawHUD() 

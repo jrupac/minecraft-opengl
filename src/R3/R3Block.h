@@ -28,6 +28,7 @@ class R3Block {
   bool walkable;
   bool transparent;
 	R3Block *upper;
+	int dx; int dy; int dz;
 };
 
 inline R3Box& R3Block::
