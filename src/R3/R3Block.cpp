@@ -18,32 +18,32 @@ R3Block(const R3Box& box, int type)
       health = DIRT_HEALTH;
       walkable = false;
       transparent = false;
-		  gravity = true;
+      gravity = true;
       break;
     case AIR_BLOCK:
       health = AIR_HEALTH;
       walkable = true;
       transparent = true;
-		  gravity = false;
+      gravity = false;
       break;
     case LEAF_BLOCK:
       health = LEAF_HEALTH;
       walkable = false;
       transparent = false;
-		  gravity = false;
+      gravity = false;
       break;
     case BRANCH_BLOCK:
       health = BRANCH_HEALTH;
       walkable = false;
       transparent = false;
-		  gravity = false;
+      gravity = false;
       break;
-	case STONE_BLOCK:
-		  health = STONE_HEALTH;
-		  walkable = false;
-		  transparent = false;
-		  gravity = false;
-		  break;
+    case STONE_BLOCK:
+      health = STONE_HEALTH;
+      walkable = false;
+      transparent = false;
+      gravity = false;
+      break;
   }
 }
 
@@ -55,6 +55,44 @@ Draw(void) const
     box.Draw();
 }
 
+void R3Block::
+changeBlock(int newType)
+{
+  blockType = newType;
+  switch (newType)
+  {
+    case DIRT_BLOCK:
+      health = DIRT_HEALTH;
+      walkable = false;
+      transparent = false;
+      gravity = true;
+      break;
+    case AIR_BLOCK:
+      health = AIR_HEALTH;
+      walkable = true;
+      transparent = true;
+      gravity = false;
+      break;
+    case LEAF_BLOCK:
+      health = LEAF_HEALTH;
+      walkable = false;
+      transparent = false;
+      gravity = false;
+      break;
+    case BRANCH_BLOCK:
+      health = BRANCH_HEALTH;
+      walkable = false;
+      transparent = false;
+      gravity = false;
+      break;
+    case STONE_BLOCK:
+      health = STONE_HEALTH;
+      walkable = false;
+      transparent = false;
+      gravity = false;
+      break;
+  }
+}
 
 
 

@@ -227,106 +227,67 @@ void AlignReticle()
 		}
 	}
 
-	if (closestIntersect.hit) {
+	if (closestIntersect.hit) 
+  {
 		currentSelection = closestIntersect.node;
 		currentNormal = closestIntersect.normal;
-	//	printf("%f, %f, %f\n", currentNormal.X(), currentNormal.Y(), currentNormal.Z());
-	//if (currentSelection->shape->block->blockType == AIR_BLOCK) {
-	//	printf("notair\n");
-	//}
 	}
 }	
 
 void AddBlock()
 {
-    // Force-update detection of current selection
-    AlignReticle();
-
-    // If no selection, don't add a block
-    if (!currentSelection)
-        return;
-
-	//If selection is a block that cannot be built on, return (ie. leaf)
-	if (currentSelection->shape->block->blockType == LEAF_BLOCK) {
-		return;
-	}
-	
-	
+  R3Block *currentBlock = currentSelection->shape->block;
 	R3Node *added = NULL;
-	if (currentNormal.Y() == 1.0) {
-    // Create new block and add it to the scene graph
-    added = scene->
-	chunk[currentSelection->shape->block->dx][currentSelection->shape->block->dy + 1][currentSelection->shape->block->dz];
-	}
-	else if (currentNormal.X() == 1.0) {
-		added = scene->
-		chunk[currentSelection->shape->block->dx+1][currentSelection->shape->block->dy][currentSelection->shape->block->dz];
-	}
-	else if (currentNormal.X() == -1.0) {
-		added = scene->
-		chunk[currentSelection->shape->block->dx-1][currentSelection->shape->block->dy][currentSelection->shape->block->dz];
-	}
-	else if (currentNormal.Z() == 1.0) {
-		added = scene->
-		chunk[currentSelection->shape->block->dx][currentSelection->shape->block->dy][currentSelection->shape->block->dz+1];
-	}
-	else if (currentNormal.Z() == -1.0) {
-		added = scene->
-		chunk[currentSelection->shape->block->dx][currentSelection->shape->block->dy + 1][currentSelection->shape->block->dz-1];
-	}
+
+  // If no selection, don't add a block
+  if (!currentSelection)
+    return;
+
+  //If selection is a block that cannot be built on, return (ie. leaf)
+  if (currentBlock->blockType == LEAF_BLOCK)
+    return;
+
+	if (currentNormal.Y() == 1.0) 
+    added = scene->chunk[currentBlock->dx][currentBlock->dy + 1][currentBlock->dz];
+	else if (currentNormal.X() == 1.0)
+		added = scene->chunk[currentBlock->dx + 1][currentBlock->dy][currentBlock->dz];
+	else if (currentNormal.X() == -1.0)
+		added = scene->chunk[currentBlock->dx - 1][currentBlock->dy][currentBlock->dz];
+	else if (currentNormal.Z() == 1.0)
+		added = scene->chunk[currentBlock->dx][currentBlock->dy][currentBlock->dz + 1];
+	else if (currentNormal.Z() == -1.0)
+		added = scene->chunk[currentBlock->dx][currentBlock->dy + 1][currentBlock->dz - 1];
 	
-	//R3Block *newBlock;
-		
-	if (added != NULL) {
-	//add new block only if upper block is an air block
-	if (added->shape->block->blockType == AIR_BLOCK) {
-		//newBlock = new R3Block(upper->shape->block->getBox(), currentSelection->shape->block->getBlockType());
-		added->shape->block->blockType = currentSelection->shape->block->blockType;
-		//upper->shape->block = newBlock;
-		added->shape->block->health = currentSelection->shape->block->health;
-		added->shape->block->walkable = currentSelection->shape->block->walkable;
-		added->shape->block->transparent = currentSelection->shape->block->transparent;
-		added->shape->block->gravity = currentSelection->shape->block->gravity;
-	}
-	}
-	else {
-		return;
-	}
+	if (added) 
+  {
+    // Add new block only if new block is an air block
+    if (added->shape->block->blockType == AIR_BLOCK) 
+      added->shape->block->changeBlock(currentBlock->blockType);
+  }
 }
 
-void RemoveBlock() {
-	R3Node *lower = currentSelection;
-	R3Node *upper = scene->
-	chunk[currentSelection->shape->block->dx][currentSelection->shape->block->dy + 1][currentSelection->shape->block->dz];
-	if (upper->shape->block->gravity == false) {
-		//printf("remove block");
-		currentSelection->shape->block->blockType = AIR_BLOCK;
-		currentSelection->shape->block->health = -1;
-		currentSelection->shape->block->walkable = true;
-		currentSelection->shape->block->transparent = true;
-		currentSelection->shape->block->gravity = false;
-		return;
-	}
-	else {
-	while (upper->shape->block->gravity == true) {
-		lower->shape->block->blockType = upper->shape->block->blockType;
-		lower->shape->block->health = upper->shape->block->health;
-		lower->shape->block->walkable = upper->shape->block->walkable;
-		lower->shape->block->transparent = upper->shape->block->transparent;
-		lower->shape->block->gravity = upper->shape->block->gravity;
-		/*scene->chunk[lower->shape->block->dx][lower->shape->block->dy][lower->shape->block->dz] =
-			scene->chunk[upper->shape->block->dx][upper->shape->block->dy][upper->shape->block->dz];*/
-		
-		lower = upper;
-		upper = scene->chunk[upper->shape->block->dx][upper->shape->block->dy + 1][upper->shape->block->dz];
-	}
-		lower->shape->block->blockType = AIR_BLOCK;
-		lower->shape->block->health = -1;
-		lower->shape->block->walkable = true;
-		lower->shape->block->transparent = true;
-		lower->shape->block->gravity = false;
-	}
+void RemoveBlock() 
+{
+  R3Node *lower = currentSelection;
+  R3Block *lowerBlock = lower->shape->block;
+	R3Node *upper = scene->chunk[lowerBlock->dx][lowerBlock->dy + 1][lowerBlock->dz];
+  R3Block *upperBlock = upper->shape->block;
 
+	if (!upper->shape->block->gravity) 
+    lowerBlock->changeBlock(AIR_BLOCK);
+	else 
+  {
+    while (upperBlock->gravity) 
+    {
+      lowerBlock->changeBlock(upperBlock->blockType);
+      lower = upper;
+      lowerBlock = lower->shape->block;
+      upper = scene->chunk[upperBlock->dx][upperBlock->dy + 1][upperBlock->dz];
+      upperBlock = upper->shape->block;
+    }
+
+    lowerBlock->changeBlock(AIR_BLOCK);
+  }
 }
 
 void DrawHUD() 
