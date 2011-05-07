@@ -1,7 +1,7 @@
 
 #include "R3.h"
 
-#define DIRT_HEALTH 10
+#define DIRT_HEALTH 3
 #define AIR_HEALTH -1
 #define LEAF_HEALTH 1
 #define BRANCH_HEALTH 2

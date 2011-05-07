@@ -136,9 +136,12 @@ void InterpolateMotion(R3Point *start, R3Vector direction)
 
 void AlignReticle()
 {
+	currentSelection = NULL;
 	R3Ray ray = R3Ray(camera.eye, towards);
 	R3Intersection intersect;
+	intersect.hit = false;
 	R3Intersection closestIntersect;
+	closestIntersect.hit = false;
 	double smallest = DBL_MAX;
 
 	for (int dz = 0; dz < CHUNK_Z; dz++) 
@@ -149,23 +152,29 @@ void AlignReticle()
       {
         R3Node *currentNode = scene->chunk[dx][dy][dz];
 
-				if (currentNode->shape->block->getBlockType() != AIR_BLOCK) 
-        {
+				if (currentNode->shape->block->getBlockType() != AIR_BLOCK) {
 					intersect = IntersectBox(ray, currentNode->shape->block->getBox());
 
-					if (intersect.hit && intersect.t < smallest) 
-          {
+					if (intersect.hit && intersect.t < smallest) {
             smallest = intersect.t;
-            closestIntersect = intersect;
-            closestIntersect.node = currentNode;
+						closestIntersect.t = intersect.t;
+						closestIntersect.hit = intersect.hit;
+						closestIntersect.position = intersect.position;
+						closestIntersect.normal = intersect.normal;
+						closestIntersect.node = currentNode;
+						//printf("find intersection");
 					}
 				}
 			}
 		}
 	}
 
-	if (closestIntersect.hit) 
+	if (closestIntersect.hit) {
 		currentSelection = closestIntersect.node;
+	//if (currentSelection->shape->block->blockType == AIR_BLOCK) {
+	//	printf("notair\n");
+	//}
+	}
 }	
 
 void AddBlock()
@@ -177,35 +186,28 @@ void AddBlock()
     if (!currentSelection)
         return;
 
-    // TODO: Check if there's a block already above it
-    R3Box *lower = currentSelection->shape->box;
-
+	//If selection is a block that cannot be built on, return (ie. leaf)
+	if (currentSelection->shape->block->blockType == LEAF_BLOCK) {
+		return;
+	}
+	
     // Create new block and add it to the scene graph
     R3Node *upper = scene->
 	chunk[currentSelection->shape->block->dx][currentSelection->shape->block->dy + 1][currentSelection->shape->block->dz];
 	
+	//R3Block *newBlock;
+	//add new block only if upper block is an air block
 	if (upper->shape->block->blockType == AIR_BLOCK) {
-	upper->shape->block->blockType = currentSelection->shape->block->blockType;
+		//newBlock = new R3Block(upper->shape->block->getBox(), currentSelection->shape->block->getBlockType());
+		upper->shape->block->blockType = currentSelection->shape->block->blockType;
+		//upper->shape->block = newBlock;
+		upper->shape->block->health = currentSelection->shape->block->health;
+		upper->shape->block->walkable = currentSelection->shape->block->walkable;
+		upper->shape->block->transparent = currentSelection->shape->block->transparent;
 	}
 	else {
 		return;
 	}
-/*    R3Shape *shape = new R3Shape();
-    shape->type = R3_BOX_SHAPE;
-    shape->box = upper;
-    shape->sphere = NULL;
-    shape->cylinder = NULL;
-    shape->cone = NULL;
-    shape->mesh = NULL;
-    shape->segment = NULL;
-
-    R3Node *newNode = new R3Node();
-    newNode->parent = scene->root;
-    newNode->shape = shape;
-    newNode->transformation = R3identity_matrix;
-    newNode->bbox = *upper;
-    newNode->selected = false;
-    scene->root->children.push_back(newNode);*/
 }
 
 void DrawHUD() 
@@ -1060,17 +1062,32 @@ void GLUTMouse(int button, int state, int x, int y)
     {
         if (button == GLUT_LEFT_BUTTON) 
         {
+						//printf("left click\n");
             if (CAPTURE_MOUSE == false) 
             {
                 glutSetCursor(GLUT_CURSOR_NONE);
                 CAPTURE_MOUSE = true;
             }
+			if (currentSelection != NULL) {
+				currentSelection->shape->block->health--;
+				if (currentSelection->shape->block->health <= 0) {
+				//	printf("out of health\n");
+					currentSelection->shape->block->blockType = AIR_BLOCK;
+					currentSelection->shape->block->health = -1;
+					currentSelection->shape->block->walkable = true;
+					currentSelection->shape->block->transparent = true;
+					
+					//currentSelection->health = 
+				}
+			}
+
         }
         else if (button == GLUT_MIDDLE_BUTTON) 
         {
         }
         else if (button == GLUT_RIGHT_BUTTON) 
         {
+						printf("right click\n");
         }
     }
 
@@ -1226,7 +1243,7 @@ void GLUTCommand(int cmd)
 
 void GLUTCreateMenu(void)
 {
-    // Display sub-menu
+  /*  // Display sub-menu
     int display_menu = glutCreateMenu(GLUTCommand);
     glutAddMenuEntry("Faces (F)", DISPLAY_FACE_TOGGLE_COMMAND);
     glutAddMenuEntry("Edges (E)", DISPLAY_EDGE_TOGGLE_COMMAND);
@@ -1241,7 +1258,7 @@ void GLUTCreateMenu(void)
     glutAddMenuEntry("Quit", QUIT_COMMAND);
 
     // Attach main menu to right mouse button
-    glutAttachMenu(GLUT_RIGHT_BUTTON);
+    glutAttachMenu(GLUT_RIGHT_BUTTON);*/
 }
 
 void GLUTInit(int *argc, char **argv)
