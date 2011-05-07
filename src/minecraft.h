@@ -6,13 +6,16 @@
 #include "raytrace.h"
 #include "cos426_opengl.h"
 
-#define M_2PI (M_PI << 1)
+#define M_2PI (2. *M_PI)
 #define RAD2DEG (180. / M_PI)
 
 // Return sign of x, with 0 as even
 #define SIGN(x) ((x) >= 0 ? 1 : -1)
 // Clamp x to [low, high]
 #define CLAMP(x, low, high) MIN(MAX((x), (low)), (high))
+// Wrap x around so it's between [low, high]
+#define WRAP(x, low, high) (((x) > (high)) ? (x) - (high) : \
+                            ((x) < (low)) ? (x) - (low) : (x))  
  
 // GLUT command list
 
@@ -26,10 +29,19 @@ enum {
   QUIT_COMMAND,
 };
 
+typedef struct 
+{
+  int x;
+  int y;
+  int z;
+} R3Index;
+
 ////////////////////////////////////////////////////////////
 // HELPER METHODS
 ////////////////////////////////////////////////////////////
 
+bool LegalBlock(R3Index index);
+R3Index getChunkCoordinates(R3Point p);
 void InterpolateMotion(R3Point *start, R3Vector direction);
 
 ////////////////////////////////////////////////////////////

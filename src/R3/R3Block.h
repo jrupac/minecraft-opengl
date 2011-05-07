@@ -21,19 +21,19 @@ class R3Block {
 	void setUpper(R3Block *up);
   void Draw(void) const;
 
- private:
+ public:
   R3Box box;
   int blockType;
   int health;
   bool walkable;
   bool transparent;
-	R3Block *upper; //block above this one
+	R3Block *upper;
 };
 
 inline R3Box& R3Block::
 getBox (void) 
 {
-  // Gets the box for this block
+  // Get the box for this block
   return box;
 }
 

@@ -90,8 +90,6 @@ struct R3Node {
   bool selected;
 };
 
-
-
 // Scene graph definition
 
 struct R3Scene {
@@ -112,7 +110,8 @@ struct R3Scene {
 
  public:
   R3Node *root;
-  R3Node* chunk[CHUNK_X][CHUNK_Y][CHUNK_Z];
+  R3Node *chunk[CHUNK_X][CHUNK_Y][CHUNK_Z];
+  R3Point start;
   vector<R3Light *> lights;
   R3Camera camera;
   R3Box bbox;

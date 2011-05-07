@@ -24,7 +24,7 @@ static int show_lights = 0;
 static int show_camera = 0;
 static int save_image = 0;
 static int quit = 0;
-static int INTERPOLATION = 2;
+static int INTERPOLATION = 1;
 static R3Node *currentSelection = NULL;
 static R3Rgb background = R3Rgb(0.529, 0.807, 0.980, 1.);
 static float picker_height = 10;
@@ -33,7 +33,8 @@ static bool CAPTURE_MOUSE = false;
 static R3Vector rot;	
 static R3Character Main_Character;
 
-//Materials
+// Materials
+
 R3Material *default_material;
 R3Material *branch_material;
 R3Material *dirt_material;
@@ -56,9 +57,54 @@ static int GLUTmodifiers = 0;
 // HELPER METHODS
 ////////////////////////////////////////////////////////////
 
+bool LegalBlock(R3Index index)
+{
+  return (index.x >= 0 && index.x < CHUNK_X &&
+          index.y >= 0 && index.y < CHUNK_Y &&
+          index.z >= 0 && index.z < CHUNK_Z);
+}
+
+R3Index getChunkCoordinates(R3Point p)
+{
+  R3Vector diff = p - scene->start;  
+  R3Index ret;
+
+  ret.x = (int) diff[0];
+  ret.y = (int) diff[1];
+  ret.z = (int) diff[2];
+
+  return ret;
+}
+
 void InterpolateMotion(R3Point *start, R3Vector direction)
 {
+  R3Index coords = getChunkCoordinates((*start) + (direction / INTERPOLATION));
+  int fallIndex = -1;
+  
+  // Check if next potential location is legal
+  if (!(scene->chunk[coords.x][coords.y-1][coords.z]->shape->block->walkable &&
+      LegalBlock(coords)))
+    return;
+
+  fprintf(stderr, "%d %d %d\n", coords.x, coords.y, coords.z);
   *start += direction / INTERPOLATION;
+  
+  // Starting from below character, keep going down until you find something
+  // you can't walk through 
+  for (int i = coords.y - 2; i >= 0; i--)
+  {
+    R3Node *current = scene->chunk[coords.x][i][coords.z];
+    R3Block *curBlock = current->shape->block;
+    
+    if (curBlock->walkable)
+      fallIndex = i;
+    else if (fallIndex != -1)
+        break;
+  }
+ 
+  // The art of falling
+  if (fallIndex != -1)
+    (*start) -= (coords.y - fallIndex - 1) * R3posy_vector;
 }
 
 ////////////////////////////////////////////////////////////
@@ -157,9 +203,9 @@ void DrawHUD_Hearts()
     glPushMatrix();
     glTranslatef(.25 * x, .9 * y, 0);
 
-    for (int i = 0; i < Main_Character.maxhealth; i++) 
+    for (int i = 0; i < Main_Character.MaxHealth; i++) 
     {
-        if (i >= Main_Character.health)
+        if (i >= Main_Character.Health)
             glColor3d(.7, .7, .7);
 
         glBegin(GL_QUADS);
@@ -934,7 +980,7 @@ void GLUTPassiveMotion(int x, int y)
     double vy = (double) dy / (double) GLUTwindow_height;
 
     // Update and clamp x-rotation and y-rotation
-    rot[0] = CLAMP(rot[0] + vx, -M_PI / 2, M_PI / 2);
+    rot[0] = WRAP(rot[0] + vx, -M_2PI, M_PI);
     rot[1] = CLAMP(rot[1] - vy, -M_PI / 2, M_PI / 10);
 
     GLUTmouse[0] = x;

@@ -309,6 +309,8 @@ Read(const char *filename, R3Node *node)
       // Get material
       R3Material *material = group_materials[depth];
 
+      start = start_point;
+
       for (int dz = 0; dz < CHUNK_Z; dz++)
       {
         for (int dy = 0; dy < CHUNK_Y; dy++)

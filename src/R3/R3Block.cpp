@@ -15,12 +15,12 @@ R3Block(const R3Box& box, int type)
   {
     case DIRT_BLOCK:
       health = DIRT_HEALTH;
-      walkable = true;
+      walkable = false;
       transparent = false;
       break;
     case AIR_BLOCK:
       health = AIR_HEALTH;
-      walkable = false;
+      walkable = true;
       transparent = true;
       break;
     case LEAF_BLOCK:
