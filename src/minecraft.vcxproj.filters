@@ -374,5 +374,8 @@
     <ClInclude Include="R3\R3Item.h">
       <Filter>Support Libraries\R3 Library\R3 Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="minecraft.h">
+      <Filter>Main Program\Main Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

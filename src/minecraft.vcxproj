@@ -170,6 +170,7 @@
     <ClCompile Include="minecraft.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="minecraft.h" />
     <ClInclude Include="R2\R2.h" />
     <ClInclude Include="R2\R2Distance.h" />
     <ClInclude Include="R2\R2Image.h" />

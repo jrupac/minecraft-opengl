@@ -32,6 +32,10 @@ static float picker_width = 10;
 static bool CAPTURE_MOUSE = false;
 static R3Vector rot;	
 static R3Character Main_Character;
+static R3Vector towards;
+
+R3Intersection closestintersect;
+static int tempinteger;
 
 // Materials
 
@@ -128,20 +132,64 @@ void InterpolateMotion(R3Point *start, R3Vector direction)
     (*start) -= (coords.y - fallIndex - 1) * R3posy_vector;
 }
 
+
+
+void GetTowards() {
+	towards.Reset(0, 0, -1);
+	double phi = -1*rot[0];
+	double theta = -1*rot[1];
+	R3Matrix rotation(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1);
+	rotation.YRotate(phi);
+	rotation.XRotate(theta);
+	towards.Transform(rotation);
+
+}
+
+
 ////////////////////////////////////////////////////////////
 // GAME LOGIC CODE
 ////////////////////////////////////////////////////////////
 
 void AlignReticle()
 {
-    R3Ray ray = R3Ray(camera.eye, camera.towards);
-    R3Intersection intersect = IntersectScene(ray, scene, scene->root);
+	GetTowards();
+	//printf("Towards (%f, %f, %f) \n", towards.X(), towards.Y(), towards.Z());
+	towards.Normalize();
+	//printf("Eye: (%f, %f, %f) \n", camera.eye.X(), camera.eye.Y(), camera.eye.Z());
+	R3Ray ray = R3Ray(camera.eye, towards);
+	R3Intersection intersect;
+	R3Intersection closestintersect;
+	double smallest = INT_MAX;
 
-    currentSelection = NULL;
+	for (int dz = 0; dz < CHUNK_Z; dz++) {
+		for (int dy = 0; dy < CHUNK_Y; dy++) {
+			for (int dx = 0; dx < CHUNK_X; dx++) {
 
-    if (intersect.hit)
-        currentSelection = intersect.node;
-}
+				if(scene->chunk[dx][dy][dz]->shape->block->getBlockType() != AIR_BLOCK) {
+					intersect = IntersectBox(ray, scene->chunk[dx][dy][dz]->shape->block->getBox());
+					if(intersect.hit) {
+
+						if(intersect.t < smallest) {
+							smallest = intersect.t;
+							closestintersect.t = intersect.t;
+							closestintersect.hit = intersect.hit;
+							closestintersect.node = scene->chunk[dx][dy][dz];
+							closestintersect.position = intersect.position;
+							closestintersect.normal = intersect.normal;
+							
+							if(closestintersect.node->shape == NULL)printf("Why are you null?!? %d", tempinteger++);
+						}
+					}
+				}
+
+			}
+		}
+	}
+	if(closestintersect.hit == true) {
+		currentSelection = closestintersect.node;
+	}
+
+}	
 
 void AddBlock()
 {
@@ -402,7 +450,7 @@ void MakeMaterials(void)
     heart_material->indexofrefraction = 1;
 
     //	char buffer[] = "input/checker.bmp";
-    char heart[] = "input/dirt.jpg";
+    char heart[] = "input/alldirt.jpg";
 
     // Read texture image
     heart_material->texture = new R2Image();
@@ -749,6 +797,7 @@ void LoadLights(R3Scene *scene)
 
 void DrawNode(R3Scene *scene, R3Node *node)
 {
+
     // Push transformation onto stack
     glPushMatrix();
     LoadMatrix(&node->transformation);
@@ -762,13 +811,13 @@ void DrawNode(R3Scene *scene, R3Node *node)
     {
         // Draw face
         DrawShape(node->shape);
-
         // If this is the current selected block, highlight it
-        if (node == currentSelection)
+		
+        if (currentSelection == node)
         {
             glDisable(GL_LIGHTING);
             glColor3d(0., 0., 0.);
-            glLineWidth(5);
+            glLineWidth(15);
             glPolygonMode(GL_FRONT, GL_LINE);
             DrawShape(node->shape);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -1002,7 +1051,7 @@ void GLUTPassiveMotion(int x, int y)
 
     // Update and clamp x-rotation and y-rotation
     rot[0] = WRAP(rot[0] + vx, -M_2PI, M_PI);
-    rot[1] = CLAMP(rot[1] - vy, -M_PI / 2, M_PI / 10);
+    rot[1] = CLAMP(rot[1] - vy, -M_PI / 2, M_PI / 2);
 
     GLUTmouse[0] = x;
     GLUTmouse[1] = y;
