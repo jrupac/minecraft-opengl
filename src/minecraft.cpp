@@ -203,28 +203,28 @@ void AlignReticle()
 	intersect.hit = false;
 	R3Intersection closestIntersect;
 	closestIntersect.hit = false;
-	double smallest = DBL_MAX;
+  double smallest = DBL_MAX;
 
-	for (int dz = 0; dz < CHUNK_Z; dz++) 
+  for (int dz = 0; dz < CHUNK_Z; dz++) 
   {
-		for (int dy = 0; dy < CHUNK_Y; dy++) 
+    for (int dy = 0; dy < CHUNK_Y; dy++) 
     {
-			for (int dx = 0; dx < CHUNK_X; dx++) 
+      for (int dx = 0; dx < CHUNK_X; dx++) 
       {
         R3Node *currentNode = scene->chunk[dx][dy][dz];
 
-				if (currentNode->shape->block->getBlockType() != AIR_BLOCK) {
-					intersect = IntersectBox(ray, currentNode->shape->block->getBox());
+        if (currentNode->shape->block->getBlockType() != AIR_BLOCK) {
+          intersect = IntersectBox(ray, currentNode->shape->block->getBox());
 
-					if (intersect.hit && intersect.t < smallest) {
+          if (intersect.hit && intersect.t < smallest) {
             smallest = intersect.t;
             closestIntersect = intersect;
-						closestIntersect.node = currentNode;
-					}
-				}
-			}
-		}
-	}
+            closestIntersect.node = currentNode;
+          }
+        }
+      }
+    }
+  }
 
 	if (closestIntersect.hit) 
   {
@@ -235,12 +235,12 @@ void AlignReticle()
 
 void AddBlock()
 {
-  R3Block *currentBlock = currentSelection->shape->block;
-	R3Node *added = NULL;
-
   // If no selection, don't add a block
   if (!currentSelection)
     return;
+
+  R3Block *currentBlock = currentSelection->shape->block;
+	R3Node *added = NULL;
 
   //If selection is a block that cannot be built on, return (ie. leaf)
   if (currentBlock->blockType == LEAF_BLOCK)
@@ -1198,49 +1198,49 @@ void GLUTPassiveMotion(int x, int y)
 
 void GLUTMouse(int button, int state, int x, int y)
 {
-    // Invert y coordinate
-    y = GLUTwindow_height - y;
+  // Invert y coordinate
+  y = GLUTwindow_height - y;
 
-    // Process mouse button event
-    if (state == GLUT_DOWN) 
+  // Process mouse button event
+  if (state == GLUT_DOWN) 
+  {
+    if (button == GLUT_LEFT_BUTTON) 
     {
-        if (button == GLUT_LEFT_BUTTON) 
+      if (!CAPTURE_MOUSE) 
+      {
+        glutSetCursor(GLUT_CURSOR_NONE);
+        CAPTURE_MOUSE = true;
+      }
+      if (currentSelection != NULL) 
+      {
+        currentSelection->shape->block->health--;
+        if (currentSelection->shape->block->health <= 0) 
         {
-						//printf("left click\n");
-            if (CAPTURE_MOUSE == false) 
-            {
-                glutSetCursor(GLUT_CURSOR_NONE);
-                CAPTURE_MOUSE = true;
-            }
-			if (currentSelection != NULL) {
-				currentSelection->shape->block->health--;
-				if (currentSelection->shape->block->health <= 0) {
-				//	printf("out of health\n");
-					RemoveBlock();
-				}
-			}
+          RemoveBlock();
+        }
+      }
 
-        }
-        else if (button == GLUT_MIDDLE_BUTTON) 
-        {
-        }
-        else if (button == GLUT_RIGHT_BUTTON) 
-        {
-			AddBlock();
-        }
     }
+    else if (button == GLUT_MIDDLE_BUTTON) 
+    {
+    }
+    else if (button == GLUT_RIGHT_BUTTON) 
+    {
+      AddBlock();
+    }
+  }
 
-    // Remember button state 
-    int b = (button == GLUT_LEFT_BUTTON) ? 0 : ((button == GLUT_MIDDLE_BUTTON) ? 1 : 2);
-    GLUTbutton[b] = (state == GLUT_DOWN) ? 1 : 0;
+  // Remember button state 
+  int b = (button == GLUT_LEFT_BUTTON) ? 0 : ((button == GLUT_MIDDLE_BUTTON) ? 1 : 2);
+  GLUTbutton[b] = (state == GLUT_DOWN) ? 1 : 0;
 
-    // Remember modifiers 
-    GLUTmodifiers = glutGetModifiers();
+  // Remember modifiers 
+  GLUTmodifiers = glutGetModifiers();
 
-    // Remember mouse position 
-    GLUTmouse[0] = x;
-    GLUTmouse[1] = y;
-    glutPostRedisplay();
+  // Remember mouse position 
+  GLUTmouse[0] = x;
+  GLUTmouse[1] = y;
+  glutPostRedisplay();
 }
 
 void GLUTMouseEntry(int state)
