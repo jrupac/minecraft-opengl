@@ -39,7 +39,8 @@ static float picker_height = 10;
 static float picker_width = 10;
 static bool CAPTURE_MOUSE = false;
 static R3Vector rot;	
-static R3Character Main_Character;
+static R3Creature First_Creature;
+static R3Character *Main_Character;
 static R3Vector towards;
 double previous_time = 0;
 double current_time = 0;
@@ -58,6 +59,7 @@ R3Material *alldirt_material;
 R3Material *stone_material;
 R3Material *heart_material;
 R3Material *empty_heart_material;
+R3Material *cow_material;
 
 // GLUT variables 
 
@@ -272,7 +274,7 @@ void AddBlock()
 	}
 	else if (currentNormal.Z() == -1.0) {
 		added = scene->
-		chunk[currentSelection->shape->block->dx][currentSelection->shape->block->dy + 1][currentSelection->shape->block->dz-1];
+		chunk[currentSelection->shape->block->dx][currentSelection->shape->block->dy][currentSelection->shape->block->dz-1];
 	}
 	
 	//R3Block *newBlock;
@@ -380,9 +382,9 @@ void DrawHUD_Hearts()
     glPushMatrix();
     glTranslatef(.25 * x, .9 * y, 0);
 
-    for (int i = 0; i < Main_Character.MaxHealth; i++) 
+    for (int i = 0; i < Main_Character->MaxHealth; i++) 
     {
-        if (i >= Main_Character.Health)
+        if (i >= Main_Character->Health)
             glColor3d(.7, .7, .7);
 
         glBegin(GL_QUADS);
@@ -596,6 +598,26 @@ void MakeMaterials(void)
         //	return 0;
     }	
     empty_heart_material->id = 10;
+	
+	cow_material = new R3Material();
+    cow_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+    cow_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+    cow_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+    cow_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+    cow_material->emission = R3Rgb(0, 0, 0, 0);
+    cow_material->shininess = 10;
+    cow_material->indexofrefraction = 1;
+
+    //	char buffer[] = "input/checker.bmp";
+    char cow[] = "input/cow.jpg";
+
+    // Read texture image
+    cow_material->texture = new R2Image();
+    if (!cow_material->texture->Read(cow)) {
+        fprintf(stderr, "Unable to read texture from file");
+        //	return 0;
+    }	
+    cow_material->id = 30;
 }
 
 ////////////////////////////////////////////////////////////
@@ -985,6 +1007,16 @@ void DrawScene(R3Scene *scene)
     //what the fuck is scene here for
 }
 
+void DrawCreatures() {
+	//First_Creature.UpdateCreature();
+	//printf("Creature at: (%f, %f, %f)\n", First_Creature.position.X(), First_Creature.position.Y(), First_Creature.position.Z());
+	LoadMaterial(cow_material);
+	First_Creature.box.Draw();
+}
+
+void UpdateCharacter() {
+	Main_Character->position.Reset(camera.eye.X(), camera.eye.Y(), camera.eye.Z());
+}
 ////////////////////////////////////////////////////////////
 // GLUT USER INTERFACE CODE
 ////////////////////////////////////////////////////////////
@@ -993,6 +1025,17 @@ void GLUTMainLoop(void)
 {
     // Run main loop -- never returns 
     glutMainLoop();
+}
+
+
+
+void GLUTIdleFunction(void) {
+	UpdateCharacter();
+	First_Creature.UpdateCreature(Main_Character);
+	//printf("Creature at: (%f, %f, %f)\n", First_Creature.position.X(), First_Creature.position.Y(), First_Creature.position.Z());
+	//printf("Character at: (%f, %f, %f)\n", Main_Character->position.X(), Main_Character->position.Y(), Main_Character->position.Z());
+    glutPostRedisplay();
+
 }
 
 void GLUTDrawText(const R3Point& p, const char *s)
@@ -1090,6 +1133,7 @@ void GLUTRedraw(void)
     if (show_faces) {
         glEnable(GL_LIGHTING);
         DrawScene(scene);
+		DrawCreatures();
     }
 
     // Draw scene edges
@@ -1419,7 +1463,7 @@ void GLUTInit(int *argc, char **argv)
     glutMouseFunc(GLUTMouse);
     glutPassiveMotionFunc(GLUTPassiveMotion);
     glutEntryFunc(GLUTMouseEntry);
-
+	glutIdleFunc(GLUTIdleFunction);
     // Initialize graphics modes 
     glEnable(GL_NORMALIZE);
     glEnable(GL_LIGHTING);
@@ -1436,7 +1480,7 @@ void GLUTInit(int *argc, char **argv)
     glDepthMask(true);
 
     //Initialize Character
-    Main_Character = R3Character();
+    Main_Character = new R3Character();
 }
 
 ////////////////////////////////////////////////////////////
@@ -1466,7 +1510,7 @@ R3Scene *ReadScene(const char *filename)
     camera.eye = R3zero_point + 2. * R3posy_vector;
     camera.up = R3posy_vector;
     camera.right = R3posx_vector;
-
+	camera.xfov = .5;
     // Return scene
     return scene;
 }

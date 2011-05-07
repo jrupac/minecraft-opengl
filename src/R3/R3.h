@@ -61,6 +61,7 @@ class R3Block;
 #include "R3Matrix.h"
 #include "R3Block.h"
 #include "R3Item.h"
+#include "R3Creature.h"
 #include "R3Character.h"
 
 
