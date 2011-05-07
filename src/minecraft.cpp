@@ -54,10 +54,15 @@ static R3Material *grass_material;
 static R3Material *leaf_material;
 static R3Material *alldirt_material;
 static R3Material *stone_material;
-static R3Material *heart_material;
-static R3Material *empty_heart_material;
 static R3Material *cow_material;
 static R3Material *deer_material;
+
+//Materials for Icons
+static R3Material *dirt_icon_material;
+static R3Material *stone_icon_material;
+static R3Material *heart_material;
+static R3Material *empty_heart_material;
+
 
 // GLUT variables 
 
@@ -255,36 +260,64 @@ void AlignReticle()
     }
 }	
 
-void AddBlock()
+void AddBlock(int block)
 {
-  // If no selection, don't add a block
-  if (!currentSelection)
-    return;
-
-  R3Block *currentBlock = currentSelection->shape->block;
+	R3Block *currentBlock = currentSelection->shape->block;
 	R3Node *added = NULL;
-
-  //If selection is a block that cannot be built on, return (ie. leaf)
-  if (currentBlock->blockType == LEAF_BLOCK)
-    return;
-
-	if (currentNormal.Y() == 1.0) 
-        added = scene->chunk[currentBlock->dx][currentBlock->dy + 1][currentBlock->dz];
-	else if (currentNormal.X() == 1.0)
-		added = scene->chunk[currentBlock->dx + 1][currentBlock->dy][currentBlock->dz];
-	else if (currentNormal.X() == -1.0)
-		added = scene->chunk[currentBlock->dx - 1][currentBlock->dy][currentBlock->dz];
-	else if (currentNormal.Z() == 1.0)
-		added = scene->chunk[currentBlock->dx][currentBlock->dy][currentBlock->dz + 1];
-	else if (currentNormal.Z() == -1.0)
-		added = scene->chunk[currentBlock->dx][currentBlock->dy][currentBlock->dz - 1];
+	int x;
+	int y;
+	int z;
+	
+	//If selection is a block that cannot be built on, return (ie. leaf)
+	if (block == LEAF_BLOCK)
+		return;
+	
+	if (currentNormal.Y() == 1.0) {
+		x = currentBlock->dx;
+		y = currentBlock->dy+1;
+		z = currentBlock->dz;
+	}
+	//  added = scene->chunk[currentBlock->dx][currentBlock->dy + 1][currentBlock->dz];
+	else if (currentNormal.X() == 1.0) {
+		x = currentBlock->dx+1;
+		y = currentBlock->dy;
+		z = currentBlock->dz;
+	}
+	//added = scene->chunk[currentBlock->dx + 1][currentBlock->dy][currentBlock->dz];
+	else if (currentNormal.X() == -1.0) {
+		x = currentBlock->dx -1;
+		y = currentBlock->dy;
+		z = currentBlock->dz;
+	}
+	//	added = scene->chunk[currentBlock->dx - 1][currentBlock->dy][currentBlock->dz];
+	else if (currentNormal.Z() == 1.0) {
+		x = currentBlock->dx;
+		y = currentBlock->dy;
+		z = currentBlock->dz+1;
+	}
+	//	added = scene->chunk[currentBlock->dx][currentBlock->dy][currentBlock->dz + 1];
+	else if (currentNormal.Z() == -1.0) {
+		x = currentBlock->dx;
+		y = currentBlock->dy;
+		z = currentBlock->dz-1;
+	}
+	//	added = scene->chunk[currentBlock->dx][currentBlock->dy][currentBlock->dz - 1];
+	
+	if (block == DIRT_BLOCK) {
+		while (scene->chunk[x][y-1][z]->shape->block->getBlockType() == AIR_BLOCK) {
+			y--;
+		}
+	}
+	
+	added = scene->chunk[x][y][z];
 	
 	if (added) 
-  {
-    // Add new block only if new block is an air block
-    if (added->shape->block->blockType == AIR_BLOCK) 
-      added->shape->block->changeBlock(currentBlock->blockType);
-  }
+	{
+		// Add new block only if new block is an air block
+		if (added->shape->block->blockType == AIR_BLOCK) {
+			added->shape->block->changeBlock(block);
+		}
+	}
 }
 
 void RemoveBlock() 
@@ -390,21 +423,28 @@ void DrawHUD_Inventory()
     int y = GLUTwindow_height;
     int boxWidth = .0525 * x;
     int boxHeight = .0625 * y;
-
+	
     glPushMatrix();
     glTranslatef(.1875 * x, .99 * y, 0.);
-
+	
+	//LoadMaterial(dirt_icon_material);
+	
     for (int i = 4; i <= 12; i++) 
     {
         glTranslatef(x / 16, 0, 0.);
         glBegin(GL_QUADS);
+		//	glNormal3d(0.0, 0.0, 1.0);
+		//	glTexCoord2d(0, 1);
         glVertex2f(0, 0); 
+		//	glTexCoord2d(0, 0);
         glVertex2f(0, -boxHeight); 
+		//	glTexCoord2d(1, 0);
         glVertex2f(boxWidth, -boxHeight); 
+		//	glTexCoord2d(1, 1);
         glVertex2f(boxWidth, 0); 
         glEnd();
     }
-
+	
     glPopMatrix(); 
 }
 
@@ -582,6 +622,47 @@ void MakeMaterials(void)
         //	return 0;
     }	
     empty_heart_material->id = 10;
+	
+	dirt_icon_material = new R3Material();
+    dirt_icon_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+    dirt_icon_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+    dirt_icon_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+    dirt_icon_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+    dirt_icon_material->emission = R3Rgb(0, 0, 0, 0);
+    dirt_icon_material->shininess = 10;
+    dirt_icon_material->indexofrefraction = 1;
+	
+    //	char buffer[] = "textures/checker.bmp";
+    char dirt_icon[] = "textures/dirt_icon.jpg";
+	
+    // Read texture image
+    dirt_icon_material->texture = new R2Image();
+    if (!dirt_icon_material->texture->Read(dirt_icon)) {
+        fprintf(stderr, "Unable to read texture from file");
+        //	return 0;
+    }	
+    dirt_icon_material->id = 10;
+	
+	stone_icon_material = new R3Material();
+    stone_icon_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+    stone_icon_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+    stone_icon_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+    stone_icon_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+    stone_icon_material->emission = R3Rgb(0, 0, 0, 0);
+    stone_icon_material->shininess = 10;
+    stone_icon_material->indexofrefraction = 1;
+	
+    //	char buffer[] = "textures/checker.bmp";
+    char stone_icon[] = "textures/stone_icon.jpg";
+	
+    // Read texture image
+    stone_icon_material->texture = new R2Image();
+    if (!stone_icon_material->texture->Read(stone_icon)) {
+        fprintf(stderr, "Unable to read texture from file");
+        //	return 0;
+    }	
+    stone_icon_material->id = 10;
+	
 
 	cow_material = new R3Material();
     cow_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
@@ -602,8 +683,6 @@ void MakeMaterials(void)
 	}	
 	cow_material->id = 30;
 
-
-
 	deer_material = new R3Material();
 	deer_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
 	deer_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
@@ -614,7 +693,7 @@ void MakeMaterials(void)
 	deer_material->indexofrefraction = 1;
 
 	//	char buffer[] = "textures/checker.bmp";
-	char deer[] = "textures/deer.jpg";
+	char deer[] = "textures/cow.jpg";
 
 	// Read texture image
 	deer_material->texture = new R2Image();
@@ -648,7 +727,7 @@ void DrawShape(R3Shape *shape)
         }
         else if (shape->block->getBlockType() == DIRT_BLOCK) 
         {
-            if (shape->block->getUpper()->getBlockType() == AIR_BLOCK) {
+            if (shape->block->getUpper()->getBlockType() != DIRT_BLOCK) {
                 LoadMaterial(dirt_material);
                 shape->block->getBox().DrawFace(0);
                 shape->block->getBox().DrawFace(1);
@@ -953,7 +1032,6 @@ void LoadLights(R3Scene *scene)
 
 void DrawNode(R3Scene *scene, R3Node *node)
 {
-
     // Push transformation onto stack
     glPushMatrix();
     LoadMatrix(&node->transformation);
@@ -1270,12 +1348,12 @@ void GLUTMouse(int button, int state, int x, int y)
   // Invert y coordinate
   y = GLUTwindow_height - y;
 
-  // Process mouse button event
-  if (state == GLUT_DOWN) 
-  {
-    if (button == GLUT_LEFT_BUTTON) 
+	// Process mouse button event
+	if (state == GLUT_DOWN) 
+	{
+		if (button == GLUT_LEFT_BUTTON) 
         {
-						//printf("left click\n");
+			//printf("left click\n");
             if (CAPTURE_MOUSE == false) 
             {
                 glutSetCursor(GLUT_CURSOR_NONE);
@@ -1292,20 +1370,54 @@ void GLUTMouse(int button, int state, int x, int y)
 			else if (currentSelection != NULL) {
 				currentSelection->shape->block->health--;
 				if (currentSelection->shape->block->health <= 0) {
-				//	printf("out of health\n");
+					//	printf("out of health\n");
+					
+					int item = 8;
+					int block = currentSelection->shape->block->getBlockType();
+					
+					if (block == DIRT_BLOCK) item = R3BLOCK_DIRT;
+					if (block == BRANCH_BLOCK) item = R3BLOCK_BRANCH;
+					if (block == STONE_BLOCK) item = R3BLOCK_STONE;
+					
+					if (item < 8) {
+						Main_Character->number_items[item]++;
+						Main_Character->item = item;
+					}
+					printf("inventory: ");
+					for (int i = 0; i < 8; i++) {
+						printf("%d, ", Main_Character->number_items[i]);
+					}
+					printf("\n");
+					
 					RemoveBlock();
 				}
 			}
-
+			
         }
-    else if (button == GLUT_MIDDLE_BUTTON) 
-    {
-    }
-    else if (button == GLUT_RIGHT_BUTTON) 
-    {
-      AddBlock();
-    }
-  }
+        else if (button == GLUT_MIDDLE_BUTTON) 
+        {
+        }
+        else if (button == GLUT_RIGHT_BUTTON) 
+        {
+			int block;
+			int item = Main_Character->item;
+			printf("%d\n", item);
+			//block = STONE_BLOCK;
+			if (item < 8) {
+				if (Main_Character->number_items[item] > 0) {
+					
+					if (item == R3BLOCK_DIRT) block = DIRT_BLOCK;
+					if (item == R3BLOCK_BRANCH) block = BRANCH_BLOCK;
+					if (item == R3BLOCK_STONE) { block = STONE_BLOCK; }
+					Main_Character->number_items[item]--;
+					if (Main_Character->number_items[item] == 0) {
+						Main_Character->item = R3BLOCK_AIR;
+					}
+					AddBlock(block);
+				}
+			}
+        }
+	}
 
   // Remember button state 
   int b = (button == GLUT_LEFT_BUTTON) ? 0 : ((button == GLUT_MIDDLE_BUTTON) ? 1 : 2);
@@ -1365,6 +1477,21 @@ void GLUTKeyboard(unsigned char key, int x, int y)
     // Process keyboard button event 
     switch (key) 
     {
+		case '1':
+			if (Main_Character->number_items[R3BLOCK_DIRT] >0) {
+				Main_Character->item = R3BLOCK_DIRT;
+			}
+			break;
+		case '2':
+			if (Main_Character->number_items[R3BLOCK_STONE] >0) {
+				Main_Character->item = R3BLOCK_STONE;
+			}
+			break;
+		case '3':
+			if (Main_Character->number_items[R3BLOCK_BRANCH] >0) {
+				Main_Character->item = R3BLOCK_BRANCH;
+			}
+			break;
   /*      case 'B':
         case 'b':
             AddBlock();

@@ -4,10 +4,10 @@
 typedef enum {
   DIRT_BLOCK, //0
   AIR_BLOCK, //1
-	LEAF_BLOCK, //2
-	BRANCH_BLOCK, //3
-	STONE_BLOCK, //4
-		WATER_BLOCK, //5
+  LEAF_BLOCK, //2
+  BRANCH_BLOCK, //3
+  STONE_BLOCK, //4
+  WATER_BLOCK, //5
 } R3BlockType;
 
 class R3Block {

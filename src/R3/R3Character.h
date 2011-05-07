@@ -8,7 +8,7 @@ class R3Character {
   public:
     int Health;
     int MaxHealth;
-    R3Item item;
+    int item;
     R3Vector velocity;
     R3Point position;
     int number_items[8];
