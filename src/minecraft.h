@@ -76,12 +76,15 @@ void LoadCamera(R3Camera *camera);
 void LoadLights(R3Scene *scene);
 void DrawNode(R3Scene *scene, R3Node *node);
 void DrawScene(R3Scene *scene);
+void DrawCreatures();
+void UpdateCharacter();
 
 ////////////////////////////////////////////////////////////
 // GLUT USER INTERFACE CODE
 ////////////////////////////////////////////////////////////
 
 void GLUTMainLoop(void);
+void GLUTIdleFunction(void);
 void GLUTDrawText(const R3Point& p, const char *s);
 void GLUTSaveImage(const char *filename);
 void GLUTStop(void);
