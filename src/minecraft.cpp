@@ -120,6 +120,17 @@ void AlignReticle()
 
     if (intersect.hit)
         currentSelection = intersect.node;
+	/*double smallest = INT_MAX;
+	 R3Ray ray = R3Ray(camera.eye, camera.towards);
+	R3Intersection intersect;
+	
+	
+	= IntersectScene(ray, scene, scene->root);
+	 
+	 currentSelection = NULL;
+	 
+	 if (intersect.hit)
+	 currentSelection = intersect.node;*/
 }
 
 void AddBlock()
@@ -381,7 +392,7 @@ void MakeMaterials(void)
     heart_material->indexofrefraction = 1;
 
     //	char buffer[] = "input/checker.bmp";
-    char heart[] = "input/dirt.jpg";
+    char heart[] = "input/alldirt.jpg";
 
     // Read texture image
     heart_material->texture = new R2Image();
@@ -981,7 +992,7 @@ void GLUTPassiveMotion(int x, int y)
 
     // Update and clamp x-rotation and y-rotation
     rot[0] = WRAP(rot[0] + vx, -M_2PI, M_PI);
-    rot[1] = CLAMP(rot[1] - vy, -M_PI / 2, M_PI / 10);
+    rot[1] = CLAMP(rot[1] - vy, -M_PI / 2, M_PI / 2);
 
     GLUTmouse[0] = x;
     GLUTmouse[1] = y;
