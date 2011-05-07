@@ -24,13 +24,16 @@ CXXFLAGS=-Wall -I. -g -DUSE_JPEG
 # OpenGL libraries
 #
 UNAME := $(shell uname)
+# Mac OS
 ifneq (,$(findstring Darwin,$(UNAME)))
 	GLLIBS = -framework GLUT -framework OpenGL
+# Windows
 else
   ifneq (,$(findstring CYGWIN,$(UNAME)))
 	GLLIBS = -lglut32 -lglu32 -lopengl32
+# Linux
   else
-	GLLIBS = -lglut -lGLU -lGL
+	GLLIBS = -lglut -lGLU -lGL -lopenal -lalut
   endif
 endif
 

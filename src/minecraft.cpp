@@ -53,6 +53,27 @@ static int GLUTmouse[2] = { 0, 0 };
 static int GLUTbutton[3] = { 0, 0, 0 };
 static int GLUTmodifiers = 0;
 
+
+// OpenAL nonsense
+
+#ifdef  __linux__
+// Buffers to hold sound data
+ALuint Buffer;
+// Point source of sound
+ALuint Source;
+// Position of the source sound
+ALfloat SourcePos[] = { 0.0, 0.0, 0.0 };
+// Velocity of the source sound
+ALfloat SourceVel[] = { 0.0, 0.0, 0.0 };
+// Position of the listener
+ALfloat ListenerPos[] = { 0.0, 0.0, 0.0 };
+// Velocity of the listener.
+ALfloat ListenerVel[] = { 0.0, 0.0, 0.0 };
+// Orientation of the listener. (first 3 elements are "at", second 3 are "up")
+ALfloat ListenerOri[] = { 0.0, 0.0, -1.0,  
+                          0.0, 1.0, 0.0 };
+#endif
+
 ////////////////////////////////////////////////////////////
 // HELPER METHODS
 ////////////////////////////////////////////////////////////
@@ -1287,6 +1308,65 @@ int ParseArgs(int argc, char **argv)
     return 1;
 }
 
+/////////
+// OpenAL 
+///////////
+
+#ifdef __linux__
+
+ALboolean LoadALData()
+{
+    // Variables to load into.
+    ALenum format;
+    ALsizei size;
+    ALvoid* data;
+    ALsizei freq;
+    ALboolean loop;
+
+    // Load wav data into a buffer
+    alGenBuffers(1, &Buffer);
+    
+    if(alGetError() != AL_NO_ERROR)
+        return AL_FALSE;
+
+    alutLoadWAVFile((ALbyte*) "sounds/ninth.wav", &format, &data, &size, &freq, &loop);
+    alBufferData(Buffer, format, data, size, freq);
+    alutUnloadWAV(format, data, size, freq);
+
+    // Bind the buffer with the source
+    alGenSources(1, &Source);
+
+    if(alGetError() != AL_NO_ERROR)
+        return AL_FALSE;
+
+    alSourcei (Source, AL_BUFFER,   Buffer   );
+    alSourcef (Source, AL_PITCH,    1.0      );
+    alSourcef (Source, AL_GAIN,     1.0      );
+    alSourcefv(Source, AL_POSITION, SourcePos);
+    alSourcefv(Source, AL_VELOCITY, SourceVel);
+    alSourcei (Source, AL_LOOPING,  AL_TRUE  );
+
+    if(alGetError() == AL_NO_ERROR)
+        return AL_TRUE;
+    return AL_FALSE;
+}
+
+void SetListenerValues()
+{
+    alListenerfv(AL_POSITION,    ListenerPos);
+    alListenerfv(AL_VELOCITY,    ListenerVel);
+    alListenerfv(AL_ORIENTATION, ListenerOri);
+}
+
+void KillALData()
+{
+    alDeleteBuffers(1, &Buffer);
+    alDeleteSources(1, &Source);
+    alutExit();
+}
+
+#endif
+
 ////////////////////////////////////////////////////////////
 // MAIN
 ////////////////////////////////////////////////////////////
@@ -1295,6 +1375,22 @@ int main(int argc, char **argv)
 {
     // Initialize GLUT
     GLUTInit(&argc, argv);
+
+#ifdef __linux__
+    alutInit(NULL, 0);
+    alGetError();
+
+    if(LoadALData() == AL_FALSE)
+        printf("Error loading WAV sound data.");
+
+    SetListenerValues();
+    
+    // Bind KillALData to run at exit
+    atexit(KillALData);
+
+    // Begin sound playback
+    alSourcePlay(Source);
+#endif
 
     MakeMaterials();
     // Parse program arguments

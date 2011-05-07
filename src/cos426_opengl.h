@@ -1,17 +1,27 @@
 // Include the appropriate OpenGL and GLUT headers
 
+/* Windows */
 #if defined(_WIN32) || defined(__CYGWIN__)
-# ifndef USE_OPENGL32
+#ifndef USE_OPENGL32
 #  define USE_OPENGL32
-# endif
-# ifndef NOMINMAX
+#endif
+
+#ifndef NOMINMAX
 #  define NOMINMAX
 # endif
-# include <windows.h>
-# include <GL/glut.h>
-#elif defined(__APPLE__)
-# include <GLUT/glut.h>
+
+#include <windows.h>
+#include <GL/glut.h>
+
+/* Mac OS */
+#elif defined(__APPLE__) 
+#include <GLUT/glut.h>
+
+/* Linux */
 #else 
-# include <GL/glut.h>
+#include <GL/glut.h>
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <AL/alut.h>
 #endif
 
