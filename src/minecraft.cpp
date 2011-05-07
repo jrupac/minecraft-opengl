@@ -45,6 +45,7 @@ R3Material *dirt_material;
 R3Material *grass_material;
 R3Material *leaf_material;
 R3Material *alldirt_material;
+R3Material *stone_material;
 R3Material *heart_material;
 R3Material *empty_heart_material;
 
@@ -204,10 +205,44 @@ void AddBlock()
 		upper->shape->block->health = currentSelection->shape->block->health;
 		upper->shape->block->walkable = currentSelection->shape->block->walkable;
 		upper->shape->block->transparent = currentSelection->shape->block->transparent;
+		upper->shape->block->gravity = currentSelection->shape->block->gravity;
 	}
 	else {
 		return;
 	}
+}
+
+void RemoveBlock() {
+	R3Node *lower = currentSelection;
+	R3Node *upper = scene->
+	chunk[currentSelection->shape->block->dx][currentSelection->shape->block->dy + 1][currentSelection->shape->block->dz];
+	if (upper->shape->block->gravity == false) {
+		//printf("remove block");
+		currentSelection->shape->block->blockType = AIR_BLOCK;
+		currentSelection->shape->block->health = -1;
+		currentSelection->shape->block->walkable = true;
+		currentSelection->shape->block->transparent = true;
+		currentSelection->shape->block->gravity = false;
+		return;
+	}
+	else {
+	while (upper->shape->block->gravity == true) {
+		lower->shape->block->blockType = upper->shape->block->blockType;
+		lower->shape->block->health = upper->shape->block->health;
+		lower->shape->block->walkable = upper->shape->block->walkable;
+		lower->shape->block->transparent = upper->shape->block->transparent;
+		lower->shape->block->gravity = upper->shape->block->gravity;
+		
+		lower = upper;
+		upper = scene->chunk[upper->shape->block->dx][upper->shape->block->dy + 1][upper->shape->block->dz];
+	}
+		lower->shape->block->blockType = AIR_BLOCK;
+		lower->shape->block->health = -1;
+		lower->shape->block->walkable = true;
+		lower->shape->block->transparent = true;
+		lower->shape->block->gravity = false;
+	}
+
 }
 
 void DrawHUD() 
@@ -414,17 +449,26 @@ void MakeMaterials(void)
     }	
     leaf_material->id = 4;
 
-    /*if (block_type == LEAF_BLOCK) {
-      material = group_materials[1];
-      }
-      if (block_type == DIRT_BLOCK) {
-      material = group_materials[2];
-    //		  material_top = group_materials[3];
-    //		  material_sides = group_materials[2];
-    }
-    if (block_type == BRANCH_BLOCK) {
-    material = group_materials[4];
-    }*/
+	stone_material = new R3Material();
+    stone_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+    stone_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+    stone_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+    stone_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+    stone_material->emission = R3Rgb(0, 0, 0, 0);
+    stone_material->shininess = 10;
+    stone_material->indexofrefraction = 1;
+	
+    //	char buffer[] = "input/checker.bmp";
+    char stone[] = "input/stone.jpg";
+	
+    // Read texture image
+    stone_material->texture = new R2Image();
+    if (!stone_material->texture->Read(stone)) {
+        fprintf(stderr, "Unable to read texture from file");
+        //	return 0;
+    }	
+    stone_material->id = 5;
+	
     heart_material = new R3Material();
     heart_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
     heart_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
@@ -511,6 +555,10 @@ void DrawShape(R3Shape *shape)
             LoadMaterial(branch_material);
             shape->block->getBox().Draw();
         }
+		else if (shape->block->getBlockType() == STONE_BLOCK) {
+			LoadMaterial(stone_material);
+			shape->block->getBox().Draw();
+		}
     }
 
     else fprintf(stderr, "Unrecognized shape type: %d\n", shape->type);
@@ -1072,12 +1120,7 @@ void GLUTMouse(int button, int state, int x, int y)
 				currentSelection->shape->block->health--;
 				if (currentSelection->shape->block->health <= 0) {
 				//	printf("out of health\n");
-					currentSelection->shape->block->blockType = AIR_BLOCK;
-					currentSelection->shape->block->health = -1;
-					currentSelection->shape->block->walkable = true;
-					currentSelection->shape->block->transparent = true;
-					
-					//currentSelection->health = 
+					RemoveBlock();
 				}
 			}
 
@@ -1087,7 +1130,7 @@ void GLUTMouse(int button, int state, int x, int y)
         }
         else if (button == GLUT_RIGHT_BUTTON) 
         {
-						printf("right click\n");
+			AddBlock();
         }
     }
 
@@ -1149,10 +1192,10 @@ void GLUTKeyboard(unsigned char key, int x, int y)
     // Process keyboard button event 
     switch (key) 
     {
-        case 'B':
+  /*      case 'B':
         case 'b':
             AddBlock();
-            break;
+            break;*/
 
         case 'C':
         case 'c':
