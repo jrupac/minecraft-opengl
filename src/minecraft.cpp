@@ -33,6 +33,7 @@ static int save_image = 0;
 static int quit = 0;
 static int INTERPOLATION = 1;
 static R3Node *currentSelection = NULL;
+static R3Vector currentNormal;
 static R3Rgb background = R3Rgb(0.529, 0.807, 0.980, 1.);
 static float picker_height = 10;
 static float picker_width = 10;
@@ -228,6 +229,8 @@ void AlignReticle()
 
 	if (closestIntersect.hit) {
 		currentSelection = closestIntersect.node;
+		currentNormal = closestIntersect.normal;
+	//	printf("%f, %f, %f\n", currentNormal.X(), currentNormal.Y(), currentNormal.Z());
 	//if (currentSelection->shape->block->blockType == AIR_BLOCK) {
 	//	printf("notair\n");
 	//}
@@ -248,20 +251,43 @@ void AddBlock()
 		return;
 	}
 	
+	
+	R3Node *added = NULL;
+	if (currentNormal.Y() == 1.0) {
     // Create new block and add it to the scene graph
-    R3Node *upper = scene->
+    added = scene->
 	chunk[currentSelection->shape->block->dx][currentSelection->shape->block->dy + 1][currentSelection->shape->block->dz];
+	}
+	else if (currentNormal.X() == 1.0) {
+		added = scene->
+		chunk[currentSelection->shape->block->dx+1][currentSelection->shape->block->dy][currentSelection->shape->block->dz];
+	}
+	else if (currentNormal.X() == -1.0) {
+		added = scene->
+		chunk[currentSelection->shape->block->dx-1][currentSelection->shape->block->dy][currentSelection->shape->block->dz];
+	}
+	else if (currentNormal.Z() == 1.0) {
+		added = scene->
+		chunk[currentSelection->shape->block->dx][currentSelection->shape->block->dy][currentSelection->shape->block->dz+1];
+	}
+	else if (currentNormal.Z() == -1.0) {
+		added = scene->
+		chunk[currentSelection->shape->block->dx][currentSelection->shape->block->dy + 1][currentSelection->shape->block->dz-1];
+	}
 	
 	//R3Block *newBlock;
+		
+	if (added != NULL) {
 	//add new block only if upper block is an air block
-	if (upper->shape->block->blockType == AIR_BLOCK) {
+	if (added->shape->block->blockType == AIR_BLOCK) {
 		//newBlock = new R3Block(upper->shape->block->getBox(), currentSelection->shape->block->getBlockType());
-		upper->shape->block->blockType = currentSelection->shape->block->blockType;
+		added->shape->block->blockType = currentSelection->shape->block->blockType;
 		//upper->shape->block = newBlock;
-		upper->shape->block->health = currentSelection->shape->block->health;
-		upper->shape->block->walkable = currentSelection->shape->block->walkable;
-		upper->shape->block->transparent = currentSelection->shape->block->transparent;
-		upper->shape->block->gravity = currentSelection->shape->block->gravity;
+		added->shape->block->health = currentSelection->shape->block->health;
+		added->shape->block->walkable = currentSelection->shape->block->walkable;
+		added->shape->block->transparent = currentSelection->shape->block->transparent;
+		added->shape->block->gravity = currentSelection->shape->block->gravity;
+	}
 	}
 	else {
 		return;
@@ -288,6 +314,8 @@ void RemoveBlock() {
 		lower->shape->block->walkable = upper->shape->block->walkable;
 		lower->shape->block->transparent = upper->shape->block->transparent;
 		lower->shape->block->gravity = upper->shape->block->gravity;
+		/*scene->chunk[lower->shape->block->dx][lower->shape->block->dy][lower->shape->block->dz] =
+			scene->chunk[upper->shape->block->dx][upper->shape->block->dy][upper->shape->block->dz];*/
 		
 		lower = upper;
 		upper = scene->chunk[upper->shape->block->dx][upper->shape->block->dy + 1][upper->shape->block->dz];
@@ -1435,7 +1463,7 @@ R3Scene *ReadScene(const char *filename)
 
     // Set up default properties of camera
     camera.towards = R3negz_vector;
-    camera.eye = R3zero_point + 1. * R3posy_vector;
+    camera.eye = R3zero_point + 2. * R3posy_vector;
     camera.up = R3posy_vector;
     camera.right = R3posx_vector;
 
