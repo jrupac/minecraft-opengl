@@ -1,5 +1,5 @@
-
-
+#ifndef __BLOCK_H_
+#define __BLOCK_H_
 
 typedef enum {
   DIRT_BLOCK,
@@ -11,7 +11,7 @@ typedef enum {
 
 class R3Block {
  public:
-  R3Block(const R3Box& box, int type);//, int x, int y, int z);
+  R3Block(const R3Box& box, int type);
   
   R3Box& getBox();
   int getBlockType() const;
@@ -19,7 +19,6 @@ class R3Block {
   void changeBlock(int newType);
 	R3Block *getUpper() const;
 	void setUpper(R3Block *up);
-  //output
   void Draw(void) const;
 
  private:
@@ -28,14 +27,13 @@ class R3Block {
   int health;
   bool walkable;
   bool transparent;
-  //int x, y, z; // chunk x, y, z coords
 	R3Block *upper; //block above this one
 };
 
-//gets the box for this block
 inline R3Box& R3Block::
 getBox (void) 
 {
+  // Gets the box for this block
   return box;
 }
 
@@ -62,3 +60,5 @@ setUpper (R3Block *up)
 {
 	upper = up;
 }
+
+#endif

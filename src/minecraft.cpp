@@ -24,7 +24,7 @@ static int show_lights = 0;
 static int show_camera = 0;
 static int save_image = 0;
 static int quit = 0;
-static int INTERPOLATION = 3;
+static int INTERPOLATION = 2;
 static R3Node *currentSelection = NULL;
 static R3Rgb background = R3Rgb(0.529, 0.807, 0.980, 1.);
 static float picker_height = 10;
@@ -58,11 +58,7 @@ static int GLUTmodifiers = 0;
 
 void InterpolateMotion(R3Point *start, R3Vector direction)
 {
-  for (int i = 0; i < INTERPOLATION; i++) 
-  {
-      *start += direction / INTERPOLATION;
-      GLUTRedraw();
-  }
+  *start += direction / INTERPOLATION;
 }
 
 ////////////////////////////////////////////////////////////
