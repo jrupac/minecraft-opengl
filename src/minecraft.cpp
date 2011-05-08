@@ -1047,13 +1047,16 @@ void DrawNode(R3Scene *scene, R3Node *node)
         glDisable(GL_LIGHTING);
         node->bbox.Outline();
         if (lighting) glEnable(GL_LIGHTING);
+
+
     }
 }
 
 void DrawScene(R3Scene *scene) 
 {
+  int drawCounter = 0;
     // Draw nodes recursively
-    DrawNode(scene, scene->root);
+    //DrawNode(scene, scene->root);
 
     /* ADDED: draw the new array of nodes */
     for (int dChunkX = 0; dChunkX < CHUNKS; dChunkX++)
@@ -1066,16 +1069,42 @@ void DrawScene(R3Scene *scene)
           {
             for (int dx = 0; dx < CHUNK_X; dx++)
             {
-              //DrawNode(scene, scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz]); 
-              //DrawShape()
-              
               // Terrible black magic is about to happen
+              // We have dx, dy, dz box to draw
+
+
+              //find coords of boxes around - if needed, shuffle around chunks
+              int curChunkX = dChunkX;
+              int curChunkZ = dChunkZ;
+              int left = dx - 1;
+              int right = dx + 1;
+              int back = dz - 1;
+              int forward = dz + 1;
+              if (dx == 0 && dChunkX > 0)
+              {
+                left = CHUNK_X - 1;
+                curChunkX--;
+              }
+              else if (dx == CHUNK_X - 1 && dChunkX < CHUNKS - 1)
+              {
+                right = 0;
+                curChunkX++;
+              }
+              if (dz == 0 && dChunkZ > 0)
+              {
+                back = CHUNK_Z - 1;
+                curChunkZ--;
+              }
+              else if (dz == CHUNK_Z - 1 && dChunkZ < CHUNKS - 1)
+              {
+                forward = 0;
+                curChunkZ++;
+              }
               
               // Upwards face is 3
-              // We have dx, dy, dz box to draw
               R3Block* block = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz]->shape->block;
               //Face 0
-              if (dx == 0 || scene->terrain[dChunkX][dChunkZ]->chunk[dx - 1][dy][dz]->shape->block->transparent)
+              if (left >= 0 && scene->terrain[curChunkX][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
               {
                 if (block->getBlockType() == LEAF_BLOCK) 
                 {
@@ -1098,11 +1127,14 @@ void DrawScene(R3Scene *scene)
 			            LoadMaterial(stone_material);
 		            }
 		            if (!block->transparent)
+		            {
 		              block->getBox().DrawFace(0);
+		              drawCounter++;
+		            }
               }
               
               //Face 1
-              if (dx == CHUNK_X - 1 || scene->terrain[dChunkX][dChunkZ]->chunk[dx + 1][dy][dz]->shape->block->transparent)
+              else if (right < CHUNK_X && scene->terrain[curChunkX][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
               {
                 if (block->getBlockType() == LEAF_BLOCK) 
                 {
@@ -1125,11 +1157,14 @@ void DrawScene(R3Scene *scene)
 			            LoadMaterial(stone_material);
 		            }
 		            if (!block->transparent)
+		            {
 		              block->getBox().DrawFace(1);
+		              drawCounter++;
+		            }
               }
                
               //Face 2
-              if (dy == 0 || scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
+              if (dy - 1 > 0 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
               {
                   if (block->getBlockType() == LEAF_BLOCK) 
                   {
@@ -1152,11 +1187,14 @@ void DrawScene(R3Scene *scene)
 			              LoadMaterial(stone_material);
 		              }
 		              if (!block->transparent)
+		              {
 		                block->getBox().DrawFace(2);
+		                drawCounter++;
+		              }
                }
                
                //Face 3
-              if (dy == CHUNK_Y - 1 || scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
+              else if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
               {
                   if (block->getBlockType() == LEAF_BLOCK) 
                   {
@@ -1179,12 +1217,15 @@ void DrawScene(R3Scene *scene)
 			              LoadMaterial(stone_material);
 		              }
 		              if (!block->transparent)
+		              {
 		                block->getBox().DrawFace(3);
+		                drawCounter++;
+		              }
                }
                //block->getBox().DrawFace(3);
                
                //Face 4
-              if (dz == 0 || scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz - 1]->shape->block->transparent)
+              if (back > 0 && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][back]->shape->block->transparent)
               {
                 if (block->getBlockType() == LEAF_BLOCK) 
                 {
@@ -1207,11 +1248,14 @@ void DrawScene(R3Scene *scene)
 			            LoadMaterial(stone_material);
 		            }
 		            if (!block->transparent)
+		            {
 		              block->getBox().DrawFace(4);
+		              drawCounter++;
+		            }
               }
               
               //Face 5
-              if (dz == CHUNK_Z - 1 || scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz + 1]->shape->block->transparent)
+              else if (forward < CHUNK_Z && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][forward]->shape->block->transparent)
               {
                 if (block->getBlockType() == LEAF_BLOCK) 
                 {
@@ -1234,7 +1278,10 @@ void DrawScene(R3Scene *scene)
 			            LoadMaterial(stone_material);
 		            }
 		            if (!block->transparent)
+		            {
 		              block->getBox().DrawFace(5);
+		              drawCounter++;
+		            }
               }
               /*if (block->getBlockType() == LEAF_BLOCK) 
               {
@@ -1274,6 +1321,8 @@ void DrawScene(R3Scene *scene)
       }
     }
     //what the fuck is scene here for
+    
+    fprintf(stderr, "Frame update: drew %i faces.\n", drawCounter);
 }
 
 void DrawCreatures() 
