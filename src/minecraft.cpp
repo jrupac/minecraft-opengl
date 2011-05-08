@@ -18,7 +18,7 @@
 static char *input_scene_name = NULL;
 static char *output_image_name = NULL;
 
-// Display variables
+// Display variables 
 
 static bool startMenu = false;
 
