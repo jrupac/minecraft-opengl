@@ -155,14 +155,15 @@ bool LegalBlock(R3Index index)
 
 R3Index getChunkCoordinates(R3Point p)
 {
-  R3Vector diff = p - scene->start;  
+  /*R3Vector diff = p - scene->start;  
   R3Index ret;
 
   ret.x = (int) diff[0];
   ret.y = (int) diff[1];
   ret.z = (int) diff[2];
 
-  return ret;
+  return ret;*/
+  return scene->getIndex(p);
 }
 
 void InterpolateMotion(R3Point *start, R3Vector direction)
@@ -171,17 +172,19 @@ void InterpolateMotion(R3Point *start, R3Vector direction)
   int fallIndex = -1;
   
   // Check if next potential location is legal
-  if (!(scene->chunk[coords.x][coords.y-1][coords.z]->shape->block->walkable &&
+  if (!(coords.current->chunk[coords.x][coords.y-1][coords.z]->shape->block->walkable &&
       LegalBlock(coords)))
     return;
 
   *start += direction / INTERPOLATION;
+  // I'm assuming hte above is the new position!
+  scene->UpdateScene(*start);
   
   // Starting from below character, keep going down until you find something
   // you can't walk through 
   for (int i = coords.y - 2; i >= 0; i--)
   {
-    R3Node *current = scene->chunk[coords.x][i][coords.z];
+    R3Node *current = coords.current->chunk[coords.x][i][coords.z];
     R3Block *curBlock = current->shape->block;
     
     if (curBlock->walkable)
@@ -211,26 +214,32 @@ void AlignReticle()
     currentSelectedCreature = -1;
     double smallest = DBL_MAX;
 
-    for (int dz = 0; dz < CHUNK_Z; dz++) 
+    for (int dChunkX = 0; dChunkX < CHUNKS; dChunkX++)
     {
-        for (int dy = 0; dy < CHUNK_Y; dy++) 
+      for (int dChunkZ = 0; dChunkZ < CHUNKS; dChunkZ++)
+      {
+        for (int dz = 0; dz < CHUNK_Z; dz++) 
         {
-            for (int dx = 0; dx < CHUNK_X; dx++) 
+            for (int dy = 0; dy < CHUNK_Y; dy++) 
             {
-                R3Node *currentNode = scene->chunk[dx][dy][dz];
+                for (int dx = 0; dx < CHUNK_X; dx++) 
+                {
+                    R3Node *currentNode = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz];
 
-                if (currentNode->shape->block->getBlockType() != AIR_BLOCK) {
-                    intersect = IntersectBox(ray, currentNode->shape->block->getBox());
+                    if (currentNode->shape->block->getBlockType() != AIR_BLOCK) {
+                        intersect = IntersectBox(ray, currentNode->shape->block->getBox());
 
-                    if (intersect.hit && intersect.t < smallest) 
-                    {
-                        smallest = intersect.t;
-                        closestIntersect = intersect;
-                        closestIntersect.node = currentNode;
+                        if (intersect.hit && intersect.t < smallest) 
+                        {
+                            smallest = intersect.t;
+                            closestIntersect = intersect;
+                            closestIntersect.node = currentNode;
+                        }
                     }
                 }
             }
         }
+      }
     }
 
 
@@ -267,17 +276,46 @@ void AddBlock()
   //If selection is a block that cannot be built on, return (ie. leaf)
   if (currentBlock->blockType == LEAF_BLOCK)
     return;
+    
+  R3Point p = currentBlock->box.Centroid();
+  R3Index i;
 
-	if (currentNormal.Y() == 1.0) 
-        added = scene->chunk[currentBlock->dx][currentBlock->dy + 1][currentBlock->dz];
+	if (currentNormal.Y() == 1.0)
+	{ 
+	  //added = scene->chunk[currentBlock->dx][currentBlock->dy + 1][currentBlock->dz];
+	  p[1]++;
+	  i = scene->getIndex(p);
+    added = i.current->chunk[i.x][i.y][i.z];
+    
+  }
 	else if (currentNormal.X() == 1.0)
-		added = scene->chunk[currentBlock->dx + 1][currentBlock->dy][currentBlock->dz];
+	{
+		//added = scene->chunk[currentBlock->dx + 1][currentBlock->dy][currentBlock->dz];
+		p[0]++;
+	  i = scene->getIndex(p);
+    added = i.current->chunk[i.x][i.y][i.z];
+  }
 	else if (currentNormal.X() == -1.0)
-		added = scene->chunk[currentBlock->dx - 1][currentBlock->dy][currentBlock->dz];
+	{
+		//added = scene->chunk[currentBlock->dx - 1][currentBlock->dy][currentBlock->dz];
+		p[0]--;
+	  i = scene->getIndex(p);
+    added = i.current->chunk[i.x][i.y][i.z];
+  }
 	else if (currentNormal.Z() == 1.0)
-		added = scene->chunk[currentBlock->dx][currentBlock->dy][currentBlock->dz + 1];
+	{
+		//added = scene->chunk[currentBlock->dx][currentBlock->dy][currentBlock->dz + 1];
+		p[2]++;
+	  i = scene->getIndex(p);
+    added = i.current->chunk[i.x][i.y][i.z];
+  }
 	else if (currentNormal.Z() == -1.0)
-		added = scene->chunk[currentBlock->dx][currentBlock->dy][currentBlock->dz - 1];
+	{
+		//added = scene->chunk[currentBlock->dx][currentBlock->dy][currentBlock->dz - 1];
+		p[2]--;
+	  i = scene->getIndex(p);
+    added = i.current->chunk[i.x][i.y][i.z];
+	}
 	
 	if (added) 
   {
@@ -291,7 +329,14 @@ void RemoveBlock()
 {
   R3Node *lower = currentSelection;
   R3Block *lowerBlock = lower->shape->block;
-	R3Node *upper = scene->chunk[lowerBlock->dx][lowerBlock->dy + 1][lowerBlock->dz];
+  //black magic
+  R3Point p = lowerBlock->box.Centroid();
+  R3Index i;
+  p[1]++;
+	i = scene->getIndex(p);
+	//black magic over
+  R3Node *upper = i.current->chunk[i.x][i.y][i.z];
+	//R3Node *upper = scene->chunk[lowerBlock->dx][lowerBlock->dy + 1][lowerBlock->dz];
   R3Block *upperBlock = upper->shape->block;
 
 	if (!upper->shape->block->gravity) 
@@ -303,7 +348,14 @@ void RemoveBlock()
       lowerBlock->changeBlock(upperBlock->blockType);
       lower = upper;
       lowerBlock = lower->shape->block;
-      upper = scene->chunk[upperBlock->dx][upperBlock->dy + 1][upperBlock->dz];
+      //black magic
+      R3Point p = upperBlock->box.Centroid();
+      R3Index i;
+      p[1]++;
+	    i = scene->getIndex(p);
+      //black magic over
+      //upper = scene->chunk[upperBlock->dx][upperBlock->dy + 1][upperBlock->dz];
+      upper = i.current->chunk[i.x][i.y][i.z];
       upperBlock = upper->shape->block;
     }
 
@@ -646,7 +698,7 @@ void DrawShape(R3Shape *shape)
             LoadMaterial(leaf_material);
             shape->block->getBox().Draw();
         }
-        else if (shape->block->getBlockType() == DIRT_BLOCK) 
+        else if (shape->block->getBlockType() == DIRT_BLOCK && shape->block->getUpper() != NULL) 
         {
             if (shape->block->getUpper()->getBlockType() == AIR_BLOCK) {
                 LoadMaterial(dirt_material);
@@ -1004,10 +1056,223 @@ void DrawScene(R3Scene *scene)
     DrawNode(scene, scene->root);
 
     /* ADDED: draw the new array of nodes */
-    for (int dz = 0; dz < CHUNK_Z; dz++)
-        for (int dy = 0; dy < CHUNK_Y; dy++)
+    for (int dChunkX = 0; dChunkX < CHUNKS; dChunkX++)
+    {
+      for (int dChunkZ = 0; dChunkZ < CHUNKS; dChunkZ++)
+      {
+        for (int dz = 0; dz < CHUNK_Z; dz++)
+        {
+          for (int dy = 0; dy < CHUNK_Y; dy++)
+          {
             for (int dx = 0; dx < CHUNK_X; dx++)
-                DrawNode(scene, scene->chunk[dx][dy][dz]); 
+            {
+              //DrawNode(scene, scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz]); 
+              //DrawShape()
+              
+              // Terrible black magic is about to happen
+              
+              // Upwards face is 3
+              // We have dx, dy, dz box to draw
+              R3Block* block = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz]->shape->block;
+              //Face 0
+              if (dx == 0 || scene->terrain[dChunkX][dChunkZ]->chunk[dx - 1][dy][dz]->shape->block->transparent)
+              {
+                if (block->getBlockType() == LEAF_BLOCK) 
+                {
+                  LoadMaterial(leaf_material);
+                }
+                else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
+                {
+                  if (block->getUpper()->getBlockType() == AIR_BLOCK) {
+                    LoadMaterial(dirt_material);
+                  }
+                  else {
+                    LoadMaterial(alldirt_material);
+                  }
+                }
+                else if (block->getBlockType() == BRANCH_BLOCK) 
+                {
+                  LoadMaterial(branch_material);
+                }
+		            else if (block->getBlockType() == STONE_BLOCK) {
+			            LoadMaterial(stone_material);
+		            }
+		            if (!block->transparent)
+		              block->getBox().DrawFace(0);
+              }
+              
+              //Face 1
+              if (dx == CHUNK_X - 1 || scene->terrain[dChunkX][dChunkZ]->chunk[dx + 1][dy][dz]->shape->block->transparent)
+              {
+                if (block->getBlockType() == LEAF_BLOCK) 
+                {
+                  LoadMaterial(leaf_material);
+                }
+                else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
+                {
+                  if (block->getUpper()->getBlockType() == AIR_BLOCK) {
+                    LoadMaterial(dirt_material);
+                  }
+                  else {
+                    LoadMaterial(alldirt_material);
+                  }
+                }
+                else if (block->getBlockType() == BRANCH_BLOCK) 
+                {
+                  LoadMaterial(branch_material);
+                }
+		            else if (block->getBlockType() == STONE_BLOCK) {
+			            LoadMaterial(stone_material);
+		            }
+		            if (!block->transparent)
+		              block->getBox().DrawFace(1);
+              }
+               
+              //Face 2
+              if (dy == 0 || scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
+              {
+                  if (block->getBlockType() == LEAF_BLOCK) 
+                  {
+                    LoadMaterial(leaf_material);
+                  }
+                  else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
+                  {
+                    if (block->getUpper()->getBlockType() == AIR_BLOCK) {
+                    LoadMaterial(dirt_material);
+                    }
+                    else {
+                      LoadMaterial(alldirt_material);
+                    }
+                  }
+                  else if (block->getBlockType() == BRANCH_BLOCK) 
+                  {
+                    LoadMaterial(branch_material);
+                  }
+		              else if (block->getBlockType() == STONE_BLOCK) {
+			              LoadMaterial(stone_material);
+		              }
+		              if (!block->transparent)
+		                block->getBox().DrawFace(2);
+               }
+               
+               //Face 3
+              if (dy == CHUNK_Y - 1 || scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
+              {
+                  if (block->getBlockType() == LEAF_BLOCK) 
+                  {
+                    LoadMaterial(leaf_material);
+                  }
+                  else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
+                  {
+                    if (block->getUpper()->getBlockType() == AIR_BLOCK) {
+                    LoadMaterial(grass_material);
+                    }
+                    else {
+                      LoadMaterial(alldirt_material);
+                    }
+                  }
+                  else if (block->getBlockType() == BRANCH_BLOCK) 
+                  {
+                    LoadMaterial(branch_material);
+                  }
+		              else if (block->getBlockType() == STONE_BLOCK) {
+			              LoadMaterial(stone_material);
+		              }
+		              if (!block->transparent)
+		                block->getBox().DrawFace(3);
+               }
+               //block->getBox().DrawFace(3);
+               
+               //Face 4
+              if (dz == 0 || scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz - 1]->shape->block->transparent)
+              {
+                if (block->getBlockType() == LEAF_BLOCK) 
+                {
+                  LoadMaterial(leaf_material);
+                }
+                else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
+                {
+                  if (block->getUpper()->getBlockType() == AIR_BLOCK) {
+                    LoadMaterial(dirt_material);
+                  }
+                  else {
+                    LoadMaterial(alldirt_material);
+                  }
+                }
+                else if (block->getBlockType() == BRANCH_BLOCK) 
+                {
+                  LoadMaterial(branch_material);
+                }
+		            else if (block->getBlockType() == STONE_BLOCK) {
+			            LoadMaterial(stone_material);
+		            }
+		            if (!block->transparent)
+		              block->getBox().DrawFace(4);
+              }
+              
+              //Face 5
+              if (dz == CHUNK_Z - 1 || scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz + 1]->shape->block->transparent)
+              {
+                if (block->getBlockType() == LEAF_BLOCK) 
+                {
+                  LoadMaterial(leaf_material);
+                }
+                else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
+                {
+                  if (block->getUpper()->getBlockType() == AIR_BLOCK) {
+                    LoadMaterial(dirt_material);
+                  }
+                  else {
+                    LoadMaterial(alldirt_material);
+                  }
+                }
+                else if (block->getBlockType() == BRANCH_BLOCK) 
+                {
+                  LoadMaterial(branch_material);
+                }
+		            else if (block->getBlockType() == STONE_BLOCK) {
+			            LoadMaterial(stone_material);
+		            }
+		            if (!block->transparent)
+		              block->getBox().DrawFace(5);
+              }
+              /*if (block->getBlockType() == LEAF_BLOCK) 
+              {
+                LoadMaterial(leaf_material);
+                block->getBox().Draw();
+              }
+              else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
+              {
+                  if (block->getUpper()->getBlockType() == AIR_BLOCK) {
+                      LoadMaterial(dirt_material);
+                      block->getBox().DrawFace(0);
+                      block->getBox().DrawFace(1);
+                      block->getBox().DrawFace(2);
+                      LoadMaterial(grass_material);
+                      block->getBox().DrawFace(3);
+                      LoadMaterial(dirt_material);
+                      block->getBox().DrawFace(4);
+                      block->getBox().DrawFace(5);
+                  }
+                  else {
+                      LoadMaterial(alldirt_material);
+                      block->getBox().Draw();
+                  }
+              }
+              else if (block->getBlockType() == BRANCH_BLOCK) 
+              {
+                  LoadMaterial(branch_material);
+                  block->getBox().Draw();
+              }
+		          else if (block->getBlockType() == STONE_BLOCK) {
+			          LoadMaterial(stone_material);
+			          block->getBox().Draw();
+		          }*/
+            }
+          }
+        }
+      }
+    }
     //what the fuck is scene here for
 }
 
@@ -1189,10 +1454,10 @@ void GLUTRedraw(void)
 			if (output_image_name) GLUTSaveImage(output_image_name);
 			//write new scene based on changes
 
-			if (!scene->WriteChunk(input_scene_name))
+			/*if (!scene->WriteChunk(input_scene_name))
 			{
 				fprintf(stderr, "WARNING: Couldn't save new scene!!!\n");
-			}
+			}*/
 		}
 		GLUTStop();
 	}

@@ -6,10 +6,10 @@
 # List of source files
 #
 
-RAYPRO_SRCS=raypro.cpp raytrace.cpp R3Scene.cpp
+RAYPRO_SRCS=raypro.cpp raytrace.cpp R3Scene.cpp R3Chunk.cpp
 RAYPRO_OBJS=$(RAYPRO_SRCS:.cpp=.o)
 
-RAYVIEW_SRCS=minecraft.cpp raytrace.cpp R3Scene.cpp
+RAYVIEW_SRCS=minecraft.cpp raytrace.cpp R3Scene.cpp R3Chunk.cpp
 RAYVIEW_OBJS=$(RAYVIEW_SRCS:.cpp=.o)
 
 #
