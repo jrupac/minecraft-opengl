@@ -1489,9 +1489,10 @@ void GLUTRedraw(void)
   // Load scene lights
   LoadLights(scene);
 
+#if ACSIZE > 0
   // Clear accumulation buffer
   glClear(GL_ACCUM_BUFFER_BIT);
-  
+ 
   // Iterate through the jitter array to write to accumulation buffer
   for (int jitter = 0; jitter < ACSIZE; jitter++) 
   {
@@ -1519,6 +1520,10 @@ void GLUTRedraw(void)
     R3Matrix rotation = R3Matrix(nn);
     towards.Transform(rotation);
     towards.Normalize();
+
+#else
+    LoadCamera(&camera);
+#endif
 
     // Clear screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1560,6 +1565,7 @@ void GLUTRedraw(void)
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING); 
 
+#if ACSIZE > 0
     // Add back buffer (the one written to) to the accumulation buffer and
     // weight with a fraction of the jitter size
     glAccum(GL_ACCUM, 1.0 / ACSIZE);
@@ -1567,6 +1573,7 @@ void GLUTRedraw(void)
 
   // Put the composited buffer together and write to back buffer
   glAccum (GL_RETURN, 1.0);
+#endif
 
   // Move back buffer to front and relish the fruits of your labor.
   glutSwapBuffers();

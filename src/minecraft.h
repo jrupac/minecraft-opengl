@@ -18,7 +18,7 @@
 
 #define M_2PI (2. *M_PI)
 #define RAD2DEG (180. / M_PI)
-#define ACSIZE 2
+#define ACSIZE 0
 
 // Return sign of x, with 0 as even
 #define SIGN(x) ((x) >= 0 ? 1 : -1)
