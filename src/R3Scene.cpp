@@ -41,32 +41,45 @@ getIndex(R3Point p)
   R3Index newIndex;
   int chunkX = (CHUNKS - 1) / 2;
   int chunkZ = (CHUNKS - 1) / 2;
+  int chunksAway = 0;
 
   newIndex.x = (int)(p[0] - terrain[chunkX][chunkZ]->start_point[0]);
   newIndex.y = (int)(p[1] + CHUNK_Y / 2);
   newIndex.z = (int)(p[2] - terrain[chunkX][chunkZ]->start_point[2]);
+  newIndex.current = NULL;
   
   fprintf(stderr, "first guess at index: point is %d %d %d \n", newIndex.x, newIndex.y, newIndex.z);
   
   while (newIndex.x < 0)
   {
     newIndex.x += CHUNK_X;
-    chunkX--;
+    --chunkX;
+    if (++chunksAway > 1)
+      return newIndex;
   }
+  chunksAway = 0;
   while (newIndex.x > CHUNK_X - 1)
   {
     newIndex.x -= CHUNK_X;
-    chunkX++;
+    ++chunkX;
+    if (++chunksAway > 1)
+      return newIndex;
   }
+  chunksAway = 0;
   while (newIndex.z < 0)
   {
     newIndex.z += CHUNK_Z;
-    chunkZ--;
+    --chunkZ;
+    if (++chunksAway > 1)
+      return newIndex;
   }
+  chunksAway = 0;
   while (newIndex.z > CHUNK_Z - 1)
   {
     newIndex.z -= CHUNK_Z;
-    chunkZ++;
+    ++chunkZ;
+    if (++chunksAway > 1)
+      return newIndex;
   }
   
   newIndex.current = terrain[chunkX][chunkZ];
@@ -235,7 +248,7 @@ int R3Scene::
 Read(const char *filename, R3Node *node)
 {
   bool foundChunks = false;
-  bool foundChar = false;
+  //bool foundChar = false;
 
   // Open file
   FILE *fp;

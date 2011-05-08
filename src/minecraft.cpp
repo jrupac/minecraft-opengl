@@ -170,7 +170,6 @@ void InterpolateMotion(R3Point *start, R3Vector direction)
     return;
 
   *start += direction / INTERPOLATION;
-  // I'm assuming hte above is the new position!
   scene->UpdateScene(*start);
   
   // Starting from below character, keep going down until you find something
@@ -206,34 +205,23 @@ void AlignReticle()
   currentSelectedCreatureIt = creatures.end();
   double smallest = DBL_MAX;
   vector<R3Creature *>::iterator it;
+  double dt = 0.0;
 
-  // Check all blocks for the closest intersection
-  // Insert Inception joke here.
-  for (int dChunkX = 0; dChunkX < CHUNKS; dChunkX++)
+  while (++dt)
   {
-    for (int dChunkZ = 0; dChunkZ < CHUNKS; dChunkZ++)
+    R3Index cur = getChunkCoordinates(ray.Point(dt / 2));
+
+    if (!cur.current)
+      break;
+
+    R3Node *curNode = cur.current->chunk[cur.x][cur.y][cur.z];
+
+    if (!curNode->shape->block->transparent)
     {
-      for (int dz = 0; dz < CHUNK_Z; dz++) 
-      {
-        for (int dy = 0; dy < CHUNK_Y; dy++) 
-        {
-          for (int dx = 0; dx < CHUNK_X; dx++) 
-          {
-            R3Node *currentNode = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz];
-
-            if (currentNode->shape->block->getBlockType() != AIR_BLOCK) {
-              intersect = IntersectBox(ray, currentNode->shape->block->getBox());
-
-              if (intersect.hit && intersect.t < smallest) 
-              {
-                smallest = intersect.t;
-                closestIntersect = intersect;
-                closestIntersect.node = currentNode;
-              }
-            }
-          }
-        }
-      }
+      closestIntersect = IntersectBox(ray, curNode->shape->block->getBox());
+      smallest = closestIntersect.t;
+      closestIntersect.node = curNode;
+      break;
     }
   }
 
@@ -1447,6 +1435,7 @@ R3Scene *ReadScene(const char *filename)
 
     // Set up default properties of camera
     camera.towards = R3negz_vector;
+    towards = R3negz_vector;
     camera.eye = R3zero_point + 2. * R3posy_vector;
     camera.up = R3posy_vector;
     camera.right = R3posx_vector;

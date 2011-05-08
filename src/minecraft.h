@@ -25,6 +25,8 @@
 // Wrap x around so it's between [low, high]
 #define WRAP(x, low, high) (((x) > (high)) ? (x) - (high) : \
                             ((x) < (low)) ? (x) - (low) : (x))  
+// Debugging function to print any vector
+#define PRINT_VECTOR(x) printf("%lf %lf %lf\n", (x).X(), (x).Y(), (x).Z());
  
 // GLUT command list
 
