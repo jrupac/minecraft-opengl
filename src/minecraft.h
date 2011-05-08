@@ -46,7 +46,7 @@ enum {
 
 double GetTime(void);
 R3Index getChunkCoordinates(R3Point p);
-void InterpolateMotion(R3Point *start, R3Vector direction);
+R3Vector InterpolateMotion(R3Point *start, R3Vector direction, bool isCharacter);
 void InterpolateJump(R3Point *start, R3Vector direction);
 
 ////////////////////////////////////////////////////////////

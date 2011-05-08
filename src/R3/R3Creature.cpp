@@ -53,51 +53,51 @@ R3Creature::
 }
 
 
-void R3Creature::
+R3Vector R3Creature::
 UpdateCreature(R3Character *character)
 {
-	if(creaturetype == R3COW_CREATURE) {
-	double x = RandomNumber();
-	double y = RandomNumber();
-	double z = RandomNumber();
+  double x, y, z;
+  R3Vector translated;
 
-	x = (2 * x - 1) / 20;
-	y = 0;
-	z = (2 * z - 1) / 20;
-	
-	R3Vector translated;
-	translated = character->position - position;
-	translated.SetY(0);
-	translated.Normalize();
-	translated /= 20;
-  
-  // Give me some space!
-  if (R3Distance(position + translated, character->position) >= 2.f)
+  switch (creaturetype)
   {
-    position = position + translated;
-    box.Translate(translated);
-  }
-	}
-	if(creaturetype == R3DEER_CREATURE) {
-	double x = RandomNumber();
-	double y = RandomNumber();
-	double z = RandomNumber();
+    case R3COW_CREATURE:
+      x = RandomNumber();
+      y = RandomNumber();
+      z = RandomNumber();
 
-	x = (2 * x - 1) / 20;
-	y = 0;
-	z = (2 * z - 1) / 20;
-	
-	R3Vector translated;
-	translated = position - character->position;
-	translated.SetY(0);
-	translated.Normalize();
-	translated /= 20;
-  
-  // Give me some space!
-  if (R3Distance(position + translated, character->position) >= 2.f)
-  {
-    position = position + translated;
-    box.Translate(translated);
+      x = (2 * x - 1) / 20;
+      y = 0;
+      z = (2 * z - 1) / 20;
+
+      translated = character->position - position;
+      translated.SetY(0);
+      translated.Normalize();
+      translated /= 20;
+
+      // Give me some space!
+      if (R3Distance(position + translated, character->position) >= 2.f)
+        return translated;
+      else 
+        return R3zero_vector;
+    case R3DEER_CREATURE:
+      x = RandomNumber();
+      y = RandomNumber();
+      z = RandomNumber();
+
+      x = (2 * x - 1) / 20;
+      y = 0;
+      z = (2 * z - 1) / 20;
+
+      translated = position - character->position;
+      translated.SetY(0);
+      translated.Normalize();
+      translated /= 20;
+
+      // Give me some space!
+      if (R3Distance(position + translated, character->position) >= 2.f)
+        return translated;
+      else 
+        return R3zero_vector;
   }
-	}
 }

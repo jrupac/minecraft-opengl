@@ -10,22 +10,17 @@ typedef enum {
 } R3CreatureType;
 
 class R3Creature {
-public:
-	// Constructor functions
-	R3Creature(void);
-	R3Creature(R3Point init, R3CreatureType creaturetype);
+  public:
+    R3Creature(void);
+    R3Creature(R3Point init, R3CreatureType creaturetype);
+    R3Vector UpdateCreature(R3Character *character);
 
-
-
-
-	int Health;
-	int MaxHealth;
-	R3Point position;
-	R3Box box;
-
-	void UpdateCreature(R3Character *character);
-	R3CreatureType creaturetype;
-
+  public:
+    int Health;
+    int MaxHealth;
+    R3Point position;
+    R3Box box;
+    R3CreatureType creaturetype;
 };
 
 #endif

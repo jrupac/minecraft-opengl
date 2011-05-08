@@ -152,17 +152,27 @@ R3Index getChunkCoordinates(R3Point p)
   return scene->getIndex(p);
 }
 
-void InterpolateMotion(R3Point *start, R3Vector direction)
+R3Vector InterpolateMotion(R3Point *start, R3Vector direction, bool isCharacter)
 {
+  R3Point initial = *start;
   R3Index coords = getChunkCoordinates((*start) + (direction / INTERPOLATION));
   int fallIndex = -1;
   
   // Check if next potential location is legal
-  if (!(coords.current->chunk[coords.x][coords.y-2][coords.z]->shape->block->walkable))
-    return;
+  if (isCharacter)
+  {
+    if (!coords.current || !coords.current->chunk[coords.x][coords.y-2][coords.z]->shape->block->walkable)
+      return R3zero_vector;
+  }
+  else 
+  {
+    if (!coords.current || !coords.current->chunk[coords.x][coords.y][coords.z]->shape->block->walkable)
+      return R3zero_vector;
+  }
 
   *start += direction / INTERPOLATION;
-  scene->UpdateScene(*start);
+  if (isCharacter)
+    scene->UpdateScene(*start);
   
   // Starting from below character, keep going down until you find something
   // you can't walk through 
@@ -180,6 +190,8 @@ void InterpolateMotion(R3Point *start, R3Vector direction)
   // The art of falling
   if (fallIndex != -1)
     (*start) -= (coords.y - fallIndex - 2) * R3posy_vector;
+
+  return (*start) - initial;
 }
 
 void InterpolateJump(R3Point *start, R3Vector direction)
@@ -927,12 +939,12 @@ void DrawCreatures()
 
   for (it = creatures.begin(); it < creatures.end(); it++)
   {
-		if ((*it)->creaturetype == R3COW_CREATURE) 
+    if ((*it)->creaturetype == R3COW_CREATURE) 
       LoadMaterial(materials[COW]);
-		else if ((*it)->creaturetype == R3DEER_CREATURE) 
+    else if ((*it)->creaturetype == R3DEER_CREATURE) 
       LoadMaterial(materials[DEER]);
-		(*it)->box.Draw();
-		if (currentSelectedCreatureIt == it) 
+    (*it)->box.Draw();
+    if (currentSelectedCreatureIt == it) 
     {
       glDisable(GL_LIGHTING);
       glColor3d(0., 0., 0.);
@@ -943,7 +955,7 @@ void DrawCreatures()
       glLineWidth(1);
       glEnable(GL_LIGHTING);
     }
-	}
+  }
 }
 
 void UpdateCharacter() 
@@ -964,9 +976,15 @@ void GLUTMainLoop(void)
 void GLUTIdleFunction(void) 
 {
 	UpdateCharacter();
+  R3Vector direction;
 
-	for (unsigned int i = 0; i < creatures.size(); i++) 
-		creatures[i]->UpdateCreature(Main_Character);
+	for (unsigned int i = 0; i < creatures.size(); i++)
+  {
+		direction = creatures[i]->UpdateCreature(Main_Character);
+    direction = InterpolateMotion(&(creatures[i]->position), direction, false);
+    PRINT_VECTOR(direction);
+    creatures[i]->box.Translate(direction);
+  }
 
   glutPostRedisplay();
 }
@@ -1310,22 +1328,22 @@ void GLUTKeyboard(unsigned char key, int x, int y)
 
         case 'w': 
             InterpolateMotion(&(camera.eye), 
-                    -(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point));
+                    -(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
             break;
 
         case 's': 
             InterpolateMotion(&(camera.eye), 
-                    (cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point));
+                    (cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
             break;
 
         case 'd': 
             InterpolateMotion(&(camera.eye), 
-                    (sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector());
+                    (sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
             break;
 
         case 'a': 
             InterpolateMotion(&(camera.eye), 
-                    -(sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector());
+                    -(sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
             break;
 
         case ' ': 
