@@ -1,6 +1,8 @@
 #ifndef __STRINGS_H__
 #define __STRINGS_H__
 
+const char s_TexLogo[] = "textures/logo.jpg";
+
 const char s_WAVFile[] = "sounds/ninth.wav";
 const char s_TexAllDirt[] = "textures/alldirt.jpg";
 const char s_TexDirt[] = "textures/dirt.jpg";

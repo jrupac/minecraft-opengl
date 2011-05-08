@@ -20,7 +20,7 @@ static char *output_image_name = NULL;
 
 // Display variables 
 
-static bool startMenu = false;
+static bool startMenu = true;
 
 static R3Scene *scene = NULL;
 static int show_faces = 1;
@@ -529,7 +529,7 @@ void DrawHUD()
 
     // This is just temporary text
     glColor3d(.1, .1, .1);
-    GLUTDrawText(R3Point(GLUTwindow_width / 2 - 10, GLUTwindow_height - 70, 0), "I am a dock!");
+    //GLUTDrawText(R3Point(GLUTwindow_width / 2 - 10, GLUTwindow_height - 70, 0), "I am a dock!");
 
 	if(dead) {
 		
@@ -1271,6 +1271,7 @@ void GLUTIdleFunction(void)
 {
 	
 	if (startMenu == true) {
+		glutPostRedisplay();
 		return;
 	}
 	
@@ -1298,6 +1299,17 @@ void GLUTDrawText(const R3Point& p, const char *s)
     glRasterPos3d(p[0], p[1], p[2]);
 #ifndef __CYGWIN__
     while (*s) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *(s++));
+#else
+    while (*s) glutBitmapCharacter((void*)7, *(s++));
+#endif
+}
+
+void GLUTDrawTitle(const R3Point& p, const char *s)
+{
+    // Draw text string s and position p
+    glRasterPos3d(p[0], p[1], p[2]);
+#ifndef __CYGWIN__
+    while (*s) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *(s++));
 #else
     while (*s) glutBitmapCharacter((void*)7, *(s++));
 #endif
@@ -1360,7 +1372,14 @@ void GLUTResize(int w, int h)
 }
 
 void DisplayStartMenu() {
-	glMatrixMode(GL_PROJECTION);
+	//printf(":(");
+	int x = GLUTwindow_width;
+    int y = GLUTwindow_height;
+	
+	glColor3d(.1, .1, .1);
+	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 2, 0), "Left click to play minecraft!");
+	
+/*	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
     glLoadIdentity();
     gluOrtho2D(0, GLUTwindow_width, GLUTwindow_height, 0);
@@ -1368,21 +1387,46 @@ void DisplayStartMenu() {
     glPushMatrix();
 	glLoadIdentity();
 	
-	/* draw stuff */
+	 glDisable(GL_LIGHTING); 
+	    glColor3d(.1, .1, .1);
+	   GLUTDrawText(R3Point(GLUTwindow_width / 2 - 10, GLUTwindow_height - 70, 0), "I am a dock!");
 	
     glPopMatrix();
 	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
+	glPopMatrix();*/
 	
+	/*glMatrixMode (GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho (0, GLUTwindow_width, GLUTwindow_height, 0, 0, 1);
+    glMatrixMode (GL_MODELVIEW);
+    glLoadIdentity();
+	
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING); 
+	
+	glColor3d(.1, .1, .1);
+	GLUTDrawText(R3Point(GLUTwindow_width / 2 - 10, GLUTwindow_height - 70, 0), "HELLO");
+	
+	glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHTING); 
+	
+	 //   glutSwapBuffers();*/
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_LIGHTING);
+	
+	glBegin(GL_QUADS);
+	glVertex2f(0, 0); 
+	glVertex2f(0, 20); 
+	glVertex2f(20, 20); 
+	glVertex2f(20, 0); 
+	glEnd();
+	
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_LIGHTING);
 }
 
 void GLUTRedraw(void)
 {
-	
-	if (startMenu == true) {
-		DisplayStartMenu();
-		return;
-	}
 	
     // Time stuff
     current_time = GetTime();
@@ -1404,8 +1448,14 @@ void GLUTRedraw(void)
     // Load scene lights
     LoadLights(scene);
 
+	
+	/*if (startMenu == true) {
+		DisplayStartMenu();
+		return;
+	}*/
+	
     // Draw scene surfaces
-    if (show_faces) {
+    if (show_faces && !startMenu) {
         glEnable(GL_LIGHTING);
         DrawScene(scene);
         DrawCreatures();
@@ -1461,7 +1511,12 @@ void GLUTRedraw(void)
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING); 
 
+	if (!startMenu) {
     DrawHUD();
+	}
+	else {
+		DisplayStartMenu();
+	}
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING); 
@@ -1521,6 +1576,7 @@ void GLUTPassiveMotion(int x, int y)
 
 void GLUTMouse(int button, int state, int x, int y)
 {
+	
   // Invert y coordinate
   y = GLUTwindow_height - y;
 
@@ -1537,6 +1593,9 @@ void GLUTMouse(int button, int state, int x, int y)
       }
 	  
 		else if(dead) return;
+		else if (startMenu) {
+			startMenu = false;
+		}
       else if (currentSelectedCreatureIt != creatures.end()) 
       {
         ChangeHealth((*currentSelectedCreatureIt), -1);
@@ -1576,7 +1635,7 @@ void GLUTMouse(int button, int state, int x, int y)
     else if (button == GLUT_RIGHT_BUTTON) 
     {
 
-		if(dead) return;
+		if(dead || startMenu) return;
       int block;
       int item = Main_Character->item;
       printf("%d\n", item);
@@ -1713,25 +1772,25 @@ void GLUTKeyboard(unsigned char key, int x, int y)
 	  
 
     case 'w': 
-		if(dead) return;
+		if(dead || startMenu) return;
       difference = InterpolateMotion(&(camera.eye), 
           -(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
       break;
 
     case 's': 
-		if(dead) return;
+		if(dead || startMenu) return;
       difference = InterpolateMotion(&(camera.eye), 
           (cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
       break;
 
     case 'd': 
-		if(dead) return;
+		if(dead || startMenu) return;
       difference = InterpolateMotion(&(camera.eye), 
           (sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
       break;
 
     case 'a': 
-		if(dead) return;
+		if(dead || startMenu) return;
       difference = InterpolateMotion(&(camera.eye), 
           -(sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
       break;
