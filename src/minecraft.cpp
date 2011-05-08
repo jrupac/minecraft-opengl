@@ -191,6 +191,8 @@ R3Vector InterpolateMotion(R3Point *start, R3Vector direction, bool isCharacter)
   R3Index coords = getChunkCoordinates((*start) + (direction / INTERPOLATION));
   int fallIndex = -1;
   
+  fprintf(stderr, "Coords is %d\n", coords.current);
+  
   // Check if next potential location is legal
   if (isCharacter)
   {
