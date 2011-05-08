@@ -50,9 +50,11 @@ getIndex(R3Point p)
   R3Index newIndex;
   int chunkX = (CHUNKS - 1)/2;
   int chunkZ = (CHUNKS - 1)/2;
-  newIndex.x = (int)(p[0] + terrain[chunkX][chunkZ]->start_point[0]/2);
+  newIndex.x = (int)(p[0] - terrain[chunkX][chunkZ]->start_point[0]);
   newIndex.y = (int)(p[1] + CHUNK_Y/2);
-  newIndex.z = (int)(p[2] + terrain[chunkX][chunkZ]->start_point[2]/2);
+  newIndex.z = (int)(p[2] - terrain[chunkX][chunkZ]->start_point[2]);
+  
+  fprintf(stderr, "first guess at index: point is %d %d %d \n", newIndex.x, newIndex.y, newIndex.z);
   
   while (newIndex.x < 0)
   {
@@ -76,6 +78,7 @@ getIndex(R3Point p)
   }
   
   newIndex.current = terrain[chunkX][chunkZ];
+  fprintf(stderr, "ChunkX is %d and ChunkZ is %d\n", chunkX, chunkZ);
   return newIndex;
 }
 
@@ -126,7 +129,7 @@ UpdateScene(R3Point loc)
       {
         terrain[xChunks][zChunks] = terrain[xChunks - 1][zChunks];
       }
-      terrain[0][zChunks] = LoadChunk(xChunkLoc, zChunks); //load new chunk!
+      terrain[0][zChunks] = LoadChunk(xChunkLoc, zChunks - (CHUNKS-1)/2); //load new chunk!
       
     }
     
@@ -143,11 +146,11 @@ UpdateScene(R3Point loc)
     for (int zChunks = 0; zChunks < CHUNKS; zChunks++)
     {
       terrain[0][zChunks]->DeleteChunk(); //delete stuff to the left
-      for (int xChunks = 0; xChunks < CHUNKS ; xChunks++)
+      for (int xChunks = 0; xChunks < CHUNKS; xChunks++)
       {
         terrain[xChunks][zChunks] = terrain[xChunks + 1][zChunks];
       }
-      terrain[CHUNKS - 1][zChunks] = LoadChunk(xChunkLoc, zChunks); //load new chunk!
+      terrain[CHUNKS - 1][zChunks] = LoadChunk(xChunkLoc, zChunks - (CHUNKS-1)/2); //load new chunk!
       
     }
     
@@ -157,18 +160,18 @@ UpdateScene(R3Point loc)
   }
   
   //Z-directions
-  /*while (loc[2] < low[2]) // moved out of lower bounds for z
+  while (loc[2] < low[2]) // moved out of lower bounds for z
   {
     int zChunkLoc = terrain[0][0]->chunk_z - 1; //new location
-    fprintf(stderr, "MOVING LEFT IN Z\n");
-    for (int xChunks = 1; zChunks < CHUNKS; zChunks++)
+    fprintf(stderr, "MOVING CLOSER IN Z\n");
+    for (int xChunks = 0; xChunks < CHUNKS; xChunks++)
     {
-      terrain[CHUNKS][zChunks]->DeleteChunk(); //delete stuff to the right
-      for (int xChunks = CHUNKS - 1; xChunks > 0 ; xChunks--)
+      terrain[xChunks][CHUNKS - 1]->DeleteChunk(); //delete stuff in +z direction
+      for (int zChunks = CHUNKS - 1; zChunks > 0 ; zChunks--)
       {
-        terrain[xChunks][zChunks] = terrain[xChunks - 1][zChunks];
+        terrain[xChunks][zChunks] = terrain[xChunks][zChunks - 1];
       }
-      terrain[0][zChunks] = LoadChunk(xChunkLoc, zChunks); //load new chunk!
+      terrain[xChunks][0] = LoadChunk(xChunks - (CHUNKS-1)/2, zChunkLoc); //load new chunk!
       
     }
     
@@ -178,8 +181,23 @@ UpdateScene(R3Point loc)
   }
   while (loc[2] > high[2]) // moved out of higher bounds for z
   {
-  
-  }*/
+    int zChunkLoc = terrain[0][CHUNKS-1]->chunk_z + 1; // new location
+    fprintf(stderr, "MOVING FURTHER IN Z\n");
+    for (int xChunks = 0; xChunks < CHUNKS; xChunks++)
+    {
+      terrain[xChunks][0]->DeleteChunk(); //delete stuff in the -z direction
+      for (int zChunks = 0; zChunks < CHUNKS; zChunks++)
+      {
+        terrain[xChunks][zChunks] = terrain[xChunks][zChunks + 1];
+      }
+      terrain[xChunks][CHUNKS - 1] = LoadChunk(xChunks - (CHUNKS-1)/2, zChunkLoc); //load new chunk!
+      
+    }
+    
+    cur = terrain[(CHUNKS-1)/2][(CHUNKS-1)/2];
+    low = cur->start_point; //get the lower point of the middle chunk
+    high = cur->end_point; //get the upper point of the middle chunk
+  }
   
   return 1;
   

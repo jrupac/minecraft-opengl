@@ -7,6 +7,8 @@ R3Chunk::R3Chunk(void)
 int R3Chunk::
 GenerateChunk(int c_x, int c_z)
 {
+  chunk_x = c_x;
+  chunk_z = c_z;
   fprintf(stderr, "No chunk found: generating new chunk at chunk pos (%d, %d)\n", c_x, c_z);
   //THIS IS GONNA BE TERRIBLE
   //REMOVE ME PLEASE I JUST WANT TO DIE
@@ -92,7 +94,7 @@ GenerateChunk(int c_x, int c_z)
 	R3Material *material = group_materials[0];
   //fuck it
   start_point = R3Point((double)c_x*16.0 - 8.0, -CHUNK_Y/2, (double)c_z*16.0 - 8.0);
-  end_point = R3Point((double)c_x*16.0 + 8.0, -CHUNK_Y/2, (double)c_z*16.0 + 8.0);
+  end_point = R3Point((double)c_x*16.0 + 8.0, CHUNK_Y/2, (double)c_z*16.0 + 8.0);
   block_side = 1.0;
   
   for (int dy = 0; dy < CHUNK_Y; dy++)

@@ -1134,7 +1134,7 @@ void DrawScene(R3Scene *scene)
               }
               
               //Face 1
-              else if (right < CHUNK_X && scene->terrain[curChunkX][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
+              if (right < CHUNK_X && scene->terrain[curChunkX][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
               {
                 if (block->getBlockType() == LEAF_BLOCK) 
                 {
@@ -1194,7 +1194,7 @@ void DrawScene(R3Scene *scene)
                }
                
                //Face 3
-              else if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
+              if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
               {
                   if (block->getBlockType() == LEAF_BLOCK) 
                   {
@@ -1255,7 +1255,7 @@ void DrawScene(R3Scene *scene)
               }
               
               //Face 5
-              else if (forward < CHUNK_Z && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][forward]->shape->block->transparent)
+              if (forward < CHUNK_Z && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][forward]->shape->block->transparent)
               {
                 if (block->getBlockType() == LEAF_BLOCK) 
                 {
@@ -1322,7 +1322,7 @@ void DrawScene(R3Scene *scene)
     }
     //what the fuck is scene here for
     
-    fprintf(stderr, "Frame update: drew %i faces.\n", drawCounter);
+    //fprintf(stderr, "Frame update: drew %i faces.\n", drawCounter);
 }
 
 void DrawCreatures() 
