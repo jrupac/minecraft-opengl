@@ -86,7 +86,7 @@ DeleteChunk()
 {
   //std:: string s;
   std:: stringstream out;
-  out << "world/chunks/chunk" << chunk_x << "." << chunk_z << ".scn";
+  out << s_World << chunk_x << "." << chunk_z << ".scn";
   WriteChunk(out.str().c_str());
   for (int dz = 0; dz < CHUNK_Z; dz++)
   {

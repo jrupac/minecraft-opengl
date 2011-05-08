@@ -17,6 +17,6 @@ const char s_TexEmptyHeart[] = "textures/emptyheart.jpg";
 const char s_TexCow[] = "textures/cow.jpg";
 const char s_TexDeer[] = "textures/deer.jpg";
 const char s_TexSuicide[] = "textures/suicide.jpg";
-const char s_World[] = "world/chunks/chunk";
+const char s_World[] = "src/world/chunks/chunk";
 
 #endif
