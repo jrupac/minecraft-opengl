@@ -12,8 +12,11 @@ GenerateChunk(int c_x, int c_z)
   fprintf(stderr, "No chunk found: generating new chunk at chunk pos (%d, %d)\n", c_x, c_z);
   //THIS IS GONNA BE TERRIBLE
   //REMOVE ME PLEASE I JUST WANT TO DIE
-    // Create array of materials
-  vector<R3Material *> materials;
+	
+	//killed.
+	
+ /*   // Create array of materials
+  vector<R3Material *> materials;*/
 
   // Create default material
   R3Material *default_material = new R3Material();
@@ -28,7 +31,7 @@ GenerateChunk(int c_x, int c_z)
 
   default_material->id = 0;
 
-  // Create stack of group information
+ /* // Create stack of group information
   const int max_depth = 1024;
 
   R3Material *group_materials[max_depth] = { NULL };
@@ -88,10 +91,12 @@ GenerateChunk(int c_x, int c_z)
 	grass_material->indexofrefraction = 1;
 
 	//	char buffer[] = "input/checker.bmp";
-	char grass[] = "input/grass.jpg";
+	char grass[] = "input/grass.jpg";*/
 	//REMOVE ME PLEASE DONE
 	
-	R3Material *material = group_materials[0];
+		//i hope you're happy.
+	
+	//R3Material *material = group_materials[0];
   //fuck it
   start_point = R3Point((double)c_x*16.0 - 8.0, -CHUNK_Y/2, (double)c_z*16.0 - 8.0);
   end_point = R3Point((double)c_x*16.0 + 8.0, CHUNK_Y/2, (double)c_z*16.0 + 8.0);
@@ -131,14 +136,14 @@ GenerateChunk(int c_x, int c_z)
             // Create shape node
             R3Node *node = new R3Node();
             node->transformation = R3identity_matrix;
-
+/*
             if (block_type == LEAF_BLOCK) 
               material = group_materials[1];
            
             if (block_type == DIRT_BLOCK)
               material = group_materials[3];
-
-            node->material = material;
+*/
+            node->material = default_material;
             node->shape = shape;
             node->bbox = box;
             node->selected = false;
@@ -177,8 +182,8 @@ DeleteChunk()
       {
         delete chunk[dx][dy][dz]->shape->block; //clear some memory
         delete chunk[dx][dy][dz]->material;
-        delete chunk[dx][dy][dz]->material_top;
-        delete chunk[dx][dy][dz]->material_sides;
+      //  delete chunk[dx][dy][dz]->material_top;
+        //delete chunk[dx][dy][dz]->material_sides;
         delete chunk[dx][dy][dz];
       }
     }
@@ -202,8 +207,8 @@ ReadChunk(int xChunkCoord, int zChunkCoord)
     return 0;
   }
   
-  // Create array of materials
-  vector<R3Material *> materials;
+ /* // Create array of materials
+  vector<R3Material *> materials;*/
 
   // Create default material
   R3Material *default_material = new R3Material();
@@ -218,7 +223,7 @@ ReadChunk(int xChunkCoord, int zChunkCoord)
 
   default_material->id = 0;
 
-  // Create stack of group information
+ /* // Create stack of group information
   const int max_depth = 1024;
 
   R3Material *group_materials[max_depth] = { NULL };
@@ -287,7 +292,7 @@ ReadChunk(int xChunkCoord, int zChunkCoord)
 		//	return 0;
 	}	
 	grass_material->id = 3;
-	group_materials[3] = dirt_material;
+	group_materials[3] = dirt_material;*/
 	
   
   // Read body
@@ -314,7 +319,7 @@ ReadChunk(int xChunkCoord, int zChunkCoord)
       }
 
       // Get material
-      R3Material *material = group_materials[0];
+    //  R3Material *material = group_materials[0];
 
       //start = start_point;
       
@@ -357,13 +362,13 @@ ReadChunk(int xChunkCoord, int zChunkCoord)
             R3Node *node = new R3Node();
             node->transformation = R3identity_matrix;
 
-            if (block_type == LEAF_BLOCK) 
+         /*   if (block_type == LEAF_BLOCK) 
               material = group_materials[1];
            
             if (block_type == DIRT_BLOCK)
-              material = group_materials[3];
+              material = group_materials[3];*/
 
-            node->material = material;
+            node->material = default_material;
             node->shape = shape;
             node->bbox = box;
             node->selected = false;

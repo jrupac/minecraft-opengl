@@ -40,6 +40,7 @@ struct R3Scene {
   int UpdateScene(R3Point loc);
   R3Node* getBlock(R3Point loc);
   R3Chunk* LoadChunk(int x_chunk, int z_chunk);
+ // void MakeMaterials(R3Material* group_materials[]);
 
   // I/O functions
   int Read(const char *filename, R3Node *root = NULL);

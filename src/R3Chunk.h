@@ -1,3 +1,6 @@
+#ifndef __CHUNK_H__
+#define __CHUNK_H__
+
 #include "R3/R3.h"
 #include <sstream>
 
@@ -87,8 +90,8 @@ struct R3Node {
   R3Shape *shape;
   R3Matrix transformation;
   R3Material *material;
-	R3Material *material_top;
-	R3Material *material_sides;
+/*	R3Material *material_top;
+	R3Material *material_sides;*/
   R3Box bbox;
   bool selected;
 };
@@ -112,3 +115,5 @@ struct R3Chunk{
   double block_side;
   R3Node *chunk[CHUNK_X][CHUNK_Y][CHUNK_Z];
 };
+
+#endif
