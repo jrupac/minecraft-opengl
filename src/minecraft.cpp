@@ -20,7 +20,7 @@ static char *output_image_name = NULL;
 
 // Display variables
 
-static bool startMenu = true;
+static bool startMenu = false;
 
 static R3Scene *scene = NULL;
 static int show_faces = 1;
