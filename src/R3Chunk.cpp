@@ -92,8 +92,6 @@ DeleteChunk()
       {
         delete chunk[dx][dy][dz]->shape->block;
         delete chunk[dx][dy][dz]->material;
-        delete chunk[dx][dy][dz]->material_top;
-        delete chunk[dx][dy][dz]->material_sides;
         delete chunk[dx][dy][dz];
       }
     }
