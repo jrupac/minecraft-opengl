@@ -54,6 +54,7 @@ void InterpolateJump(R3Point *start, R3Vector direction);
 // GAME LOGIC CODE
 ////////////////////////////////////////////////////////////
 
+void EndGame();
 void AlignReticle();
 void AddBlock(int block);
 void DrawHUD(); 

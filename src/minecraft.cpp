@@ -258,6 +258,13 @@ void InterpolateJump(R3Point *start, R3Vector direction)
 // GAME LOGIC CODE
 ////////////////////////////////////////////////////////////
 
+void EndGame()
+{
+  // Be a little nicer than this in the future
+  fprintf(stderr, "You lose!\n");
+  exit(0);
+}
+
 void AlignReticle()
 {
   currentSelection = NULL;
@@ -512,54 +519,55 @@ void DrawHUD_Hearts()
 
 void DrawHUD_Inventory() 
 {
-	int x = GLUTwindow_width;
-    int y = GLUTwindow_height;
-    int boxWidth = .0525 * x;
-    int boxHeight = .0625 * y;
-	
-    glPushMatrix();
-    glTranslatef(.1875 * x, .99 * y, 0.);
-	
-	int materialsStart = DIRT_ICON;
-	
-	int i;
-    for (i = 0; i <= 1; i++) 
-    {	
-		LoadMaterial(materials[materialsStart]);
-        glTranslatef(x / 16, 0, 0.);
-        glBegin(GL_QUADS);
-		glNormal3d(0.0, 0.0, 1.0);
-		glTexCoord2d(0, 1);
-        glVertex2f(0, 0); 
-		glTexCoord2d(0, 0);
-        glVertex2f(0, -boxHeight); 
-		glTexCoord2d(1, 0);
-        glVertex2f(boxWidth, -boxHeight); 
-		glTexCoord2d(1, 1);
-        glVertex2f(boxWidth, 0); 
-        glEnd();
-		
-		materialsStart++;
-    }
-	
-	for (int j = i; j <= 8; j++) {
-	//	LoadMaterial(materials[EMPTY_ICON]);
-    //    glTranslatef(x / 16, 0, 0.);
-        glBegin(GL_QUADS);
-		glNormal3d(0.0, 0.0, 1.0);
-		glTexCoord2d(0, 1);
-        glVertex2f(0, 0); 
-		glTexCoord2d(0, 0);
-        glVertex2f(0, -boxHeight); 
-		glTexCoord2d(1, 0);
-        glVertex2f(boxWidth, -boxHeight); 
-		glTexCoord2d(1, 1);
-        glVertex2f(boxWidth, 0); 
-        glEnd();
-		//materialsStart++;
-	}
+  int x = GLUTwindow_width;
+  int y = GLUTwindow_height;
+  int boxWidth = .0525 * x;
+  int boxHeight = .0625 * y;
 
-    glPopMatrix(); 
+  glPushMatrix();
+  glTranslatef(.1875 * x, .99 * y, 0.);
+
+  int materialsStart = DIRT_ICON;
+
+  int i;
+  for (i = 0; i <= 1; i++) 
+  {	
+    LoadMaterial(materials[materialsStart]);
+    glTranslatef(x / 16, 0, 0.);
+    glBegin(GL_QUADS);
+      glNormal3d(0.0, 0.0, 1.0);
+      glTexCoord2d(0, 1);
+      glVertex2f(0, 0); 
+      glTexCoord2d(0, 0);
+      glVertex2f(0, -boxHeight); 
+      glTexCoord2d(1, 0);
+      glVertex2f(boxWidth, -boxHeight); 
+      glTexCoord2d(1, 1);
+      glVertex2f(boxWidth, 0); 
+    glEnd();
+
+    materialsStart++;
+  }
+	
+  for (int j = i; j <= 8; j++) 
+  {
+    //	LoadMaterial(materials[EMPTY_ICON]);
+    //    glTranslatef(x / 16, 0, 0.);
+    glBegin(GL_QUADS);
+      glNormal3d(0.0, 0.0, 1.0);
+      glTexCoord2d(0, 1);
+      glVertex2f(0, 0); 
+      glTexCoord2d(0, 0);
+      glVertex2f(0, -boxHeight); 
+      glTexCoord2d(1, 0);
+      glVertex2f(boxWidth, -boxHeight); 
+      glTexCoord2d(1, 1);
+      glVertex2f(boxWidth, 0); 
+    glEnd();
+    //materialsStart++;
+  }
+
+  glPopMatrix(); 
 }
 
 void ChangeHealth(R3Character *character, int delta)
@@ -567,12 +575,7 @@ void ChangeHealth(R3Character *character, int delta)
   character->Health += delta;
 
   if (character->Health <= 0)
-  {
-    fprintf(stderr, "You lose!\n");
-
-    // Be a little nicer than this in the future.
-    exit(0);
-  }
+    EndGame();
 }
 
 void ChangeHealth(R3Creature *creature, int delta)
@@ -1523,7 +1526,7 @@ void GLUTKeyboard(unsigned char key, int x, int y)
   
   // If you fall too much, you lose health
   if (difference.Y() < -1.f)
-    ChangeHealth(Main_Character, -10);
+    ChangeHealth(Main_Character, -1);
 
   // Remember mouse position 
   GLUTmouse[0] = x;
