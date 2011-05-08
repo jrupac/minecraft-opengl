@@ -85,6 +85,8 @@ void UpdateCharacter();
 // Creature Functions
 
 void RemoveCreature();
+
+void RemoveCreature(R3Creature *died);
 void DrawCreatures();
 
 

@@ -69,6 +69,7 @@ Draw(int face, bool isSelected) const
       glColor3d(0., 0., 0.);
       glLineWidth(15);
       glPolygonMode(GL_FRONT, GL_LINE);
+
       box.DrawFace(face);
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
       glLineWidth(1);

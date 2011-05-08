@@ -39,7 +39,7 @@ void R3Creature::
 			character->Health--;
 			character->Health--;
 			MoveCharacter(translated, 4);
-
+			//RemoveCreature(this);
 		}
 }
 

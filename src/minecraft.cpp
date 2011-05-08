@@ -46,6 +46,7 @@ static double current_time = 0;
 static int FPS = 0;
 static R3Intersection closestintersect;
 bool dead;
+static int LODcutoff = 15;
 
 R3Material **materials = new R3Material*[40];
 
@@ -449,6 +450,19 @@ void RemoveCreature()
 }
 
 
+void RemoveCreature(R3Creature *died) 
+{
+	R3Creature *iteration;
+	for(unsigned int i = 0; i < creatures.size(); i++) {
+		iteration = creatures[i];
+		if(iteration == died) {
+			creatures.erase(creatures.begin() + i);
+			break;
+		}
+	}
+}
+
+
 void MoveCharacter(R3Vector translated, double d) {
 	printf("TRANSLATED: (%f, %f, %f)", translated.X(), translated.Y(), translated.Z());
 	translated.Normalize();
@@ -508,6 +522,7 @@ void DrawHUD()
 
 void DrawHUD_Hearts() 
 {
+
     int x = GLUTwindow_width;
     int y = GLUTwindow_height;
 
@@ -519,7 +534,7 @@ void DrawHUD_Hearts()
     for (int i = 0; i < Main_Character->MaxHealth; i++) 
     {
         if (i >= Main_Character->Health)
-            glColor3d(.7, .7, .7);
+            glColor3d(1.0,1.0,1.0);
 
         glBegin(GL_QUADS);
         glVertex2f(0, 0); 
@@ -741,6 +756,7 @@ void FindMaterial(R3Block *block, bool isTop)
 {
   // Second argument specifies if top face is currently being drawn
 	if (block->getBlockType() == LEAF_BLOCK) 
+		
 		LoadMaterial(materials[LEAF]);
 	else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
 	{
@@ -759,6 +775,37 @@ void FindMaterial(R3Block *block, bool isTop)
 	else if (block->getBlockType() == STONE_BLOCK)
 		LoadMaterial(materials[STONE]);
 }
+
+void FindColor(R3Block *block, bool isTop) 
+{
+	// Second argument specifies if top face is currently being drawn
+	if (block->getBlockType() == LEAF_BLOCK) 
+
+		glColor3f(0, 1, 0);
+
+	else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
+	{
+		if (block->getUpper()->getBlockType() == AIR_BLOCK) 
+		{
+			if (isTop)
+					glColor3f(0, .1, 0);
+			else
+				
+					glColor3f(140.0/255.0,50.0/255.0,0.0/255.0);
+		}
+		else
+			glColor3f(.737, .271, 0.075);
+	}
+
+	else if (block->getBlockType() == WOOD_BLOCK) 
+		glColor3f(.737, .271, 0.075);
+
+	else if (block->getBlockType() == STONE_BLOCK)
+		glColor3f(.2, .2, .2);
+
+}
+
+
 
 void LoadMatrix(R3Matrix *matrix)
 {
@@ -1088,48 +1135,67 @@ void DrawScene(R3Scene *scene)
             R3Node *node = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz];
             R3Block *block = node->shape->block;
             isSelected = (currentSelection == node);
-
+			double distance = R3Distance(camera.eye, block->box.Centroid());
+			bool tooFar = false;
+			if(distance > LODcutoff) tooFar = true;
+			if (tooFar) 
+				{glDisable(GL_TEXTURE_2D);
+			glDisable(GL_LIGHTING);
+			}
             // Face 0
             if (left >= 0 && scene->terrain[curChunkX][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
-            {
-              FindMaterial(block, false);
-              block->Draw(0, isSelected);
+			{
+				if(tooFar) FindColor(block, false);
+				else FindMaterial(block, false);
+				
+			
+				block->Draw(0, isSelected);
             }
 
             // Face 1
             if (right < CHUNK_X && scene->terrain[curChunkX][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
             {
-              FindMaterial(block, false);
+				if(tooFar) FindColor(block, false);
+				else FindMaterial(block, false);
+
               block->Draw(1, isSelected);
             }
 
             // Face 2
             if (dy - 1 > 0 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
             {
-              FindMaterial(block, false);
+				if(tooFar) FindColor(block, false);
+				else FindMaterial(block, false);
               block->Draw(2, isSelected);
             }
 
             // Face 3; this is the the top face
             if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
             {
-              FindMaterial(block, true);
+				if(tooFar) FindColor(block, true);
+				else FindMaterial(block, true);
               block->Draw(3, isSelected);
             }
 
             // Face 4
             if (back > 0 && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][back]->shape->block->transparent)
             {
-              FindMaterial(block, false);
+				if(tooFar) FindColor(block, false);
+				else FindMaterial(block, false);
               block->Draw(4, isSelected);
             }
 
             // Face 5
             if (forward < CHUNK_Z && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][forward]->shape->block->transparent)
             {
-              FindMaterial(block, false);
+				if(tooFar) FindColor(block, false);
+				else FindMaterial(block, false);
               block->Draw(5, isSelected);
             }
+			
+			glEnable(GL_TEXTURE_2D);
+			
+			glEnable(GL_LIGHTING);
           }
         }
       }
