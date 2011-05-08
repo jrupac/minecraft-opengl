@@ -1,13 +1,10 @@
 //Source file for the R3 scene graph class 
 
-
-
 // Include files 
 #include <string>
 #include <sstream>
 
 #include "R3Scene.h"
-
 
 using namespace std;
 
@@ -36,22 +33,19 @@ R3Scene(void)
   root->bbox = R3null_box;
   
   for (int xChunks = 0; xChunks < CHUNKS; xChunks++)
-  {
     for (int zChunks = 0; zChunks < CHUNKS; zChunks++)
-    {
       terrain[xChunks][zChunks] = new R3Chunk();
-    }
-  }
 }
 
 R3Index R3Scene::
 getIndex(R3Point p)
 {
   R3Index newIndex;
-  int chunkX = (CHUNKS - 1)/2;
-  int chunkZ = (CHUNKS - 1)/2;
+  int chunkX = (CHUNKS - 1) / 2;
+  int chunkZ = (CHUNKS - 1) / 2;
+
   newIndex.x = (int)(p[0] - terrain[chunkX][chunkZ]->start_point[0]);
-  newIndex.y = (int)(p[1] + CHUNK_Y/2);
+  newIndex.y = (int)(p[1] + CHUNK_Y / 2);
   newIndex.z = (int)(p[2] - terrain[chunkX][chunkZ]->start_point[2]);
   
   fprintf(stderr, "first guess at index: point is %d %d %d \n", newIndex.x, newIndex.y, newIndex.z);
@@ -79,6 +73,7 @@ getIndex(R3Point p)
   
   newIndex.current = terrain[chunkX][chunkZ];
   fprintf(stderr, "ChunkX is %d and ChunkZ is %d\n", chunkX, chunkZ);
+
   return newIndex;
 }
 
@@ -87,9 +82,10 @@ LoadChunk(int x_chunk, int z_chunk)
 {
   R3Chunk* newCh = new R3Chunk();
   pair <int, int> checkPair (x_chunk, z_chunk);
-  set < pair<int, int> >:: iterator it;
-  it = generatedChunks.find(checkPair);
-  if (it == generatedChunks.end()) // DID NOT FIND CHUNK - GENERATE NEW CHUNK
+
+  // If we do not find a chunk at this index, generate a new one. Otherwise, 
+  // load the existing one from disk and return it
+  if (generatedChunks.find(checkPair) == generatedChunks.end()) 
   {
      if (!newCh->GenerateChunk(x_chunk, z_chunk))
      {
@@ -105,162 +101,144 @@ LoadChunk(int x_chunk, int z_chunk)
       return NULL;
     }
   }
+
   return newCh;
 }
-
 
 int R3Scene::
 UpdateScene(R3Point loc)
 {
   fprintf(stderr, "Updating location: new is (%f, %f, %f)\n", loc[0], loc[1], loc[2]);
-  R3Chunk* cur = terrain[(CHUNKS-1)/2][(CHUNKS-1)/2];
-  R3Point low = cur->start_point; //get the lower point of the middle chunk
-  R3Point high = cur->end_point; //get the upper point of the middle chunk
-  
-  int oldChunkX = terrain[(CHUNKS-1)/2][(CHUNKS-1)/2]->chunk_x;
-  int oldChunkZ = terrain[(CHUNKS-1)/2][(CHUNKS-1)/2]->chunk_z;
+
+  // Get middle chunk of those loaded in memory
+  R3Chunk *cur = terrain[(CHUNKS - 1) / 2][(CHUNKS - 1) / 2];
+
+  R3Point low = cur->start_point;
+  R3Point high = cur->end_point;
+  int oldChunkX = cur->chunk_x; 
+  int oldChunkZ = cur->chunk_z; 
+
   fprintf(stderr, "Old chunk x is %d and z is %d\n", oldChunkX, oldChunkZ);
   
   // X-directions
   while (loc[0] < low[0]) // moved out of lower bounds for x
   {
-    int xChunkLoc = terrain[0][0]->chunk_x - 1; //new location
+    // Get chunk coordinates of chunk to the left of the leftmost one loaded in
+    // memory before the update
+    int xChunkLoc = terrain[0][0]->chunk_x - 1;
+
     fprintf(stderr, "MOVING LEFT IN X\n");
+
     for (int zChunks = 0; zChunks < CHUNKS; zChunks++)
     {
-      terrain[CHUNKS - 1][zChunks]->DeleteChunk(); //delete stuff to the right
-      for (int xChunks = CHUNKS - 1; xChunks > 0 ; xChunks--)
-      {
-        terrain[xChunks][zChunks] = terrain[xChunks - 1][zChunks];
-      }
-      terrain[0][zChunks] = LoadChunk(xChunkLoc, oldChunkZ + zChunks - (CHUNKS-1)/2); //load new chunk!
+      // Delete rightmost row of currently loaded chunks
+      terrain[CHUNKS - 1][zChunks]->DeleteChunk();
       
+      // Set the second-to-last row to the last row
+      for (int xChunks = CHUNKS - 1; xChunks > 0 ; xChunks--)
+        terrain[xChunks][zChunks] = terrain[xChunks - 1][zChunks];
+      
+      // Create new leftmost row
+      terrain[0][zChunks] = LoadChunk(xChunkLoc, oldChunkZ + zChunks - (CHUNKS - 1) / 2);
     }
     
-    cur = terrain[(CHUNKS-1)/2][(CHUNKS-1)/2];
-    low = cur->start_point; //get the lower point of the middle chunk
-    high = cur->end_point; //get the upper point of the middle chunk
-    
+    // Reset variables after this new chunk loading
+    cur = terrain[(CHUNKS - 1) / 2][(CHUNKS - 1 ) / 2];
+    low = cur->start_point;
+    high = cur->end_point;
   }
   
   while (loc[0] > high[0]) // moved out of higher bounds for x
   {
-    int xChunkLoc = terrain[CHUNKS - 1][0]->chunk_x + 1; // new location
+    // Get chunk coordinates of chunk to the right of the rightmost one loaded in
+    // memory before the update
+    int xChunkLoc = terrain[CHUNKS - 1][0]->chunk_x + 1;
+
     fprintf(stderr, "MOVING RIGHT IN X\n");
+
     for (int zChunks = 0; zChunks < CHUNKS; zChunks++)
     {
-      terrain[0][zChunks]->DeleteChunk(); //delete stuff to the left
+      // Delete leftmost row of currently loaded chunks
+      terrain[0][zChunks]->DeleteChunk();
+
+      // Set the second-to-last row to the last row
       for (int xChunks = 0; xChunks < CHUNKS - 1; xChunks++)
-      {
         terrain[xChunks][zChunks] = terrain[xChunks + 1][zChunks];
-      }
-      terrain[CHUNKS - 1][zChunks] = LoadChunk(xChunkLoc,  oldChunkZ + zChunks - (CHUNKS-1)/2); //load new chunk!
-      
+
+      // Create new rightmost row
+      terrain[CHUNKS - 1][zChunks] = LoadChunk(xChunkLoc,  oldChunkZ + zChunks - (CHUNKS - 1) / 2);
     }
     
-    cur = terrain[(CHUNKS-1)/2][(CHUNKS-1)/2];
-    low = cur->start_point; //get the lower point of the middle chunk
-    high = cur->end_point; //get the upper point of the middle chunk
+    // Reset variables after this new chunk loading
+    cur = terrain[(CHUNKS - 1) / 2][(CHUNKS - 1 ) / 2];
+    low = cur->start_point;
+    high = cur->end_point;
   }
   
-  //Z-directions
+  // Z-directions
   while (loc[2] < low[2]) // moved out of lower bounds for z
   {
-    int zChunkLoc = terrain[0][0]->chunk_z - 1; //new location
+    // Get chunk coordinates of chunk lower than the lowest one loaded in
+    // memory before the update
+    int zChunkLoc = terrain[0][0]->chunk_z - 1;
+
     fprintf(stderr, "MOVING CLOSER IN Z\n");
+
     for (int xChunks = 0; xChunks < CHUNKS; xChunks++)
     {
-      terrain[xChunks][CHUNKS - 1]->DeleteChunk(); //delete stuff in +z direction
+      // Delete highest row of currently loaded chunks
+      terrain[xChunks][CHUNKS - 1]->DeleteChunk();
+
+      // Set the second-to-last row to the last row
       for (int zChunks = CHUNKS - 1; zChunks > 0 ; zChunks--)
-      {
         terrain[xChunks][zChunks] = terrain[xChunks][zChunks - 1];
-      }
-      terrain[xChunks][0] = LoadChunk(oldChunkX + xChunks - (CHUNKS-1)/2, zChunkLoc); //load new chunk!
-      
+
+      // Create new lowest row
+      terrain[xChunks][0] = LoadChunk(oldChunkX + xChunks - (CHUNKS - 1) / 2, zChunkLoc);
     }
     
-    cur = terrain[(CHUNKS-1)/2][(CHUNKS-1)/2];
-    low = cur->start_point; //get the lower point of the middle chunk
-    high = cur->end_point; //get the upper point of the middle chunk
+    // Reset variables after this new chunk loading
+    cur = terrain[(CHUNKS - 1) / 2][(CHUNKS - 1 ) / 2];
+    low = cur->start_point;
+    high = cur->end_point;
   }
+
   while (loc[2] > high[2]) // moved out of higher bounds for z
   {
-    int zChunkLoc = terrain[0][CHUNKS-1]->chunk_z + 1; // new location
+    // Get chunk coordinates of chunk higher than the highest one loaded in
+    // memory before the update
+    int zChunkLoc = terrain[0][CHUNKS-1]->chunk_z + 1;
+
     fprintf(stderr, "MOVING FURTHER IN Z\n");
+
     for (int xChunks = 0; xChunks < CHUNKS; xChunks++)
     {
-      terrain[xChunks][0]->DeleteChunk(); //delete stuff in the -z direction
+      // Delete lowest row of currently loaded chunks
+      terrain[xChunks][0]->DeleteChunk();
+
+      // Set the second-to-last row to the last row
       for (int zChunks = 0; zChunks < CHUNKS - 1; zChunks++)
-      {
         terrain[xChunks][zChunks] = terrain[xChunks][zChunks + 1];
-      }
-      terrain[xChunks][CHUNKS - 1] = LoadChunk(oldChunkX + xChunks - (CHUNKS-1)/2, zChunkLoc); //load new chunk!
-      
+
+      // Create new highest row
+      terrain[xChunks][CHUNKS - 1] = LoadChunk(oldChunkX + xChunks - (CHUNKS - 1) / 2, zChunkLoc);
     }
     
-    cur = terrain[(CHUNKS-1)/2][(CHUNKS-1)/2];
-    low = cur->start_point; //get the lower point of the middle chunk
-    high = cur->end_point; //get the upper point of the middle chunk
+    // Reset variables after this new chunk loading
+    cur = terrain[(CHUNKS - 1) / 2][(CHUNKS - 1 ) / 2];
+    low = cur->start_point;
+    high = cur->end_point;
   }
   
   return 1;
-  
 }
-
-/*R3Node* R3Scene::
-getBlock(R3Point loc)
-{
-  
-}*/
-
-/*int R3Scene::
-WriteChunk(const char *filename)
-{
-  // Open file
-  FILE *fp;
-  if (!(fp = fopen(filename, "w")))
-  {
-    fprintf(stderr, "Unable to write to file %s", filename);
-    return 0;
-  }
-  // assumes blocks
-  R3Point chunkStart = chunk[0][0][0]->shape->block->getBox().Min();
-
-  std:: string s;
-  std:: stringstream out;
-  out << "# chunk chunk_id mat_id\n# low_x low_y low_z\n" <<
-         "# block_size (1 side)\n# 16x16x16 (z, y, x) block types\n";
-  out << "chunk 1 -1       " << chunkStart[0] << " " << chunkStart[1] <<
-         " " << chunkStart[2] << " " << "1\n";
-
-  s = out.str();
-  fputs(s.c_str(), fp);
-
-  for (int dz = 0; dz < CHUNK_Z; dz++)
-  {
-    for (int dy = 0; dy < CHUNK_Y; dy++)
-    {
-      std:: string tempS;
-      std:: stringstream tempOut;
-      for (int dx = 0; dx < CHUNK_X; dx++)
-      {
-        tempOut << chunk[dx][dy][dz]->shape->block->getBlockType() << " ";
-      }
-      tempOut << "\n";
-      fputs(tempOut.str().c_str(), fp);
-    }
-    fputs("\n", fp);
-  }
-
-  return 1;
-
-}*/
 
 int R3Scene::
 Read(const char *filename, R3Node *node)
 {
   bool foundChunks = false;
   bool foundChar = false;
+
   // Open file
   FILE *fp;
   if (!(fp = fopen(filename, "r"))) {
@@ -281,7 +259,6 @@ Read(const char *filename, R3Node *node)
   default_material->shininess = 10;
   default_material->indexofrefraction = 1;
   default_material->texture = NULL;
-
   default_material->id = 0;
 
   // Create stack of group information
@@ -301,19 +278,19 @@ Read(const char *filename, R3Node *node)
       do { cmd[0] = fgetc(fp); } while ((cmd[0] >= 0) && (cmd[0] != '\n'));
     }
     else if (!strcmp(cmd, "chunk")) {
-      //Read which chunks we generated, one by one
+
+      // Read which chunks we generated, one at a time
       int x, z;
       if (fscanf(fp, "%d%d", &x, &z) != 2)
       {
         fprintf(stderr, "wrong chunk declaration in scene read\n");
         return 0;
       }
+
       foundChunks = true;
       pair <int, int> addChunk (x, z);
       generatedChunks.insert(addChunk);
-      
     }
-    
     /*else if (!strcmp(cmd, "tri")) {
       // Read data
       int m;
@@ -419,98 +396,6 @@ Read(const char *filename, R3Node *node)
       group_nodes[depth]->bbox.Union(node->bbox);
       group_nodes[depth]->children.push_back(node);
       node->parent = group_nodes[depth];
-    }*/
-    /*else if (!strcmp(cmd, "chunk")) {
-
-      // Read data
-      int id, m;
-      double block_side;
-      R3Point start_point;
-      
-      int read = fscanf(fp, "%d%d%lf%lf%lf%lf", &id, &m, &start_point[0],
-                &start_point[1], &start_point[2], &block_side);
-      if (read != 6)
-      {
-        fprintf(stderr, "Unable to read chunk at command %d in file %s, read %i things\n", command_number, filename, read);
-        return 0;
-      }
-
-      // Get material
-      R3Material *material = group_materials[depth];
-
-      start = start_point;
-
-      for (int dz = 0; dz < CHUNK_Z; dz++)
-      {
-        for (int dy = 0; dy < CHUNK_Y; dy++)
-        {
-          for (int dx = 0; dx < CHUNK_X; dx++)
-          {
-            int block_type;
-
-            if (fscanf(fp, "%d", &block_type) != 1)
-            {
-              fprintf(stderr, "Unable to read chunk block at command %d in file %s\n", command_number, filename);
-              return 0;
-            }
-
-            R3Point block_start = start_point + R3Point(dx * block_side,
-                dy * block_side, dz * block_side);
-            R3Point block_end = block_start + R3Point(block_side, block_side,
-                block_side);
-
-            // Create box
-            R3Box box = R3Box(block_start, block_end);
-            R3Block* block = new R3Block(box, block_type);
-
-            // Create shape
-            R3Shape *shape = new R3Shape();
-            shape->type = R3_BLOCK_SHAPE;
-            shape->box = NULL;
-            shape->sphere = NULL;
-            shape->cylinder = NULL;
-            shape->cone = NULL;
-            shape->mesh = NULL;
-            shape->segment = NULL;
-            shape->block = block;
-
-            // Create shape node
-            R3Node *node = new R3Node();
-            node->transformation = R3identity_matrix;
-
-            if (block_type == LEAF_BLOCK) 
-              material = group_materials[1];
-           
-            if (block_type == DIRT_BLOCK)
-              material = group_materials[3];
-
-            node->material = material;
-            node->shape = shape;
-            node->bbox = box;
-            node->selected = false;
-
-            chunk[dx][dy][dz] = node;
-			  node->shape->block->dx = dx;
-			  node->shape->block->dy = dy;
-			  node->shape->block->dz = dz;
-          }
-        }
-      }
-
-      // Set adjacent chunks
-      for (int dz = 0; dz < CHUNK_Z; dz++)
-      {
-        for (int dy = 0; dy < CHUNK_Y; dy++)
-        {
-          for (int dx = 0; dx < CHUNK_X; dx++)
-          {
-            if (dy == (CHUNK_Y -1))
-              chunk[dx][dy][dz]->shape->block->setUpper(NULL);
-            else if (dy != (CHUNK_Y -1))
-              chunk[dx][dy][dz]->shape->block->setUpper(chunk[dx][dy+1][dz]->shape->block);
-          }
-        }
-      }
     }*/
     /*else if (!strcmp(cmd, "sphere")) {
       // Read data
@@ -1107,21 +992,18 @@ Read(const char *filename, R3Node *node)
     lights.push_back(light);
   }
   
-  // assume default position, load the chunks into memory
-  // all this shit assumes we start at 0, 0, 0
-  R3Point pos = camera.eye;
-  for (int xChunks = 0; xChunks < CHUNKS; xChunks++)
-  {
-    for (int zChunks = 0; zChunks < CHUNKS; zChunks++)
+  // Provide default chunks
+  if (foundChunks == false) {
+    for (int xChunks = 0; xChunks < CHUNKS; xChunks++)
     {
-      int xChunkCoord = xChunks - (CHUNKS-1)/2;
-      int zChunkCoord = zChunks - (CHUNKS-1)/2;
-      terrain[xChunks][zChunks] = LoadChunk(xChunkCoord, zChunkCoord);
-      
-      
+      for (int zChunks = 0; zChunks < CHUNKS; zChunks++)
+      {
+        int xChunkCoord = xChunks - (CHUNKS - 1) / 2;
+        int zChunkCoord = zChunks - (CHUNKS - 1) / 2;
+        terrain[xChunks][zChunks] = LoadChunk(xChunkCoord, zChunkCoord);
+      }
     }
   }
-  
 
   // Close file
   fclose(fp);
@@ -1129,6 +1011,4 @@ Read(const char *filename, R3Node *node)
   // Return success
   return 1;
 }
-
-
 

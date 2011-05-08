@@ -10,8 +10,6 @@
 
 using namespace std;
 
-
-
 typedef enum {
   R3_BOX_SHAPE,
   R3_SPHERE_SHAPE,
@@ -55,7 +53,6 @@ struct R3Material {
   double indexofrefraction;
   R2Image *texture;
   int texture_index;
-	//R3BlockType blockType;
   int id;
 };
 
@@ -93,22 +90,22 @@ struct R3Node {
   bool selected;
 };
 
-struct R3Chunk{
+struct R3Chunk {
   public:
-  
-  R3Chunk(void);
-  void DeleteChunk();
-  
-  int ReadChunk(int xChunkCoord, int zChunkCoord);
-  int WriteChunk(const char *filename);
-  int GenerateChunk(int c_x, int c_z);
-  
-  
+    R3Chunk(void);
+    void DeleteChunk();
+    int ReadChunk(int xChunkCoord, int zChunkCoord);
+    int WriteChunk(const char *filename);
+    int GenerateChunk(int c_x, int c_z);
+
   public:
-  R3Point start_point; // world coords
-  R3Point end_point; // world coords
-  int chunk_x; // chunk coords
-  int chunk_z; // chunk coords
-  double block_side;
-  R3Node *chunk[CHUNK_X][CHUNK_Y][CHUNK_Z];
+    // Global (x, y, z) coordinates for start of chunk
+    R3Point start_point;
+    // Global (x, y, z) coordinates for end of chunk
+    R3Point end_point; 
+    // Chunk coordinates of this chunk
+    int chunk_x; 
+    int chunk_z;
+    double block_side;
+    R3Node *chunk[CHUNK_X][CHUNK_Y][CHUNK_Z];
 };

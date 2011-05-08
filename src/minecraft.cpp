@@ -9,7 +9,6 @@
 // GLOBAL VARIABLES
 ////////////////////////////////////////////////////////////
 
-
 // Program arguments
 
 static char *input_scene_name = NULL;
@@ -202,66 +201,65 @@ void InterpolateMotion(R3Point *start, R3Vector direction)
 // GAME LOGIC CODE
 ////////////////////////////////////////////////////////////
 
-
 void AlignReticle()
 {
-    currentSelection = NULL;
-    R3Ray ray = R3Ray(camera.eye, towards);
-    R3Intersection intersect;
-    intersect.hit = false;
-    R3Intersection closestIntersect;
-    closestIntersect.hit = false;
-    currentSelectedCreature = -1;
-    double smallest = DBL_MAX;
+  currentSelection = NULL;
+  R3Ray ray = R3Ray(camera.eye, towards);
+  R3Intersection intersect;
+  intersect.hit = false;
+  R3Intersection closestIntersect;
+  closestIntersect.hit = false;
+  currentSelectedCreature = -1;
+  double smallest = DBL_MAX;
 
-    for (int dChunkX = 0; dChunkX < CHUNKS; dChunkX++)
+  for (int dChunkX = 0; dChunkX < CHUNKS; dChunkX++)
+  {
+    for (int dChunkZ = 0; dChunkZ < CHUNKS; dChunkZ++)
     {
-      for (int dChunkZ = 0; dChunkZ < CHUNKS; dChunkZ++)
+      for (int dz = 0; dz < CHUNK_Z; dz++) 
       {
-        for (int dz = 0; dz < CHUNK_Z; dz++) 
+        for (int dy = 0; dy < CHUNK_Y; dy++) 
         {
-            for (int dy = 0; dy < CHUNK_Y; dy++) 
-            {
-                for (int dx = 0; dx < CHUNK_X; dx++) 
-                {
-                    R3Node *currentNode = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz];
+          for (int dx = 0; dx < CHUNK_X; dx++) 
+          {
+            R3Node *currentNode = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz];
 
-                    if (currentNode->shape->block->getBlockType() != AIR_BLOCK) {
-                        intersect = IntersectBox(ray, currentNode->shape->block->getBox());
+            if (currentNode->shape->block->getBlockType() != AIR_BLOCK) {
+              intersect = IntersectBox(ray, currentNode->shape->block->getBox());
 
-                        if (intersect.hit && intersect.t < smallest) 
-                        {
-                            smallest = intersect.t;
-                            closestIntersect = intersect;
-                            closestIntersect.node = currentNode;
-                        }
-                    }
-                }
+              if (intersect.hit && intersect.t < smallest) 
+              {
+                smallest = intersect.t;
+                closestIntersect = intersect;
+                closestIntersect.node = currentNode;
+              }
             }
+          }
         }
       }
     }
+  }
 
 
-    //Find if it intersects a creature
+  //Find if it intersects a creature
 
-    for (unsigned int k = 0; k < creatures.size(); k++) 
+  for (unsigned int k = 0; k < creatures.size(); k++) 
+  {
+    intersect = IntersectBox(ray, creatures[k]->box);
+    if (intersect.hit && intersect.t < smallest) 
     {
-        intersect = IntersectBox(ray, creatures[k]->box);
-        if (intersect.hit && intersect.t < smallest) 
-        {
-            smallest = intersect.t;
-            currentSelectedCreature = k;
-        }
+      smallest = intersect.t;
+      currentSelectedCreature = k;
     }
+  }
 
-    if (currentSelectedCreature != -1)
-        return;
-    if (closestIntersect.hit) 
-    {
-        currentSelection = closestIntersect.node;
-        currentNormal = closestIntersect.normal;
-    }
+  if (currentSelectedCreature != -1)
+    return;
+  if (closestIntersect.hit) 
+  {
+    currentSelection = closestIntersect.node;
+    currentNormal = closestIntersect.normal;
+  }
 }	
 
 void AddBlock()
@@ -1936,7 +1934,7 @@ ALboolean LoadALData()
     //alutUnloadWAV(format, data, size, freq);
 #endif
 #ifdef __linux__
-    Buffer = alutCreateBufferFromFile("sounds/ninth.wav");
+    Buffer = alutCreateBufferFromFile("../sounds/ninth.wav");
 #endif
 
     // Bind the buffer with the source
@@ -1986,7 +1984,7 @@ int main(int argc, char **argv)
     alutInit(NULL, 0);
     alGetError();
 
-    if(LoadALData() == AL_FALSE)
+    if (LoadALData() == AL_FALSE)
         printf("Error loading WAV sound data.");
 
     SetListenerValues();

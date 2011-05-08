@@ -8,12 +8,6 @@
 #include "R3Chunk.h"
 #include <set>
 
-// Constant definitions
-
-//moved all this stuff to R3Chunk.h
-
-//moved node to R3Chunk.h
-
 // Scene graph definition
 
 typedef struct 
@@ -43,7 +37,6 @@ struct R3Scene {
 
   // I/O functions
   int Read(const char *filename, R3Node *root = NULL);
-  //int WriteChunk(const char *filename); //remove me later
 
  public:
   R3Node *root;
@@ -54,7 +47,7 @@ struct R3Scene {
   R3Box bbox;
   R3Rgb background;
   R3Rgb ambient;
-  //R3Character* main_character;
+  // R3Character* main_character;
   set< pair<int, int> > generatedChunks;
 };
 
