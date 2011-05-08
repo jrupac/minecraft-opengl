@@ -22,8 +22,8 @@ typedef enum {
 	DIRT_ICON,
 	STONE_ICON,
 	WOOD_ICON,
-	SAND_ICON
-
+	SAND_ICON,
+	LOGO
 } R3Texture;
 
 #include "strings.h"

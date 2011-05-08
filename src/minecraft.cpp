@@ -20,7 +20,7 @@ static char *output_image_name = NULL;
 
 // Display variables
 
-static bool startMenu = false;
+static bool startMenu = true;
 static R3Scene *scene = NULL;
 static R3Camera camera;
 static int show_faces = 1;
@@ -534,7 +534,6 @@ void DrawHUD()
 
     // This is just temporary text
     glColor3d(.1, .1, .1);
-    GLUTDrawText(R3Point(GLUTwindow_width / 2 - 10, GLUTwindow_height - 70, 0), "I am a dock!");
 
 	if(dead) {
 		
@@ -1124,112 +1123,99 @@ void DrawScene(R3Scene *scene)
         {
           for (int dx = 0; dx < CHUNK_X; dx++)
           {
-              // Terrible black magic is about to happen
-              int curChunkX = dChunkX;
-              int curChunkZ = dChunkZ;
-              int left = dx - 1;
-              int right = dx + 1;
-              int back = dz - 1;
-              int forward = dz + 1;
+            // Terrible black magic is about to happen
+            int curChunkX = dChunkX;
+            int curChunkZ = dChunkZ;
+            int left = dx - 1;
+            int right = dx + 1;
+            int back = dz - 1;
+            int forward = dz + 1;
 
-              if (dx == 0 && dChunkX > 0)
-              {
-                  left = CHUNK_X - 1;
-                  curChunkX--;
-              }
-              else if (dx == CHUNK_X - 1 && dChunkX < CHUNKS - 1)
-              {
-                  right = 0;
-                  curChunkX++;
-              }
-              if (dz == 0 && dChunkZ > 0)
-              {
-                  back = CHUNK_Z - 1;
-                  curChunkZ--;
-              }
-              else if (dz == CHUNK_Z - 1 && dChunkZ < CHUNKS - 1)
-              {
-                  forward = 0;
-                  curChunkZ++;
-              }
+            if (dx == 0 && dChunkX > 0)
+            {
+              left = CHUNK_X - 1;
+              curChunkX--;
+            }
+            else if (dx == CHUNK_X - 1 && dChunkX < CHUNKS - 1)
+            {
+              right = 0;
+              curChunkX++;
+            }
+            if (dz == 0 && dChunkZ > 0)
+            {
+              back = CHUNK_Z - 1;
+              curChunkZ--;
+            }
+            else if (dz == CHUNK_Z - 1 && dChunkZ < CHUNKS - 1)
+            {
+              forward = 0;
+              curChunkZ++;
+            }
 
-              R3Node *node = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz];
-              R3Block *block = node->shape->block;
-              isSelected = (currentSelection == node);
-              double distance = R3Distance(camera.eye, block->box.Centroid());
-              bool tooFar = false;
+            R3Node *node = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz];
+            R3Block *block = node->shape->block;
+            isSelected = (currentSelection == node);
+			double distance = R3Distance(camera.eye, block->box.Centroid());
+			bool tooFar = false;
+			if(distance > LODcutoff) tooFar = true;
+			if (tooFar) 
+				{glDisable(GL_TEXTURE_2D);
+			glDisable(GL_LIGHTING);
+			}
+            // Face 0
+            if (left >= 0 && scene->terrain[curChunkX][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
+			{
+				if(tooFar) FindColor(block, false);
+				else FindMaterial(block, false);
+				
+			
+				block->Draw(0, isSelected);
+            }
 
-              if(distance > LODcutoff) 
-                  tooFar = true;
+            // Face 1
+            if (right < CHUNK_X && scene->terrain[curChunkX][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
+            {
+				if(tooFar) FindColor(block, false);
+				else FindMaterial(block, false);
 
-              if (tooFar) 
-              {
-                  glDisable(GL_TEXTURE_2D);
-                  glDisable(GL_LIGHTING);
-              }
+              block->Draw(1, isSelected);
+            }
 
-              // Face 0
-              if (left >= 0 && scene->terrain[curChunkX][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
-              {
-                  if (tooFar) 
-                      FindColor(block, false);
-                  else 
-                      FindMaterial(block, false);
-                  block->Draw(0, isSelected);
-              }
+            // Face 2
+            if (dy - 1 > 0 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
+            {
+				if(tooFar) FindColor(block, false);
+				else FindMaterial(block, false);
+              block->Draw(2, isSelected);
+            }
 
-              // Face 1
-              if (right < CHUNK_X && scene->terrain[curChunkX][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
-              {
-                  if (tooFar) 
-                      FindColor(block, false);
-                  else 
-                      FindMaterial(block, false);
-                  block->Draw(1, isSelected);
-              }
+            // Face 3; this is the the top face
+            if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
+            {
+				if(tooFar) FindColor(block, true);
+				else FindMaterial(block, true);
+              block->Draw(3, isSelected);
+            }
 
-              // Face 2
-              if (dy - 1 > 0 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
-              {
-                  if (tooFar) 
-                      FindColor(block, false);
-                  else 
-                      FindMaterial(block, false);
-                  block->Draw(2, isSelected);
-              }
+            // Face 4
+            if (back > 0 && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][back]->shape->block->transparent)
+            {
+				if(tooFar) FindColor(block, false);
+				else FindMaterial(block, false);
+              block->Draw(4, isSelected);
+            }
 
-              // Face 3; this is the the top face
-              if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
-              {
-                  if (tooFar) 
-                      FindColor(block, true);
-                  else 
-                      FindMaterial(block, true);
-                  block->Draw(3, isSelected);
-              }
-
-              // Face 4
-              if (back > 0 && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][back]->shape->block->transparent)
-              {
-                  if (tooFar) 
-                      FindColor(block, false);
-                  else 
-                      FindMaterial(block, false);
-                  block->Draw(4, isSelected);
-              }
-
-              // Face 5
-              if (forward < CHUNK_Z && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][forward]->shape->block->transparent)
-              {
-                  if (tooFar) 
-                      FindColor(block, false);
-                  else 
-                      FindMaterial(block, false);
-                  block->Draw(5, isSelected);
-              }
-
-              glEnable(GL_TEXTURE_2D);
-              glEnable(GL_LIGHTING);
+            // Face 5
+            if (forward < CHUNK_Z && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][forward]->shape->block->transparent)
+            {
+				if(tooFar) FindColor(block, false);
+				else FindMaterial(block, false);
+              block->Draw(5, isSelected);
+            }
+			
+			glEnable(GL_TEXTURE_2D);
+			
+			glEnable(GL_LIGHTING);
           }
         }
       }
@@ -1283,8 +1269,9 @@ void GLUTMainLoop(void)
 
 void GLUTIdleFunction(void) 
 {
-	
-	if (startMenu == true) {
+	if (startMenu == true) 
+  {
+    glutPostRedisplay();
 		return;
 	}
 	
@@ -1294,14 +1281,13 @@ void GLUTIdleFunction(void)
 	for (unsigned int i = 0; i < creatures.size(); i++)\
 
 	{
-		if(!dead) {
+		if (!dead) 
+    {
 			direction = creatures[i]->UpdateCreature(Main_Character);
 			direction = InterpolateMotion(&(creatures[i]->position), direction, false);
-			//PRINT_VECTOR(direction);
 			creatures[i]->box.Translate(direction);
 		}
 	}
-
 
   glutPostRedisplay();
 }
@@ -1312,6 +1298,17 @@ void GLUTDrawText(const R3Point& p, const char *s)
     glRasterPos3d(p[0], p[1], p[2]);
 #ifndef __CYGWIN__
     while (*s) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *(s++));
+#else
+    while (*s) glutBitmapCharacter((void*)7, *(s++));
+#endif
+}
+
+void GLUTDrawTitle(const R3Point& p, const char *s)
+{
+    // Draw text string s and position p
+    glRasterPos3d(p[0], p[1], p[2]);
+#ifndef __CYGWIN__
+    while (*s) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *(s++));
 #else
     while (*s) glutBitmapCharacter((void*)7, *(s++));
 #endif
@@ -1375,7 +1372,14 @@ void GLUTResize(int w, int h)
 
 void DisplayStartMenu() 
 {
-	glMatrixMode(GL_PROJECTION);
+	//printf(":(");
+	int x = GLUTwindow_width;
+    int y = GLUTwindow_height;
+	
+	glColor3d(.1, .1, .1);
+	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 2, 0), "Left click to play minecraft!");
+	
+/*	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
     glLoadIdentity();
     gluOrtho2D(0, GLUTwindow_width, GLUTwindow_height, 0);
@@ -1383,11 +1387,42 @@ void DisplayStartMenu()
     glPushMatrix();
 	glLoadIdentity();
 	
-	/* draw stuff */
+	 glDisable(GL_LIGHTING); 
+	    glColor3d(.1, .1, .1);
+	   GLUTDrawText(R3Point(GLUTwindow_width / 2 - 10, GLUTwindow_height - 70, 0), "I am a dock!");
 	
     glPopMatrix();
 	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
+	glPopMatrix();*/
+	
+	/*glMatrixMode (GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho (0, GLUTwindow_width, GLUTwindow_height, 0, 0, 1);
+    glMatrixMode (GL_MODELVIEW);
+    glLoadIdentity();
+	
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING); 
+	
+	glColor3d(.1, .1, .1);
+	GLUTDrawText(R3Point(GLUTwindow_width / 2 - 10, GLUTwindow_height - 70, 0), "HELLO");
+	
+	glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHTING); 
+	
+	 //   glutSwapBuffers();*/
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_LIGHTING);
+	
+	glBegin(GL_QUADS);
+	glVertex2f(0, 0); 
+	glVertex2f(0, 20); 
+	glVertex2f(20, 20); 
+	glVertex2f(20, 0); 
+	glEnd();
+	
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_LIGHTING);
 }
 
 void accPerspective(GLdouble fovy, GLdouble aspect, 
@@ -1437,7 +1472,6 @@ void GLUTRedraw(void)
   // Load scene lights
   LoadLights(scene);
 
-
   // Clear accumulation buffer
   glClear(GL_ACCUM_BUFFER_BIT);
   
@@ -1473,14 +1507,14 @@ void GLUTRedraw(void)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Draw scene surfaces
-    if (show_faces) 
+    if (show_faces && !startMenu) 
     {
       glEnable(GL_LIGHTING);
       DrawScene(scene);
       DrawCreatures();
     }
     // Draw scene edges
-    if (show_edges) 
+    if (show_edges && !startMenu) 
     {
       glDisable(GL_LIGHTING);
       glColor3d(0., 0., 0.);
@@ -1500,8 +1534,11 @@ void GLUTRedraw(void)
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING); 
-
-    DrawHUD();
+    
+    if (!startMenu)
+      DrawHUD();
+    else
+      DisplayStartMenu();
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING); 
@@ -1555,53 +1592,54 @@ void GLUTRedraw(void)
 
 void GLUTPassiveMotion(int x, int y)
 {
-    if (!CAPTURE_MOUSE) 
-    {
-        GLUTmouse[0] = x;
-        GLUTmouse[1] = y;
-        return;
-    }
+  if (!CAPTURE_MOUSE) 
+  {
+    GLUTmouse[0] = x;
+    GLUTmouse[1] = y;
+    return;
+  }
 
-    // Invert y coordinate
-    y = GLUTwindow_height - y;
+  // Invert y coordinate
+  y = GLUTwindow_height - y;
 
-    // Compute mouse movement
-    int dx = x - GLUTmouse[0];
-    int dy = y - GLUTmouse[1];
+  // Compute mouse movement
+  int dx = x - GLUTmouse[0];
+  int dy = y - GLUTmouse[1];
 
-    if (x < 30 || x > GLUTwindow_width - 30 || 
-            y < 30 || y > GLUTwindow_height - 30)
-    {
-        glutWarpPointer(GLUTwindow_width / 2, GLUTwindow_height / 2);
-        GLUTmouse[0] = x;
-        GLUTmouse[1] = y;
-        glutPostRedisplay();
-        return;
-    }
-
-    if (x == GLUTwindow_width / 2 && y == GLUTwindow_height / 2)
-    {
-        GLUTmouse[0] = x;
-        GLUTmouse[1] = y;
-        glutPostRedisplay();
-        return;
-    }
-
-    // Compute ratios to approximate angle of rotation
-    double vx = (double) dx / (double) GLUTwindow_width;
-    double vy = (double) dy / (double) GLUTwindow_height;
-
-    // Update and clamp x-rotation and y-rotation
-    rot[0] = WRAP(rot[0] + vx, -M_2PI, M_2PI);
-    rot[1] = CLAMP(rot[1] - vy, -M_PI / 2, M_PI / 2);
-
+  if (x < 30 || x > GLUTwindow_width - 30 || 
+      y < 30 || y > GLUTwindow_height - 30)
+  {
+    glutWarpPointer(GLUTwindow_width / 2, GLUTwindow_height / 2);
     GLUTmouse[0] = x;
     GLUTmouse[1] = y;
     glutPostRedisplay();
+    return;
+  }
+
+  if (x == GLUTwindow_width / 2 && y == GLUTwindow_height / 2)
+  {
+    GLUTmouse[0] = x;
+    GLUTmouse[1] = y;
+    glutPostRedisplay();
+    return;
+  }
+
+  // Compute ratios to approximate angle of rotation
+  double vx = (double) dx / (double) GLUTwindow_width;
+  double vy = (double) dy / (double) GLUTwindow_height;
+
+  // Update and clamp x-rotation and y-rotation
+  rot[0] = WRAP(rot[0] + vx, -M_2PI, M_2PI);
+  rot[1] = CLAMP(rot[1] - vy, -M_PI / 2, M_PI / 2);
+
+  GLUTmouse[0] = x;
+  GLUTmouse[1] = y;
+  glutPostRedisplay();
 }
 
 void GLUTMouse(int button, int state, int x, int y)
 {
+	
   // Invert y coordinate
   y = GLUTwindow_height - y;
 
@@ -1618,6 +1656,9 @@ void GLUTMouse(int button, int state, int x, int y)
       }
 	  
 		else if(dead) return;
+		else if (startMenu) {
+			startMenu = false;
+		}
       else if (currentSelectedCreatureIt != creatures.end()) 
       {
         ChangeHealth((*currentSelectedCreatureIt), -1);
@@ -1657,7 +1698,7 @@ void GLUTMouse(int button, int state, int x, int y)
     else if (button == GLUT_RIGHT_BUTTON) 
     {
 
-		if(dead) return;
+		if(dead || startMenu) return;
       int block;
       int item = Main_Character->item;
       printf("%d\n", item);
@@ -1781,36 +1822,38 @@ void GLUTKeyboard(unsigned char key, int x, int y)
 
     case 'Q':
       toSave = 1;
+      quit = 1;
+		  break;
     case 'q':
       quit = 1;
       break;
-
     case 27: // ESCAPE
       CAPTURE_MOUSE = false;
       // Restore cursor
       glutSetCursor(GLUT_CURSOR_INHERIT);
       break;
 	  
+
     case 'w': 
-		if(dead) return;
+		if(dead || startMenu) return;
       difference = InterpolateMotion(&(camera.eye), 
           -(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
       break;
 
     case 's': 
-		if(dead) return;
+		if(dead || startMenu) return;
       difference = InterpolateMotion(&(camera.eye), 
           (cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
       break;
 
     case 'd': 
-		if(dead) return;
+		if(dead || startMenu) return;
       difference = InterpolateMotion(&(camera.eye), 
           (sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
       break;
 
     case 'a': 
-		if(dead) return;
+		if(dead || startMenu) return;
       difference = InterpolateMotion(&(camera.eye), 
           -(sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
       break;

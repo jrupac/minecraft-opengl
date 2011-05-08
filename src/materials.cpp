@@ -252,8 +252,6 @@ void MakeMaterials(R3Material **materials)
 	deer_material->id = 31;
 	materials[DEER] = deer_material;
 
-
-
 	R3Material *suicide_material = new R3Material();
 	suicide_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
 	suicide_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
@@ -270,4 +268,21 @@ void MakeMaterials(R3Material **materials)
 	}	
 	suicide_material->id = 31;
 	materials[SUICIDE] = suicide_material;
+	
+	R3Material *logo_material = new R3Material();
+	logo_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	logo_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	logo_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	logo_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	logo_material->emission = R3Rgb(0, 0, 0, 0);
+	logo_material->shininess = 10;
+	logo_material->indexofrefraction = 1;
+	
+	// Read texture image
+	logo_material->texture = new R2Image();
+	if (!logo_material->texture->Read(s_TexLogo)) {
+		fprintf(stderr, "Unable to read texture from file");
+	}	
+	logo_material->id = 31;
+	materials[LOGO] = logo_material;
 }
