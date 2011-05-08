@@ -73,7 +73,7 @@ getIndex(R3Point p)
   }
   while (newIndex.z > CHUNK_Z - 1)
   {
-    newIndex.x -= CHUNK_Z;
+    newIndex.z -= CHUNK_Z;
     chunkZ++;
   }
   
@@ -117,6 +117,10 @@ UpdateScene(R3Point loc)
   R3Point low = cur->start_point; //get the lower point of the middle chunk
   R3Point high = cur->end_point; //get the upper point of the middle chunk
   
+  int oldChunkX = terrain[(CHUNKS-1)/2][(CHUNKS-1)/2]->chunk_x;
+  int oldChunkZ = terrain[(CHUNKS-1)/2][(CHUNKS-1)/2]->chunk_z;
+  fprintf(stderr, "Old chunk x is %d and z is %d\n", oldChunkX, oldChunkZ);
+  
   // X-directions
   while (loc[0] < low[0]) // moved out of lower bounds for x
   {
@@ -129,7 +133,7 @@ UpdateScene(R3Point loc)
       {
         terrain[xChunks][zChunks] = terrain[xChunks - 1][zChunks];
       }
-      terrain[0][zChunks] = LoadChunk(xChunkLoc, zChunks - (CHUNKS-1)/2); //load new chunk!
+      terrain[0][zChunks] = LoadChunk(xChunkLoc, oldChunkZ + zChunks - (CHUNKS-1)/2); //load new chunk!
       
     }
     
@@ -146,11 +150,11 @@ UpdateScene(R3Point loc)
     for (int zChunks = 0; zChunks < CHUNKS; zChunks++)
     {
       terrain[0][zChunks]->DeleteChunk(); //delete stuff to the left
-      for (int xChunks = 0; xChunks < CHUNKS; xChunks++)
+      for (int xChunks = 0; xChunks < CHUNKS - 1; xChunks++)
       {
         terrain[xChunks][zChunks] = terrain[xChunks + 1][zChunks];
       }
-      terrain[CHUNKS - 1][zChunks] = LoadChunk(xChunkLoc, zChunks - (CHUNKS-1)/2); //load new chunk!
+      terrain[CHUNKS - 1][zChunks] = LoadChunk(xChunkLoc,  oldChunkZ + zChunks - (CHUNKS-1)/2); //load new chunk!
       
     }
     
@@ -171,7 +175,7 @@ UpdateScene(R3Point loc)
       {
         terrain[xChunks][zChunks] = terrain[xChunks][zChunks - 1];
       }
-      terrain[xChunks][0] = LoadChunk(xChunks - (CHUNKS-1)/2, zChunkLoc); //load new chunk!
+      terrain[xChunks][0] = LoadChunk(oldChunkX + xChunks - (CHUNKS-1)/2, zChunkLoc); //load new chunk!
       
     }
     
@@ -186,11 +190,11 @@ UpdateScene(R3Point loc)
     for (int xChunks = 0; xChunks < CHUNKS; xChunks++)
     {
       terrain[xChunks][0]->DeleteChunk(); //delete stuff in the -z direction
-      for (int zChunks = 0; zChunks < CHUNKS; zChunks++)
+      for (int zChunks = 0; zChunks < CHUNKS - 1; zChunks++)
       {
         terrain[xChunks][zChunks] = terrain[xChunks][zChunks + 1];
       }
-      terrain[xChunks][CHUNKS - 1] = LoadChunk(xChunks - (CHUNKS-1)/2, zChunkLoc); //load new chunk!
+      terrain[xChunks][CHUNKS - 1] = LoadChunk(oldChunkX + xChunks - (CHUNKS-1)/2, zChunkLoc); //load new chunk!
       
     }
     
