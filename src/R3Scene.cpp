@@ -48,7 +48,7 @@ getIndex(R3Point p)
   newIndex.z = (int)(p[2] - terrain[chunkX][chunkZ]->start_point[2]);
   newIndex.current = NULL;
   
-  fprintf(stderr, "first guess at index: point is %d %d %d \n", newIndex.x, newIndex.y, newIndex.z);
+ // fprintf(stderr, "first guess at index: point is %d %d %d \n", newIndex.x, newIndex.y, newIndex.z);
   
   while (newIndex.x < 0)
   {
@@ -83,7 +83,7 @@ getIndex(R3Point p)
   }
   
   newIndex.current = terrain[chunkX][chunkZ];
-  fprintf(stderr, "ChunkX is %d and ChunkZ is %d\n", chunkX, chunkZ);
+ // fprintf(stderr, "ChunkX is %d and ChunkZ is %d\n", chunkX, chunkZ);
 
   return newIndex;
 }
@@ -119,7 +119,7 @@ LoadChunk(int x_chunk, int z_chunk)
 int R3Scene::
 UpdateScene(R3Point loc)
 {
-  fprintf(stderr, "Updating location: new is (%f, %f, %f)\n", loc[0], loc[1], loc[2]);
+//  fprintf(stderr, "Updating location: new is (%f, %f, %f)\n", loc[0], loc[1], loc[2]);
 
   // Get middle chunk of those loaded in memory
   R3Chunk *cur = terrain[(CHUNKS - 1) / 2][(CHUNKS - 1) / 2];

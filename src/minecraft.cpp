@@ -5,13 +5,15 @@
 #include "minecraft.h"
 #include "float.h"
 #include "materials.h"
+//#include <OpenAL/al.h>
+//#include <OpenAL/alc.h>
 #include "strings.h"
 
 ////////////////////////////////////////////////////////////
 // GLOBAL VARIABLES
 ////////////////////////////////////////////////////////////
 
-// Program arguments
+// Program arguments 
 
 static char *input_scene_name = NULL;
 static char *output_image_name = NULL;
@@ -310,7 +312,7 @@ void AlignReticle()
   }
 }	
 
-void AddBlock()
+void AddBlock(int block)
 {
   // If no selection, don't add a block
   if (!currentSelection)
@@ -330,44 +332,69 @@ void AddBlock()
 	{ 
 	  //added = scene->chunk[currentBlock->dx][currentBlock->dy + 1][currentBlock->dz];
 	  p[1]++;
-	  i = scene->getIndex(p);
-    added = i.current->chunk[i.x][i.y][i.z];
+	/*  i = scene->getIndex(p);
+    added = i.current->chunk[i.x][i.y][i.z];*/
     
   }
 	else if (currentNormal.X() == 1.0)
 	{
 		//added = scene->chunk[currentBlock->dx + 1][currentBlock->dy][currentBlock->dz];
 		p[0]++;
-	  i = scene->getIndex(p);
-    added = i.current->chunk[i.x][i.y][i.z];
+/*	  i = scene->getIndex(p);
+    added = i.current->chunk[i.x][i.y][i.z];*/
   }
 	else if (currentNormal.X() == -1.0)
 	{
 		//added = scene->chunk[currentBlock->dx - 1][currentBlock->dy][currentBlock->dz];
 		p[0]--;
-	  i = scene->getIndex(p);
-    added = i.current->chunk[i.x][i.y][i.z];
+	/*  i = scene->getIndex(p);
+    added = i.current->chunk[i.x][i.y][i.z];*/
   }
 	else if (currentNormal.Z() == 1.0)
 	{
 		//added = scene->chunk[currentBlock->dx][currentBlock->dy][currentBlock->dz + 1];
 		p[2]++;
-	  i = scene->getIndex(p);
-    added = i.current->chunk[i.x][i.y][i.z];
+/*	  i = scene->getIndex(p);
+    added = i.current->chunk[i.x][i.y][i.z];*/
   }
 	else if (currentNormal.Z() == -1.0)
 	{
 		//added = scene->chunk[currentBlock->dx][currentBlock->dy][currentBlock->dz - 1];
 		p[2]--;
-	  i = scene->getIndex(p);
-    added = i.current->chunk[i.x][i.y][i.z];
+	/*  i = scene->getIndex(p);
+    added = i.current->chunk[i.x][i.y][i.z];*/
 	}
+	
+		R3Point bottom = currentBlock->box.Centroid();
+	bottom[0] = p[0];
+	bottom[1] = p[1];
+	bottom[2] = p[2];
+	bottom[1]--;
+	R3Index j = scene->getIndex(bottom);
+	R3Node *bottomNode = j.current->chunk[j.x][j.y][j.z];
+	
+	if (block == DIRT_BLOCK) {
+		while (bottomNode->shape->block->getBlockType() == AIR_BLOCK) {
+		//	printf("while %f\n", p[1]);
+			p[1]--;
+			bottom[1]--;
+			j = scene->getIndex(bottom);
+			bottomNode = j.current->chunk[j.x][j.y][j.z];
+		/*	i = scene->getIndex(p);
+			added = i.current->chunk[i.x][i.y][i.z];*/
+		}
+	}
+	
+	i = scene->getIndex(p);
+	added = i.current->chunk[i.x][i.y][i.z];
 	
 	if (added) 
   {
     // Add new block only if new block is an air block
-    if (added->shape->block->blockType == AIR_BLOCK) 
-      added->shape->block->changeBlock(currentBlock->blockType);
+	  if (added->shape->block->blockType == AIR_BLOCK) {
+		  printf("change");
+      added->shape->block->changeBlock(block);
+	  }
   }
 }
 
@@ -1012,7 +1039,7 @@ void GLUTIdleFunction(void)
   {
 		direction = creatures[i]->UpdateCreature(Main_Character);
     direction = InterpolateMotion(&(creatures[i]->position), direction, false);
-    PRINT_VECTOR(direction);
+    //PRINT_VECTOR(direction);
     creatures[i]->box.Translate(direction);
   }
 
@@ -1250,7 +1277,25 @@ void GLUTMouse(int button, int state, int x, int y)
 			else if (currentSelection != NULL) {
 				currentSelection->shape->block->health--;
 				if (currentSelection->shape->block->health <= 0) {
-				//	printf("out of health\n");
+					//	printf("out of health\n");
+					
+					int item = 8;
+					int block = currentSelection->shape->block->getBlockType();
+					
+					if (block == DIRT_BLOCK) item = R3BLOCK_DIRT;
+					if (block == BRANCH_BLOCK) item = R3BLOCK_BRANCH;
+					if (block == STONE_BLOCK) item = R3BLOCK_STONE;
+					
+					if (item < 8) {
+						Main_Character->number_items[item]++;
+						Main_Character->item = item;
+					}
+					printf("inventory: ");
+					for (int i = 0; i < 8; i++) {
+						printf("%d, ", Main_Character->number_items[i]);
+					}
+					printf("\n");
+					
 					RemoveBlock();
 				}
 			}
@@ -1261,7 +1306,23 @@ void GLUTMouse(int button, int state, int x, int y)
     }
     else if (button == GLUT_RIGHT_BUTTON) 
     {
-      AddBlock();
+		int block;
+		int item = Main_Character->item;
+		printf("%d\n", item);
+		//block = STONE_BLOCK;
+		if (item < 8) {
+			if (Main_Character->number_items[item] > 0) {
+				
+				if (item == R3BLOCK_DIRT) block = DIRT_BLOCK;
+				if (item == R3BLOCK_BRANCH) block = BRANCH_BLOCK;
+				if (item == R3BLOCK_STONE) { block = STONE_BLOCK; }
+				Main_Character->number_items[item]--;
+				if (Main_Character->number_items[item] == 0) {
+					Main_Character->item = R3BLOCK_AIR;
+				}
+				AddBlock(block);
+			}
+		}
     }
   }
 
@@ -1323,6 +1384,25 @@ void GLUTKeyboard(unsigned char key, int x, int y)
     // Process keyboard button event 
     switch (key) 
     {
+  /*      case 'B':
+        case 'b':
+            AddBlock();
+            break;*/
+		case '1':
+			if (Main_Character->number_items[R3BLOCK_DIRT] >0) {
+				Main_Character->item = R3BLOCK_DIRT;
+			}
+			break;
+		case '2':
+			if (Main_Character->number_items[R3BLOCK_STONE] >0) {
+				Main_Character->item = R3BLOCK_STONE;
+			}
+			break;
+		case '3':
+			if (Main_Character->number_items[R3BLOCK_BRANCH] >0) {
+				Main_Character->item = R3BLOCK_BRANCH;
+			}
+			break;
         case 'C':
         case 'c':
             show_camera = !show_camera;

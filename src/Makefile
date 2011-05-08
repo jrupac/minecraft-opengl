@@ -26,7 +26,7 @@ CXXFLAGS=-Wall -I. -g -DUSE_JPEG -O3
 UNAME := $(shell uname)
 # Mac OS
 ifneq (,$(findstring Darwin,$(UNAME)))
-	GLLIBS = -framework GLUT -framework OpenGL
+	GLLIBS = -framework GLUT -framework OpenGL 
 # Windows
 else
   ifneq (,$(findstring CYGWIN,$(UNAME)))
@@ -69,7 +69,7 @@ raypro: $(RAYPRO_OBJS) $(LIBS)
 		rm -f $@ 
 	    $(CXX) $(CXXFLAGS) $^ -lm -o $@ $(GLLIBS)
 
-minecraft: $(RAYVIEW_OBJS) $(LIBS)
+minecraft: $(RAYVIEW_OBJS) $(LIBS) 
 	    rm -f $@ 
 	    $(CXX) $(CXXFLAGS) $^ -lm -o $@ $(GLLIBS)
 	    

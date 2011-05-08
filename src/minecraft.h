@@ -55,7 +55,7 @@ void InterpolateJump(R3Point *start, R3Vector direction);
 ////////////////////////////////////////////////////////////
 
 void AlignReticle();
-void AddBlock();
+void AddBlock(int block);
 void DrawHUD(); 
 void DrawHUD_Hearts();
 void DrawHUD_Inventory();
