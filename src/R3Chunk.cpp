@@ -91,7 +91,7 @@ DeleteChunk()
       for (int dx = 0; dx < CHUNK_X; dx++)
       {
         delete chunk[dx][dy][dz]->shape->block;
-        delete chunk[dx][dy][dz]->material;
+      //  delete chunk[dx][dy][dz]->material;
         delete chunk[dx][dy][dz];
       }
     }

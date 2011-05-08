@@ -20,6 +20,8 @@ static char *output_image_name = NULL;
 
 // Display variables
 
+static bool startMenu = false;
+
 static R3Scene *scene = NULL;
 static int show_faces = 1;
 static int show_edges = 0;
@@ -1252,6 +1254,11 @@ void GLUTMainLoop(void)
 
 void GLUTIdleFunction(void) 
 {
+	
+	if (startMenu == true) {
+		return;
+	}
+	
 	UpdateCharacter();
 	R3Vector direction;
 
@@ -1337,8 +1344,31 @@ void GLUTResize(int w, int h)
     glutPostRedisplay();
 }
 
+void DisplayStartMenu() {
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(0, GLUTwindow_width, GLUTwindow_height, 0);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+	glLoadIdentity();
+	
+	/* draw stuff */
+	
+    glPopMatrix();
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	
+}
+
 void GLUTRedraw(void)
 {
+	
+	if (startMenu == true) {
+		DisplayStartMenu();
+		return;
+	}
+	
     // Time stuff
     current_time = GetTime();
     // program just started up?
@@ -1627,8 +1657,12 @@ void GLUTKeyboard(unsigned char key, int x, int y)
       if (Main_Character->number_items[R3BLOCK_WOOD] >0)
         Main_Character->item = R3BLOCK_WOOD;
       break;
+	  case 'P':
+	  case'p':
+		  startMenu = false;
+		  break;
 
-    case 'C':
+	  case 'C':
     case 'c':
       show_camera = !show_camera;
       break;
@@ -1652,6 +1686,7 @@ void GLUTKeyboard(unsigned char key, int x, int y)
     case 'Q':
       toSave = 1;
       quit = 1;
+		  break;
     case 'q':
       quit = 1;
       break;
@@ -1788,8 +1823,8 @@ void GLUTInit(int *argc, char **argv)
 
     //Initialize Character    
 	Main_Character = new R3Character();
-	R3Creature *newcreature1 = new R3Creature(R3Point(-2, .5, -3), R3SUICIDE_CREATURE);
-	creatures.push_back(newcreature1);
+	//R3Creature *newcreature1 = new R3Creature(R3Point(-2, .5, -3), R3SUICIDE_CREATURE);
+	//creatures.push_back(newcreature1);
 }
 
 ////////////////////////////////////////////////////////////
