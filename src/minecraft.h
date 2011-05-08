@@ -60,6 +60,9 @@ void DrawHUD();
 void DrawHUD_Hearts();
 void DrawHUD_Inventory();
 void LoadMaterial(R3Material *material);
+void ChangeHealth(R3Character *character, int delta);
+void ChangeHealth(R3Creature *creature, int delta);
+void ChangeHealth(R3Block *block, int delta);
 
 ////////////////////////////////////////////////////////////
 // SCENE DRAWING CODE

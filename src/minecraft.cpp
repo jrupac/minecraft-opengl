@@ -562,6 +562,35 @@ void DrawHUD_Inventory()
     glPopMatrix(); 
 }
 
+void ChangeHealth(R3Character *character, int delta)
+{
+  character->Health += delta;
+
+  if (character->Health <= 0)
+  {
+    fprintf(stderr, "You lose!\n");
+
+    // Be a little nicer than this in the future.
+    exit(0);
+  }
+}
+
+void ChangeHealth(R3Creature *creature, int delta)
+{
+  creature->Health += delta;
+
+  if (creature->Health <= 0)
+    RemoveCreature();
+}
+
+void ChangeHealth(R3Block *block, int delta)
+{
+  block->health += delta;
+
+  if (block->health <= 0)
+    RemoveBlock();
+}
+
 ////////////////////////////////////////////////////////////
 // SCENE DRAWING CODE
 ////////////////////////////////////////////////////////////
@@ -1067,7 +1096,6 @@ void GLUTIdleFunction(void)
   {
 		direction = creatures[i]->UpdateCreature(Main_Character);
     direction = InterpolateMotion(&(creatures[i]->position), direction, false);
-    //PRINT_VECTOR(direction);
     creatures[i]->box.Translate(direction);
   }
 
@@ -1287,70 +1315,67 @@ void GLUTMouse(int button, int state, int x, int y)
   if (state == GLUT_DOWN) 
   {
     if (button == GLUT_LEFT_BUTTON) 
-        {
-						//printf("left click\n");
-            if (CAPTURE_MOUSE == false) 
-            {
-                glutSetCursor(GLUT_CURSOR_NONE);
-                CAPTURE_MOUSE = true;
-            }
-			else if(currentSelectedCreatureIt != creatures.end()) {
-				(*currentSelectedCreatureIt)->Health--;
-				if((*currentSelectedCreatureIt)->Health == 0) {
-					RemoveCreature();
-					//printf("Removed! \n");
-				}
-				//printf("health: %d\n",(*currentSelectedCreatureIt)->Health);
-			}
-			else if (currentSelection != NULL) {
-				currentSelection->shape->block->health--;
-				if (currentSelection->shape->block->health <= 0) {
-					//	printf("out of health\n");
-					
-					int item = 8;
-					int block = currentSelection->shape->block->getBlockType();
-					
-					if (block == DIRT_BLOCK) item = R3BLOCK_DIRT;
-					if (block == WOOD_BLOCK) item = R3BLOCK_WOOD;
-					if (block == STONE_BLOCK) item = R3BLOCK_STONE;
-					
-					if (item < 8) {
-						Main_Character->number_items[item]++;
-						Main_Character->item = item;
-					}
-					printf("inventory: ");
-					for (int i = 0; i < 8; i++) {
-						printf("%d, ", Main_Character->number_items[i]);
-					}
-					printf("\n");
-					
-					RemoveBlock();
-				}
-			}
+    {
+      //printf("left click\n");
+      if (CAPTURE_MOUSE == false) 
+      {
+        glutSetCursor(GLUT_CURSOR_NONE);
+        CAPTURE_MOUSE = true;
+      }
+      else if (currentSelectedCreatureIt != creatures.end()) 
+      {
+        ChangeHealth((*currentSelectedCreatureIt), -1);
+      }
+      else if (currentSelection != NULL) 
+      {
+        ChangeHealth(currentSelection->shape->block, -1);
+        //	printf("out of health\n");
 
+        int item = 8;
+        int block = currentSelection->shape->block->getBlockType();
+
+        if (block == DIRT_BLOCK) item = R3BLOCK_DIRT;
+        if (block == WOOD_BLOCK) item = R3BLOCK_WOOD;
+        if (block == STONE_BLOCK) item = R3BLOCK_STONE;
+
+        if (item < 8) 
+        {
+          Main_Character->number_items[item]++;
+          Main_Character->item = item;
         }
+
+        printf("inventory: ");
+        for (int i = 0; i < 8; i++)
+          printf("%d, ", Main_Character->number_items[i]);
+        printf("\n");
+      }
+    }
     else if (button == GLUT_MIDDLE_BUTTON) 
     {
     }
     else if (button == GLUT_RIGHT_BUTTON) 
     {
-		int block;
-		int item = Main_Character->item;
-		printf("%d\n", item);
-		//block = STONE_BLOCK;
-		if (item < 8) {
-			if (Main_Character->number_items[item] > 0) {
-				
-				if (item == R3BLOCK_DIRT) block = DIRT_BLOCK;
-				if (item == R3BLOCK_WOOD) block = WOOD_BLOCK;
-				if (item == R3BLOCK_STONE) { block = STONE_BLOCK; }
-				Main_Character->number_items[item]--;
-				if (Main_Character->number_items[item] == 0) {
-					Main_Character->item = R3BLOCK_AIR;
-				}
-				AddBlock(block);
-			}
-		}
+      int block;
+      int item = Main_Character->item;
+      printf("%d\n", item);
+      //block = STONE_BLOCK;
+      if (item < 8) 
+      {
+        if (Main_Character->number_items[item] > 0) 
+        {
+
+          if (item == R3BLOCK_DIRT) block = DIRT_BLOCK;
+          if (item == R3BLOCK_WOOD) block = WOOD_BLOCK;
+          if (item == R3BLOCK_STONE) block = STONE_BLOCK;
+
+          Main_Character->number_items[item]--;
+
+          if (Main_Character->number_items[item] == 0)
+            Main_Character->item = R3BLOCK_AIR;
+
+          AddBlock(block);
+        }
+      }
     }
   }
 
@@ -1406,105 +1431,109 @@ void GLUTSpecial(int key, int x, int y)
 
 void GLUTKeyboard(unsigned char key, int x, int y)
 {
-    // Invert y coordinate
-    y = GLUTwindow_height - y;
+  R3Vector difference;
 
-    // Process keyboard button event 
-    switch (key) 
-    {
-  /*      case 'B':
-        case 'b':
-            AddBlock();
-            break;*/
-		case '1':
-			if (Main_Character->number_items[R3BLOCK_DIRT] >0) {
-				Main_Character->item = R3BLOCK_DIRT;
-			}
-			break;
-		case '2':
-			if (Main_Character->number_items[R3BLOCK_STONE] >0) {
-				Main_Character->item = R3BLOCK_STONE;
-			}
-			break;
-		case '3':
-			if (Main_Character->number_items[R3BLOCK_WOOD] >0) {
-				Main_Character->item = R3BLOCK_WOOD;
-			}
-			break;
-        case 'C':
-        case 'c':
-            show_camera = !show_camera;
-            break;
+  // Invert y coordinate
+  y = GLUTwindow_height - y;
 
-        case 'E':
-        case 'e':
-            show_edges = !show_edges;
-            break;
+  // Process keyboard button event 
+  switch (key) 
+  {
+    case '1':
+      if (Main_Character->number_items[R3BLOCK_DIRT] >0)
+        Main_Character->item = R3BLOCK_DIRT;
+      break;
 
-        case 'F':
-        case 'f':
-            show_faces = !show_faces;
-            break;
+    case '2':
+      if (Main_Character->number_items[R3BLOCK_STONE] >0)
+        Main_Character->item = R3BLOCK_STONE;
+      break;
 
-        case 'L':
-        case 'l':
-            show_lights = !show_lights;
-            break;
+    case '3':
+      if (Main_Character->number_items[R3BLOCK_WOOD] >0)
+        Main_Character->item = R3BLOCK_WOOD;
+      break;
 
-        case 'Q':
-			toSave = 1;
-			quit = 1;
-        case 'q':
-            quit = 1;
-            break;
+    case 'C':
+    case 'c':
+      show_camera = !show_camera;
+      break;
 
-        case 27: // ESCAPE
-            CAPTURE_MOUSE = false;
-            // Restore cursor
-            glutSetCursor(GLUT_CURSOR_INHERIT);
-            break;
+    case 'E':
+    case 'e':
+      show_edges = !show_edges;
+      break;
 
-        case 'w': 
-            InterpolateMotion(&(camera.eye), 
-                    -(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
-            break;
+    case 'F':
+    case 'f':
+      show_faces = !show_faces;
+      break;
 
-        case 's': 
-            InterpolateMotion(&(camera.eye), 
-                    (cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
-            break;
+    case 'L':
+    case 'l':
+      show_lights = !show_lights;
+      break;
 
-        case 'd': 
-            InterpolateMotion(&(camera.eye), 
-                    (sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
-            break;
+    case 'Q':
+      toSave = 1;
+      quit = 1;
+    case 'q':
+      quit = 1;
+      break;
 
-        case 'a': 
-            InterpolateMotion(&(camera.eye), 
-                    -(sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
-            break;
+    case 27: // ESCAPE
+      CAPTURE_MOUSE = false;
+      // Restore cursor
+      glutSetCursor(GLUT_CURSOR_INHERIT);
+      break;
 
-        case ' ': 
-            InterpolateJump(&(camera.eye),     
-                    -(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point));
-        // i for info
-        case 'i':
-            printf("camera %g %g %g  %g %g %g  %g  %g %g \n",
-                    camera.eye[0], camera.eye[1], camera.eye[2], 
-                    rot[0], rot[1], rot[2],
-                    camera.xfov, camera.neardist, camera.fardist); 
-            break; 
-    }
+    case 'w': 
+      difference = InterpolateMotion(&(camera.eye), 
+          -(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
+      break;
 
-    // Remember mouse position 
-    GLUTmouse[0] = x;
-    GLUTmouse[1] = y;
+    case 's': 
+      difference = InterpolateMotion(&(camera.eye), 
+          (cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
+      break;
 
-    // Remember modifiers 
-    GLUTmodifiers = glutGetModifiers();
+    case 'd': 
+      difference = InterpolateMotion(&(camera.eye), 
+          (sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
+      break;
 
-    // Redraw
-    glutPostRedisplay();
+    case 'a': 
+      difference = InterpolateMotion(&(camera.eye), 
+          -(sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
+      break;
+
+    case ' ': 
+      InterpolateJump(&(camera.eye),     
+          -(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point));
+      break;
+
+    // i for info
+    case 'i':
+      printf("camera %g %g %g  %g %g %g  %g  %g %g \n",
+          camera.eye[0], camera.eye[1], camera.eye[2], 
+          rot[0], rot[1], rot[2],
+          camera.xfov, camera.neardist, camera.fardist); 
+      break; 
+  }
+  
+  // If you fall too much, you lose health
+  if (difference.Y() < -1.f)
+    ChangeHealth(Main_Character, -10);
+
+  // Remember mouse position 
+  GLUTmouse[0] = x;
+  GLUTmouse[1] = y;
+
+  // Remember modifiers 
+  GLUTmodifiers = glutGetModifiers();
+
+  // Redraw
+  glutPostRedisplay();
 }
 
 void GLUTCommand(int cmd)
