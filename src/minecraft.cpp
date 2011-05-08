@@ -4,6 +4,7 @@
 
 #include "minecraft.h"
 #include "float.h"
+#include "materials.h"
 
 ////////////////////////////////////////////////////////////
 // GLOBAL VARIABLES
@@ -44,19 +45,20 @@ static double current_time = 0;
 static int FPS = 0;
 static R3Intersection closestintersect;
 
-// Materials
+R3Material **materials = new R3Material*[20];
 
-static R3Material *default_material;
+/*static R3Material *default_material;
 static R3Material *branch_material;
 static R3Material *dirt_material;
 static R3Material *grass_material;
 static R3Material *leaf_material;
 static R3Material *alldirt_material;
 static R3Material *stone_material;
+
 static R3Material *heart_material;
 static R3Material *empty_heart_material;
 static R3Material *cow_material;
-static R3Material *deer_material;
+static R3Material *deer_material;*/
 
 // GLUT variables 
 
@@ -393,7 +395,7 @@ void DrawHUD()
     glColor3d(.7, .7, .7);
 
     // Load default material
-    LoadMaterial(default_material);
+   // LoadMaterial(default_material);
 
     //Draw Hearts
     DrawHUD_Hearts();
@@ -458,221 +460,6 @@ void DrawHUD_Inventory()
     glPopMatrix(); 
 }
 
-void MakeMaterials(void) 
-{
-    //Load materials
-    default_material = new R3Material();
-    default_material->ka = R3Rgb(0.2, 0.2, 0.2, 1);
-    default_material->kd = R3Rgb(0.5, 0.5, 0.5, 1);
-    default_material->ks = R3Rgb(0.5, 0.5, 0.5, 1);
-    default_material->kt = R3Rgb(0.0, 0.0, 0.0, 1);
-    default_material->emission = R3Rgb(0, 0, 0, 1);
-    default_material->shininess = 10;
-    default_material->indexofrefraction = 1;
-    default_material->texture = NULL;
-    default_material->id = 0;
-
-    alldirt_material = new R3Material();
-    alldirt_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
-    alldirt_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
-    alldirt_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
-    alldirt_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
-    alldirt_material->emission = R3Rgb(0, 0, 0, 0);
-    alldirt_material->shininess = 10;
-    alldirt_material->indexofrefraction = 1;
-
-    //	char buffer[] = "textures/checker.bmp";
-    char alldirt[] = "textures/alldirt.jpg";
-
-    // Read texture image
-    alldirt_material->texture = new R2Image();
-    if (!alldirt_material->texture->Read(alldirt)) {
-        fprintf(stderr, "Unable to read texture from file");
-        //	return 0;
-    }	
-    alldirt_material->id = 5;
-
-    dirt_material = new R3Material();
-    dirt_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
-    dirt_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
-    dirt_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
-    dirt_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
-    dirt_material->emission = R3Rgb(0, 0, 0, 0);
-    dirt_material->shininess = 10;
-    dirt_material->indexofrefraction = 1;
-
-    //	char buffer[] = "textures/checker.bmp";
-    char dirt[] = "textures/dirt.jpg";
-
-    // Read texture image
-    dirt_material->texture = new R2Image();
-    if (!dirt_material->texture->Read(dirt)) {
-        fprintf(stderr, "Unable to read texture from file");
-        //	return 0;
-    }	
-    dirt_material->id = 2;
-
-    branch_material = new R3Material();
-    branch_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
-    branch_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
-    branch_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
-    branch_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
-    branch_material->emission = R3Rgb(0, 0, 0, 0);
-    branch_material->shininess = 10;
-    branch_material->indexofrefraction = 1;
-
-    //	char buffer[] = "textures/checker.bmp";
-    char branch[] = "textures/branch.jpg";
-
-    // Read texture image
-    branch_material->texture = new R2Image();
-    if (!branch_material->texture->Read(branch)) {
-        fprintf(stderr, "Unable to read texture from file");
-        //	return 0;
-    }	
-    //branch_material->texture = NULL;
-    branch_material->id = 1;
-
-    grass_material = new R3Material();
-    grass_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
-    grass_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
-    grass_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
-    grass_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
-    grass_material->emission = R3Rgb(0, 0, 0, 0);
-    grass_material->shininess = 10;
-    grass_material->indexofrefraction = 1;
-
-    //	char buffer[] = "textures/checker.bmp";
-    char grass[] = "textures/grass.jpg";
-
-    // Read texture image
-    grass_material->texture = new R2Image();
-    if (!grass_material->texture->Read(grass)) {
-        fprintf(stderr, "Unable to read texture from file");
-        //	return 0;
-    }	
-    grass_material->id = 3;
-
-    leaf_material = new R3Material();
-    leaf_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
-    leaf_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
-    leaf_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
-    leaf_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
-    leaf_material->emission = R3Rgb(0, 0, 0, 0);
-    leaf_material->shininess = 10;
-    leaf_material->indexofrefraction = 1;
-
-    //	char buffer[] = "textures/checker.bmp";
-    char leaf[] = "textures/leaf.jpg";
-
-    // Read texture image
-    leaf_material->texture = new R2Image();
-    if (!leaf_material->texture->Read(leaf)) {
-        fprintf(stderr, "Unable to read texture from file");
-        //	return 0;
-    }	
-    leaf_material->id = 4;
-
-	stone_material = new R3Material();
-    stone_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
-    stone_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
-    stone_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
-    stone_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
-    stone_material->emission = R3Rgb(0, 0, 0, 0);
-    stone_material->shininess = 10;
-    stone_material->indexofrefraction = 1;
-	
-    //	char buffer[] = "textures/checker.bmp";
-    char stone[] = "textures/stone.jpg";
-	
-    // Read texture image
-    stone_material->texture = new R2Image();
-    if (!stone_material->texture->Read(stone)) {
-        fprintf(stderr, "Unable to read texture from file");
-        //	return 0;
-    }	
-    stone_material->id = 5;
-	
-    heart_material = new R3Material();
-    heart_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
-    heart_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
-    heart_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
-    heart_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
-    heart_material->emission = R3Rgb(0, 0, 0, 0);
-    heart_material->shininess = 10;
-    heart_material->indexofrefraction = 1;
-
-    //	char buffer[] = "textures/checker.bmp";
-    char heart[] = "textures/alldirt.jpg";
-
-    // Read texture image
-    heart_material->texture = new R2Image();
-    if (!heart_material->texture->Read(heart)) {
-        fprintf(stderr, "Unable to read texture from file");
-        //	return 0;
-    }	
-    heart_material->id = 9;
-
-    empty_heart_material = new R3Material();
-    empty_heart_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
-    empty_heart_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
-    empty_heart_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
-    empty_heart_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
-    empty_heart_material->emission = R3Rgb(0, 0, 0, 0);
-    empty_heart_material->shininess = 10;
-    empty_heart_material->indexofrefraction = 1;
-
-    //	char buffer[] = "textures/checker.bmp";
-    char empty_heart[] = "textures/grass.jpg";
-
-    // Read texture image
-    empty_heart_material->texture = new R2Image();
-    if (!empty_heart_material->texture->Read(empty_heart)) {
-        fprintf(stderr, "Unable to read texture from file");
-        //	return 0;
-    }	
-    empty_heart_material->id = 10;
-
-	cow_material = new R3Material();
-    cow_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
-    cow_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
-    cow_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
-    cow_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
-    cow_material->emission = R3Rgb(0, 0, 0, 0);
-	cow_material->shininess = 10;
-	cow_material->indexofrefraction = 1;
-
-	//	char buffer[] = "textures/checker.bmp";
-	char cow[] = "textures/cow.jpg";
-
-	// Read texture image
-	cow_material->texture = new R2Image();
-	if (!cow_material->texture->Read(cow)) {
-		fprintf(stderr, "Unable to read texture from file");
-	}	
-	cow_material->id = 30;
-
-
-
-	deer_material = new R3Material();
-	deer_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
-	deer_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
-	deer_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
-	deer_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
-	deer_material->emission = R3Rgb(0, 0, 0, 0);
-	deer_material->shininess = 10;
-	deer_material->indexofrefraction = 1;
-
-	//	char buffer[] = "textures/checker.bmp";
-	char deer[] = "textures/deer.jpg";
-
-	// Read texture image
-	deer_material->texture = new R2Image();
-	if (!deer_material->texture->Read(deer)) {
-		fprintf(stderr, "Unable to read texture from file");
-	}	
-	deer_material->id = 31;
-}
 
 ////////////////////////////////////////////////////////////
 // SCENE DRAWING CODE
@@ -689,9 +476,11 @@ void DrawShape(R3Shape *shape)
     else if (shape->type == R3_SEGMENT_SHAPE) shape->segment->Draw();
     else if (shape->type == R3_BLOCK_SHAPE)
     {
+		//LoadMaterial(branch_material);
+		shape->block->Draw();
         //if (shape->block->getBlockType() != AIR_BLOCK)
         //    shape->block->Draw();
-        if (shape->block->getBlockType() == LEAF_BLOCK) 
+   /*     if (shape->block->getBlockType() == LEAF_BLOCK) 
         {
             LoadMaterial(leaf_material);
             shape->block->getBox().Draw();
@@ -722,13 +511,41 @@ void DrawShape(R3Shape *shape)
 		else if (shape->block->getBlockType() == STONE_BLOCK) {
 			LoadMaterial(stone_material);
 			shape->block->getBox().Draw();
-		}
+		}*/
     }
 
     else fprintf(stderr, "Unrecognized shape type: %d\n", shape->type);
 }
 
-void DrawShape(R3Node *node)
+//boolean is true if current face being drawn is top face 
+void findMaterial(R3Block *block, bool top) {
+	if (block->getBlockType() == LEAF_BLOCK) 
+	{
+		LoadMaterial(materials[LEAF]);
+	}
+	else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
+	{
+		if (block->getUpper()->getBlockType() == AIR_BLOCK) {
+			if (top) {
+				LoadMaterial(materials[GRASS]);
+							 }
+			else {
+			LoadMaterial(materials[DIRT]);
+			}
+		}
+		else {
+			LoadMaterial(materials[ALLDIRT]);
+		}
+	}
+	else if (block->getBlockType() == BRANCH_BLOCK) 
+	{
+		LoadMaterial(materials[BRANCH]);
+	}
+	else if (block->getBlockType() == STONE_BLOCK) {
+		LoadMaterial(materials[STONE]);
+	}
+}
+/*void DrawShape(R3Node *node)
 {
     // Check shape type
     if (node->shape->type == R3_BOX_SHAPE) 
@@ -760,7 +577,7 @@ void DrawShape(R3Node *node)
     }
 
     else fprintf(stderr, "Unrecognized shape type: %d\n", node->shape->type);
-}
+}*/
 
 void LoadMatrix(R3Matrix *matrix)
 {
@@ -1009,7 +826,7 @@ void DrawNode(R3Scene *scene, R3Node *node)
     LoadMatrix(&node->transformation);
 
     // Load material
-    if (node->material) LoadMaterial(node->material);
+   // if (node->material) LoadMaterial(node->material);
 
 
     // Draw shape
@@ -1104,26 +921,7 @@ void DrawScene(R3Scene *scene)
               //Face 0
               if (left >= 0 && scene->terrain[curChunkX][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
               {
-                if (block->getBlockType() == LEAF_BLOCK) 
-                {
-                  LoadMaterial(leaf_material);
-                }
-                else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
-                {
-                  if (block->getUpper()->getBlockType() == AIR_BLOCK) {
-                    LoadMaterial(dirt_material);
-                  }
-                  else {
-                    LoadMaterial(alldirt_material);
-                  }
-                }
-                else if (block->getBlockType() == BRANCH_BLOCK) 
-                {
-                  LoadMaterial(branch_material);
-                }
-		            else if (block->getBlockType() == STONE_BLOCK) {
-			            LoadMaterial(stone_material);
-		            }
+				  findMaterial(block, false);
 		            if (!block->transparent)
 		            {
 		              block->getBox().DrawFace(0);
@@ -1134,7 +932,8 @@ void DrawScene(R3Scene *scene)
               //Face 1
               if (right < CHUNK_X && scene->terrain[curChunkX][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
               {
-                if (block->getBlockType() == LEAF_BLOCK) 
+				  findMaterial(block, false);
+              /*  if (block->getBlockType() == LEAF_BLOCK) 
                 {
                   LoadMaterial(leaf_material);
                 }
@@ -1152,8 +951,8 @@ void DrawScene(R3Scene *scene)
                   LoadMaterial(branch_material);
                 }
 		            else if (block->getBlockType() == STONE_BLOCK) {
-			            LoadMaterial(stone_material);
-		            }
+			           LoadMaterial(stone_material);
+		            }*/
 		            if (!block->transparent)
 		            {
 		              block->getBox().DrawFace(1);
@@ -1164,7 +963,8 @@ void DrawScene(R3Scene *scene)
               //Face 2
               if (dy - 1 > 0 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
               {
-                  if (block->getBlockType() == LEAF_BLOCK) 
+				  findMaterial(block, false);
+               /*   if (block->getBlockType() == LEAF_BLOCK) 
                   {
                     LoadMaterial(leaf_material);
                   }
@@ -1183,7 +983,7 @@ void DrawScene(R3Scene *scene)
                   }
 		              else if (block->getBlockType() == STONE_BLOCK) {
 			              LoadMaterial(stone_material);
-		              }
+		              }*/
 		              if (!block->transparent)
 		              {
 		                block->getBox().DrawFace(2);
@@ -1194,7 +994,8 @@ void DrawScene(R3Scene *scene)
                //Face 3
               if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
               {
-                  if (block->getBlockType() == LEAF_BLOCK) 
+				  findMaterial(block, true);
+                 /* if (block->getBlockType() == LEAF_BLOCK) 
                   {
                     LoadMaterial(leaf_material);
                   }
@@ -1213,7 +1014,7 @@ void DrawScene(R3Scene *scene)
                   }
 		              else if (block->getBlockType() == STONE_BLOCK) {
 			              LoadMaterial(stone_material);
-		              }
+		              }*/
 		              if (!block->transparent)
 		              {
 		                block->getBox().DrawFace(3);
@@ -1225,7 +1026,8 @@ void DrawScene(R3Scene *scene)
                //Face 4
               if (back > 0 && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][back]->shape->block->transparent)
               {
-                if (block->getBlockType() == LEAF_BLOCK) 
+				  findMaterial(block, false);
+               /* if (block->getBlockType() == LEAF_BLOCK) 
                 {
                   LoadMaterial(leaf_material);
                 }
@@ -1244,7 +1046,7 @@ void DrawScene(R3Scene *scene)
                 }
 		            else if (block->getBlockType() == STONE_BLOCK) {
 			            LoadMaterial(stone_material);
-		            }
+		            }*/
 		            if (!block->transparent)
 		            {
 		              block->getBox().DrawFace(4);
@@ -1255,14 +1057,15 @@ void DrawScene(R3Scene *scene)
               //Face 5
               if (forward < CHUNK_Z && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][forward]->shape->block->transparent)
               {
-                if (block->getBlockType() == LEAF_BLOCK) 
+				  findMaterial(block, false);
+               /* if (block->getBlockType() == LEAF_BLOCK) 
                 {
                   LoadMaterial(leaf_material);
                 }
                 else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
                 {
                   if (block->getUpper()->getBlockType() == AIR_BLOCK) {
-                    LoadMaterial(dirt_material);
+                   LoadMaterial(dirt_material);
                   }
                   else {
                     LoadMaterial(alldirt_material);
@@ -1273,8 +1076,8 @@ void DrawScene(R3Scene *scene)
                   LoadMaterial(branch_material);
                 }
 		            else if (block->getBlockType() == STONE_BLOCK) {
-			            LoadMaterial(stone_material);
-		            }
+			       //     LoadMaterial(stone_material);
+		            }*/
 		            if (!block->transparent)
 		            {
 		              block->getBox().DrawFace(5);
@@ -1328,9 +1131,9 @@ void DrawCreatures()
 	for (unsigned int i = 0; i < creatures.size(); i++) 
   {
 		if (creatures[i]->creaturetype == R3COW_CREATURE) 
-      LoadMaterial(cow_material);
+      LoadMaterial(materials[COW]);
 		else if (creatures[i]->creaturetype == R3DEER_CREATURE) 
-      LoadMaterial(deer_material);
+      LoadMaterial(materials[DEER]);
 		creatures[i]->box.Draw();
 		if (currentSelectedCreature == (int)i) 
     {
@@ -1971,6 +1774,223 @@ void KillALData()
 
 #endif
 
+/*void MakeMaterials(void) 
+{
+	//Load materials
+	default_material = new R3Material();
+	default_material->ka = R3Rgb(0.2, 0.2, 0.2, 1);
+	default_material->kd = R3Rgb(0.5, 0.5, 0.5, 1);
+	default_material->ks = R3Rgb(0.5, 0.5, 0.5, 1);
+	default_material->kt = R3Rgb(0.0, 0.0, 0.0, 1);
+	default_material->emission = R3Rgb(0, 0, 0, 1);
+	default_material->shininess = 10;
+	default_material->indexofrefraction = 1;
+	default_material->texture = NULL;
+	default_material->id = 0;
+	
+	alldirt_material = new R3Material();
+	alldirt_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	alldirt_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	alldirt_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	alldirt_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	alldirt_material->emission = R3Rgb(0, 0, 0, 0);
+	alldirt_material->shininess = 10;
+	alldirt_material->indexofrefraction = 1;
+	
+	//	char buffer[] = "textures/checker.bmp";
+	char alldirt[] = "textures/alldirt.jpg";
+	
+	// Read texture image
+	alldirt_material->texture = new R2Image();
+	if (!alldirt_material->texture->Read(alldirt)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	alldirt_material->id = 5;
+	
+	dirt_material = new R3Material();
+	dirt_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	dirt_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	dirt_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	dirt_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	dirt_material->emission = R3Rgb(0, 0, 0, 0);
+	dirt_material->shininess = 10;
+	dirt_material->indexofrefraction = 1;
+	
+	//	char buffer[] = "textures/checker.bmp";
+	char dirt[] = "textures/dirt.jpg";
+	
+	// Read texture image
+	dirt_material->texture = new R2Image();
+	if (!dirt_material->texture->Read(dirt)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	dirt_material->id = 2;
+	
+	branch_material = new R3Material();
+	branch_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	branch_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	branch_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	branch_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	branch_material->emission = R3Rgb(0, 0, 0, 0);
+	branch_material->shininess = 10;
+	branch_material->indexofrefraction = 1;
+	
+	//	char buffer[] = "textures/checker.bmp";
+	char branch[] = "textures/branch.jpg";
+	
+	// Read texture image
+	branch_material->texture = new R2Image();
+	if (!branch_material->texture->Read(branch)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	//branch_material->texture = NULL;
+	branch_material->id = 1;
+	
+	grass_material = new R3Material();
+	grass_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	grass_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	grass_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	grass_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	grass_material->emission = R3Rgb(0, 0, 0, 0);
+	grass_material->shininess = 10;
+	grass_material->indexofrefraction = 1;
+	
+	//	char buffer[] = "textures/checker.bmp";
+	char grass[] = "textures/grass.jpg";
+	
+	// Read texture image
+	grass_material->texture = new R2Image();
+	if (!grass_material->texture->Read(grass)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	grass_material->id = 3;
+	
+	leaf_material = new R3Material();
+	leaf_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	leaf_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	leaf_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	leaf_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	leaf_material->emission = R3Rgb(0, 0, 0, 0);
+	leaf_material->shininess = 10;
+	leaf_material->indexofrefraction = 1;
+	
+	//	char buffer[] = "textures/checker.bmp";
+	char leaf[] = "textures/leaf.jpg";
+	
+	// Read texture image
+	leaf_material->texture = new R2Image();
+	if (!leaf_material->texture->Read(leaf)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	leaf_material->id = 4;
+	
+	stone_material = new R3Material();
+	stone_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	stone_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	stone_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	stone_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	stone_material->emission = R3Rgb(0, 0, 0, 0);
+	stone_material->shininess = 10;
+	stone_material->indexofrefraction = 1;
+	
+	//	char buffer[] = "textures/checker.bmp";
+	char stone[] = "textures/stone.jpg";
+	
+	// Read texture image
+	stone_material->texture = new R2Image();
+	if (!stone_material->texture->Read(stone)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	stone_material->id = 5;
+	
+    heart_material = new R3Material();
+    heart_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+    heart_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+    heart_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+    heart_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+    heart_material->emission = R3Rgb(0, 0, 0, 0);
+    heart_material->shininess = 10;
+    heart_material->indexofrefraction = 1;
+	
+    //	char buffer[] = "textures/checker.bmp";
+    char heart[] = "textures/alldirt.jpg";
+	
+    // Read texture image
+    heart_material->texture = new R2Image();
+    if (!heart_material->texture->Read(heart)) {
+        fprintf(stderr, "Unable to read texture from file");
+        //	return 0;
+    }	
+    heart_material->id = 9;
+	
+    empty_heart_material = new R3Material();
+    empty_heart_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+    empty_heart_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+    empty_heart_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+    empty_heart_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+    empty_heart_material->emission = R3Rgb(0, 0, 0, 0);
+    empty_heart_material->shininess = 10;
+    empty_heart_material->indexofrefraction = 1;
+	
+    //	char buffer[] = "textures/checker.bmp";
+    char empty_heart[] = "textures/grass.jpg";
+	
+    // Read texture image
+    empty_heart_material->texture = new R2Image();
+    if (!empty_heart_material->texture->Read(empty_heart)) {
+        fprintf(stderr, "Unable to read texture from file");
+        //	return 0;
+    }	
+    empty_heart_material->id = 10;
+	
+	cow_material = new R3Material();
+    cow_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+    cow_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+    cow_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+    cow_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+    cow_material->emission = R3Rgb(0, 0, 0, 0);
+	cow_material->shininess = 10;
+	cow_material->indexofrefraction = 1;
+	
+	//	char buffer[] = "textures/checker.bmp";
+	char cow[] = "textures/cow.jpg";
+	
+	// Read texture image
+	cow_material->texture = new R2Image();
+	if (!cow_material->texture->Read(cow)) {
+		fprintf(stderr, "Unable to read texture from file");
+	}	
+	cow_material->id = 30;
+	
+	
+	
+	deer_material = new R3Material();
+	deer_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	deer_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	deer_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	deer_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	deer_material->emission = R3Rgb(0, 0, 0, 0);
+	deer_material->shininess = 10;
+	deer_material->indexofrefraction = 1;
+	
+	//	char buffer[] = "textures/checker.bmp";
+	char deer[] = "textures/deer.jpg";
+	
+	// Read texture image
+	deer_material->texture = new R2Image();
+	if (!deer_material->texture->Read(deer)) {
+		fprintf(stderr, "Unable to read texture from file");
+	}	
+	deer_material->id = 31;
+}*/
+ 
+ 
 ////////////////////////////////////////////////////////////
 // MAIN
 ////////////////////////////////////////////////////////////
@@ -1996,7 +2016,8 @@ int main(int argc, char **argv)
     alSourcePlay(Source);
 #endif
 
-    MakeMaterials();
+    MakeMaterials(materials);
+	
     // Parse program arguments
     if (!ParseArgs(argc, argv)) exit(1);
 

@@ -28,8 +28,6 @@ R3Scene(void)
   root = new R3Node();
   root->parent = NULL;
   root->transformation = R3identity_matrix;
-  root->material = NULL;
-  root->shape = NULL;
   root->bbox = R3null_box;
   
   for (int xChunks = 0; xChunks < CHUNKS; xChunks++)
