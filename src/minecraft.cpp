@@ -93,6 +93,36 @@ ALfloat ListenerOri[] = { 0.0, 0.0, -1.0,
 // HELPER METHODS
 ////////////////////////////////////////////////////////////
 
+double RandomNumber(void)
+{
+#ifdef _WIN32
+    // Seed random number generator
+    static int first = 1;
+
+    if (first) {
+        srand(GetTickCount());
+        first = 0;
+    }
+
+    // Return random number
+    int r1 = rand();
+    double r2 = ((double) rand()) / ((double) RAND_MAX);
+    return (r1 + r2) / ((double) RAND_MAX);
+#else 
+    // Seed random number generator
+    static int first = 1;
+    if (first) {
+        struct timeval timevalue;
+        gettimeofday(&timevalue, 0);
+        srand48(timevalue.tv_usec);
+        first = 0;
+    }
+
+    // Return random number
+    return drand48();
+#endif
+}
+
 double GetTime(void)
 {
 
@@ -167,7 +197,7 @@ R3Vector InterpolateMotion(R3Point *start, R3Vector direction, bool isCharacter)
   else 
   {
     if (!coords.current || !coords.current->chunk[coords.x][coords.y][coords.z]->shape->block->walkable)
-      return R3zero_vector;
+      return InterpolateMotion(start, -4*direction, false);
   }
 
   *start += direction / INTERPOLATION;

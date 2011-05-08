@@ -1,35 +1,6 @@
 #include "R3Creature.h"
 #include "minecraft.h"
 
-double RandomNumber(void)
-{
-#ifdef _WIN32
-    // Seed random number generator
-    static int first = 1;
-
-    if (first) {
-        srand(GetTickCount());
-        first = 0;
-    }
-
-    // Return random number
-    int r1 = rand();
-    double r2 = ((double) rand()) / ((double) RAND_MAX);
-    return (r1 + r2) / ((double) RAND_MAX);
-#else 
-    // Seed random number generator
-    static int first = 1;
-    if (first) {
-        struct timeval timevalue;
-        gettimeofday(&timevalue, 0);
-        srand48(timevalue.tv_usec);
-        first = 0;
-    }
-
-    // Return random number
-    return drand48();
-#endif
-}
 
 
 R3Creature::
@@ -73,7 +44,7 @@ UpdateCreature(R3Character *character)
       translated = character->position - position;
       translated.SetY(0);
       translated.Normalize();
-      translated /= 20;
+      translated /= 100;
 
       // Give me some space!
       if (R3Distance(position + translated, character->position) >= 2.f)
@@ -92,7 +63,7 @@ UpdateCreature(R3Character *character)
       translated = position - character->position;
       translated.SetY(0);
       translated.Normalize();
-      translated /= 20;
+      translated /= 100;
 
       // Give me some space!
       if (R3Distance(position + translated, character->position) >= 2.f)

@@ -44,6 +44,7 @@ enum {
 // HELPER METHODS
 ////////////////////////////////////////////////////////////
 
+double RandomNumber(void);
 double GetTime(void);
 R3Index getChunkCoordinates(R3Point p);
 R3Vector InterpolateMotion(R3Point *start, R3Vector direction, bool isCharacter);
