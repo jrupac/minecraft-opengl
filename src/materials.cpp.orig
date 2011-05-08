@@ -1,5 +1,5 @@
 /*
- *  materials.cpp 
+ *  materials.cpp
  *
  */
 
@@ -73,7 +73,7 @@ void MakeMaterials(R3Material **materials)
 	 fprintf(stderr, "Unable to read texture from file");
 	 //	return 0;
 	 }	
-
+	 //branch_material->texture = NULL;
 	 wood_material->id = 1;
      materials[WOOD] = wood_material; 
 	
@@ -131,93 +131,40 @@ void MakeMaterials(R3Material **materials)
 	 stone_material->id = 5;
      materials[STONE] = stone_material;
 	
-
-
-	 //Icon materials
-
-
-
-	R3Material *dirt_icon = new R3Material();
-	dirt_icon->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
-	dirt_icon->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
-	dirt_icon->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
-	dirt_icon->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
-	dirt_icon->emission = R3Rgb(0, 0, 0, 0);
-	dirt_icon->shininess = 10;
-	dirt_icon->indexofrefraction = 1;
+  /*  heart_material = new R3Material();
+    heart_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+    heart_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+    heart_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+    heart_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+    heart_material->emission = R3Rgb(0, 0, 0, 0);
+    heart_material->shininess = 10;
+    heart_material->indexofrefraction = 1;
 	
-	// Read texture image
-	dirt_icon->texture = new R2Image();
-	if (!dirt_icon->texture->Read(s_TexDirtIcon)) {
-		fprintf(stderr, "Unable to read texture from file");
-		//	return 0;
-	}	
-	dirt_icon->id = 5;
-	materials[DIRT_ICON] = dirt_icon;
+    // Read texture image
+    heart_material->texture = new R2Image();
+    if (!heart_material->texture->Read(s_TexHeart)) {
+        fprintf(stderr, "Unable to read texture from file");
+        //	return 0;
+    }	
+    heart_material->id = 9;
 	
-	R3Material *stone_icon = new R3Material();
-	stone_icon->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
-	stone_icon->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
-	stone_icon->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
-	stone_icon->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
-	stone_icon->emission = R3Rgb(0, 0, 0, 0);
-	stone_icon->shininess = 10;
-	stone_icon->indexofrefraction = 1;
+    empty_heart_material = new R3Material();
+    empty_heart_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+    empty_heart_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+    empty_heart_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+    empty_heart_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+    empty_heart_material->emission = R3Rgb(0, 0, 0, 0);
+    empty_heart_material->shininess = 10;
+    empty_heart_material->indexofrefraction = 1;
 	
-	// Read texture image
-	stone_icon->texture = new R2Image();
-	if (!stone_icon->texture->Read(s_TexStoneIcon)) {
-		fprintf(stderr, "Unable to read texture from file");
-		//	return 0;
-	}	
-	stone_icon->id = 5;
-	materials[STONE_ICON] = stone_icon;
+    // Read texture image
+    empty_heart_material->texture = new R2Image();
+    if (!empty_heart_material->texture->Read(s_TexEmptyHeart)) {
+        fprintf(stderr, "Unable to read texture from file");
+        //	return 0;
+    }	
+    empty_heart_material->id = 10;*/
 	
-	R3Material *wood_icon = new R3Material();
-	wood_icon->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
-	wood_icon->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
-	wood_icon->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
-	wood_icon->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
-	wood_icon->emission = R3Rgb(0, 0, 0, 0);
-	wood_icon->shininess = 10;
-	wood_icon->indexofrefraction = 1;
-	
-	// Read texture image
-	wood_icon->texture = new R2Image();
-	if (!wood_icon->texture->Read(s_TexWoodIcon)) {
-		fprintf(stderr, "Unable to read texture from file");
-		//	return 0;
-	}	
-	wood_icon->id = 5;
-	materials[WOOD_ICON] = wood_icon;
-
-	
-	R3Material *sand_icon = new R3Material();
-	sand_icon->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
-	sand_icon->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
-	sand_icon->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
-	sand_icon->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
-	sand_icon->emission = R3Rgb(0, 0, 0, 0);
-	sand_icon->shininess = 10;
-	sand_icon->indexofrefraction = 1;
-	
-	// Read texture image
-	sand_icon->texture = new R2Image();
-	if (!sand_icon->texture->Read(s_TexSandIcon)) {
-		fprintf(stderr, "Unable to read texture from file");
-		//	return 0;
-	}	
-	sand_icon->id = 5;
-	materials[SAND_ICON] = sand_icon;
-
-	
-
-
-
-
-
-	// Creature Materials
-
 	R3Material *cow_material = new R3Material();
     cow_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
     cow_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);

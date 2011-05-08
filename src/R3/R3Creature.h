@@ -6,7 +6,8 @@
 
 typedef enum {
   R3COW_CREATURE,
-  R3DEER_CREATURE
+  R3DEER_CREATURE,
+  R3SUICIDE_CREATURE
 } R3CreatureType;
 
 class R3Creature {
@@ -14,6 +15,7 @@ class R3Creature {
     R3Creature(void);
     R3Creature(R3Point init, R3CreatureType creaturetype);
     R3Vector UpdateCreature(R3Character *character);
+    void Creature_Attack(R3Character *character, R3Vector translated);
 
   public:
     int Health;
