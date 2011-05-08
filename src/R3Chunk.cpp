@@ -175,7 +175,11 @@ DeleteChunk()
     {
       for (int dx = 0; dx < CHUNK_X; dx++)
       {
-        //delete chunk[dz][dy][dz]->shape->block; //clear some memory
+        delete chunk[dx][dy][dz]->shape->block; //clear some memory
+        delete chunk[dx][dy][dz]->material;
+        delete chunk[dx][dy][dz]->material_top;
+        delete chunk[dx][dy][dz]->material_sides;
+        delete chunk[dx][dy][dz];
       }
     }
   }
