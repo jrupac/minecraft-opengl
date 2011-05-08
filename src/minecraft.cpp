@@ -47,7 +47,7 @@ static double current_time = 0;
 static int FPS = 0;
 static R3Intersection closestintersect;
 
-R3Material **materials = new R3Material*[20];
+R3Material **materials = new R3Material*[40];
 
 /*static R3Material *default_material;
 static R3Material *branch_material;
@@ -392,7 +392,7 @@ void AddBlock(int block)
   {
     // Add new block only if new block is an air block
 	  if (added->shape->block->blockType == AIR_BLOCK) {
-		  printf("change");
+	//	  printf("change");
       added->shape->block->changeBlock(block);
 	  }
   }
@@ -487,7 +487,7 @@ void DrawHUD_Hearts()
     int x = GLUTwindow_width;
     int y = GLUTwindow_height;
 
-    glColor3d(.9, .1, .1);
+   glColor3d(.9, .1, .1);
 
     glPushMatrix();
     glTranslatef(.25 * x, .9 * y, 0);
@@ -512,24 +512,52 @@ void DrawHUD_Hearts()
 
 void DrawHUD_Inventory() 
 {
-    int x = GLUTwindow_width;
+	int x = GLUTwindow_width;
     int y = GLUTwindow_height;
     int boxWidth = .0525 * x;
     int boxHeight = .0625 * y;
-
+	
     glPushMatrix();
     glTranslatef(.1875 * x, .99 * y, 0.);
-
-    for (int i = 4; i <= 12; i++) 
-    {
+	
+	int materialsStart = DIRT_ICON;
+	
+	int i;
+    for (i = 0; i <= 1; i++) 
+    {	
+		LoadMaterial(materials[materialsStart]);
         glTranslatef(x / 16, 0, 0.);
         glBegin(GL_QUADS);
+		glNormal3d(0.0, 0.0, 1.0);
+		glTexCoord2d(0, 1);
         glVertex2f(0, 0); 
+		glTexCoord2d(0, 0);
         glVertex2f(0, -boxHeight); 
+		glTexCoord2d(1, 0);
         glVertex2f(boxWidth, -boxHeight); 
+		glTexCoord2d(1, 1);
         glVertex2f(boxWidth, 0); 
         glEnd();
+		
+		materialsStart++;
     }
+	
+	for (int j = i; j <= 8; j++) {
+	//	LoadMaterial(materials[EMPTY_ICON]);
+    //    glTranslatef(x / 16, 0, 0.);
+        glBegin(GL_QUADS);
+		glNormal3d(0.0, 0.0, 1.0);
+		glTexCoord2d(0, 1);
+        glVertex2f(0, 0); 
+		glTexCoord2d(0, 0);
+        glVertex2f(0, -boxHeight); 
+		glTexCoord2d(1, 0);
+        glVertex2f(boxWidth, -boxHeight); 
+		glTexCoord2d(1, 1);
+        glVertex2f(boxWidth, 0); 
+        glEnd();
+		//materialsStart++;
+	}
 
     glPopMatrix(); 
 }
@@ -607,8 +635,8 @@ void FindMaterial(R3Block *block, bool isTop)
 		else
 			LoadMaterial(materials[ALLDIRT]);
 	}
-	else if (block->getBlockType() == BRANCH_BLOCK) 
-		LoadMaterial(materials[BRANCH]);
+	else if (block->getBlockType() == WOOD_BLOCK) 
+		LoadMaterial(materials[WOOD]);
 	else if (block->getBlockType() == STONE_BLOCK)
 		LoadMaterial(materials[STONE]);
 }
@@ -1283,7 +1311,7 @@ void GLUTMouse(int button, int state, int x, int y)
 					int block = currentSelection->shape->block->getBlockType();
 					
 					if (block == DIRT_BLOCK) item = R3BLOCK_DIRT;
-					if (block == BRANCH_BLOCK) item = R3BLOCK_BRANCH;
+					if (block == WOOD_BLOCK) item = R3BLOCK_WOOD;
 					if (block == STONE_BLOCK) item = R3BLOCK_STONE;
 					
 					if (item < 8) {
@@ -1314,7 +1342,7 @@ void GLUTMouse(int button, int state, int x, int y)
 			if (Main_Character->number_items[item] > 0) {
 				
 				if (item == R3BLOCK_DIRT) block = DIRT_BLOCK;
-				if (item == R3BLOCK_BRANCH) block = BRANCH_BLOCK;
+				if (item == R3BLOCK_WOOD) block = WOOD_BLOCK;
 				if (item == R3BLOCK_STONE) { block = STONE_BLOCK; }
 				Main_Character->number_items[item]--;
 				if (Main_Character->number_items[item] == 0) {
@@ -1399,8 +1427,8 @@ void GLUTKeyboard(unsigned char key, int x, int y)
 			}
 			break;
 		case '3':
-			if (Main_Character->number_items[R3BLOCK_BRANCH] >0) {
-				Main_Character->item = R3BLOCK_BRANCH;
+			if (Main_Character->number_items[R3BLOCK_WOOD] >0) {
+				Main_Character->item = R3BLOCK_WOOD;
 			}
 			break;
         case 'C':

@@ -13,11 +13,14 @@ typedef enum {
 	GRASS,
 	LEAF,
 	STONE,
-	BRANCH,
+	WOOD,
 	HEART,
 	EMPTY_HEART,
 	COW,
-	DEER
+	DEER,
+	DIRT_ICON,
+	STONE_ICON,
+	EMPTY_ICON
 } R3Texture;
 
 #include "strings.h"

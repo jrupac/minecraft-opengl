@@ -4,7 +4,7 @@
 #define DIRT_HEALTH 3
 #define AIR_HEALTH -1
 #define LEAF_HEALTH 1
-#define BRANCH_HEALTH 2
+#define WOOD_HEALTH 2
 #define STONE_HEALTH 5
 
 R3Block::
@@ -32,8 +32,8 @@ R3Block(const R3Box& box, int type)
       transparent = false;
       gravity = false;
       break;
-    case BRANCH_BLOCK:
-      health = BRANCH_HEALTH;
+    case WOOD_BLOCK:
+      health = WOOD_HEALTH;
       walkable = false;
       transparent = false;
       gravity = false;
@@ -100,8 +100,8 @@ changeBlock(int newType)
       transparent = false;
       gravity = false;
       break;
-    case BRANCH_BLOCK:
-      health = BRANCH_HEALTH;
+    case WOOD_BLOCK:
+      health = WOOD_HEALTH;
       walkable = false;
       transparent = false;
       gravity = false;

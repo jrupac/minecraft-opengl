@@ -58,24 +58,24 @@ void MakeMaterials(R3Material **materials)
 	 dirt_material->id = 2;
      materials[DIRT] = dirt_material;
 	 
-	 R3Material *branch_material = new R3Material();
-	 branch_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
-	 branch_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
-	 branch_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
-	 branch_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
-	 branch_material->emission = R3Rgb(0, 0, 0, 0);
-	 branch_material->shininess = 10;
-	 branch_material->indexofrefraction = 1;
+	 R3Material *wood_material = new R3Material();
+	 wood_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	 wood_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	 wood_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	 wood_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	 wood_material->emission = R3Rgb(0, 0, 0, 0);
+	 wood_material->shininess = 10;
+	 wood_material->indexofrefraction = 1;
 	 
 	 // Read texture image
-	 branch_material->texture = new R2Image();
-	 if (!branch_material->texture->Read(s_TexBranch)) {
+	 wood_material->texture = new R2Image();
+	 if (!wood_material->texture->Read(s_TexWood)) {
 	 fprintf(stderr, "Unable to read texture from file");
 	 //	return 0;
 	 }	
-	 //branch_material->texture = NULL;
-	 branch_material->id = 1;
-     materials[BRANCH] = branch_material; 
+	 //wood_material->texture = NULL;
+	 wood_material->id = 1;
+     materials[WOOD] = wood_material; 
 	
 	 R3Material *grass_material = new R3Material();
 	 grass_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
@@ -130,6 +130,60 @@ void MakeMaterials(R3Material **materials)
 	 }	
 	 stone_material->id = 5;
      materials[STONE] = stone_material;
+	
+	R3Material *dirt_icon = new R3Material();
+	dirt_icon->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	dirt_icon->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	dirt_icon->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	dirt_icon->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	dirt_icon->emission = R3Rgb(0, 0, 0, 0);
+	dirt_icon->shininess = 10;
+	dirt_icon->indexofrefraction = 1;
+	
+	// Read texture image
+	dirt_icon->texture = new R2Image();
+	if (!dirt_icon->texture->Read(s_TexDirtIcon)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	dirt_icon->id = 5;
+	materials[DIRT_ICON] = dirt_icon;
+	
+	R3Material *stone_icon = new R3Material();
+	stone_icon->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	stone_icon->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	stone_icon->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	stone_icon->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	stone_icon->emission = R3Rgb(0, 0, 0, 0);
+	stone_icon->shininess = 10;
+	stone_icon->indexofrefraction = 1;
+	
+	// Read texture image
+	stone_icon->texture = new R2Image();
+	if (!stone_icon->texture->Read(s_TexStoneIcon)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	stone_icon->id = 5;
+	materials[STONE_ICON] = stone_icon;
+	
+	R3Material *empty_icon = new R3Material();
+	empty_icon->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	empty_icon->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	empty_icon->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	empty_icon->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	empty_icon->emission = R3Rgb(0, 0, 0, 0);
+	empty_icon->shininess = 10;
+	empty_icon->indexofrefraction = 1;
+	
+	// Read texture image
+	empty_icon->texture = new R2Image();
+	if (!empty_icon->texture->Read(s_TexEmptyIcon)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	empty_icon->id = 5;
+	materials[EMPTY_ICON] = empty_icon;
 	
   /*  heart_material = new R3Material();
     heart_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);

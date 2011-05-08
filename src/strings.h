@@ -4,11 +4,13 @@
 const char s_WAVFile[] = "sounds/ninth.wav";
 const char s_TexAllDirt[] = "textures/alldirt.jpg";
 const char s_TexDirt[] = "textures/dirt.jpg";
-const char s_TexBranch[] = "textures/branch.jpg";
+const char s_TexWood[] = "textures/wood.jpg";
 const char s_TexGrass[] = "textures/grass.jpg";
 const char s_TexLeaf[] = "textures/leaf.jpg";
 const char s_TexStone[] = "textures/stone.jpg";
-const char s_TexHeart[] = "textures/heart.jpg";
+const char s_TexDirtIcon[] = "textures/dirt_icon.jpg";
+const char s_TexStoneIcon[] = "textures/stone_icon.jpg";
+const char s_TexEmptyIcon[] = "textures/untitled.jpg";
 const char s_TexEmptyHeart[] = "textures/emptyheart.jpg";
 const char s_TexCow[] = "textures/cow.jpg";
 const char s_TexDeer[] = "textures/deer.jpg";
