@@ -20,7 +20,11 @@ static char *output_image_name = NULL;
 
 // Display variables
 
+//Screens
 static bool startMenu = true;
+static bool controlsMenu = false;
+static bool regularGameplay = false;
+
 static R3Scene *scene = NULL;
 static R3Camera camera;
 static int show_faces = 1;
@@ -515,6 +519,7 @@ void DrawHUD()
 
 	// Draw text
 	GLUTDrawText(R3Point(5, 13, 0), "Minecraft v0.0.0.0.0.1/2");
+	GLUTDrawText(R3Point(5, 30, 0), "C - display controls");
 	GLUTDrawText(R3Point(400, 13, 0), "FPS: " );
     stringstream ss;
     ss << FPS;
@@ -640,9 +645,6 @@ void DrawHUD_Inventory()
 	
 	glPopMatrix(); 
 
-
-
-	
 	//Draw currently Held item
     glPushMatrix();
     glTranslatef(.75 * x, .9 * y, 0.);
@@ -1274,7 +1276,7 @@ void GLUTMainLoop(void)
 
 void GLUTIdleFunction(void) 
 {
-	if (startMenu == true) 
+	if (regularGameplay == false) 
   {
     glutPostRedisplay();
 		return;
@@ -1380,41 +1382,8 @@ void DisplayStartMenu()
 	//printf(":(");
 	int x = GLUTwindow_width;
     int y = GLUTwindow_height;
-	
-	/*	glMatrixMode(GL_PROJECTION);
-	 glPushMatrix();
-	 glLoadIdentity();
-	 gluOrtho2D(0, GLUTwindow_width, GLUTwindow_height, 0);
-	 glMatrixMode(GL_MODELVIEW);
-	 glPushMatrix();
-	 glLoadIdentity();
-	 
-	 glDisable(GL_LIGHTING); 
-	 glColor3d(.1, .1, .1);
-	 GLUTDrawText(R3Point(GLUTwindow_width / 2 - 10, GLUTwindow_height - 70, 0), "I am a dock!");
-	 
-	 glPopMatrix();
-	 glMatrixMode(GL_PROJECTION);
-	 glPopMatrix();*/
-	
-	/*glMatrixMode (GL_PROJECTION);
-	 glLoadIdentity();
-	 glOrtho (0, GLUTwindow_width, GLUTwindow_height, 0, 0, 1);
-	 glMatrixMode (GL_MODELVIEW);
-	 glLoadIdentity();
-	 
-	 glDisable(GL_DEPTH_TEST);
-	 glDisable(GL_LIGHTING); 
-	 
-	 glColor3d(.1, .1, .1);
-	 GLUTDrawText(R3Point(GLUTwindow_width / 2 - 10, GLUTwindow_height - 70, 0), "HELLO");
-	 
-	 glEnable(GL_DEPTH_TEST);
-	 glEnable(GL_LIGHTING); 
-	 
-	 //   glutSwapBuffers();*/
-	//	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_LIGHTING);
+
+	//glDisable(GL_LIGHTING);
 	
 	glColor3d(1,1,1);
 	
@@ -1439,18 +1408,66 @@ void DisplayStartMenu()
 //	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.5, 0), "Right click - Create Your Own Level");
 	
 	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_LIGHTING);
+//	glEnable(GL_LIGHTING);
+}
+
+void DisplayControls() 
+{
+	//printf(":(");
+	int x = GLUTwindow_width;
+    int y = GLUTwindow_height;
+	
+	//glDisable(GL_LIGHTING);
+	
+	glColor3d(0, 0, 0);
+	
+	/*LoadMaterial(materials[LOGO]);
+	
+	glBegin(GL_QUADS);
+	glNormal3d(0.0, 0.0, 1.0);
+	glTexCoord2d(0, 0);
+	glVertex2f(0, 0); 
+	glTexCoord2d(0, 1);
+	glVertex2f(0, y); 
+	glTexCoord2d(1, 1);
+	glVertex2f(x, y); 
+	glTexCoord2d(1, 0);
+	glVertex2f(x, 0); 
+	glEnd();*/
+	
+	glBegin(GL_QUADS);
+	glVertex2f(0, 0); 
+	glVertex2f(0, y); 
+	glVertex2f(x, y); 
+	glVertex2f(x, 0); 
+	glEnd();
+	
+	//glDisable(GL_TEXTURE_2D);
+	glColor3d(.6, .6, .6);
+	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 5, 0), "controls");
+	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5, 0), "wasd - move");
+	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + GLUTwindow_height /30, 0), "space - jump");
+	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 2*GLUTwindow_height /30, 0), "1-9 - select current item");
+		GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 3*GLUTwindow_height /30, 0), "right click - place current item");
+		GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 4*GLUTwindow_height /30, 0), "left click - destroy item/attack");
+	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 5*GLUTwindow_height /30, 0), "b - back");
+	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 6*GLUTwindow_height /30, 0), "q - quit");
+		//GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1, 0), "Left click - Play");
+	//	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.5, 0), "Right click - Create Your Own Level");
+	
+	//glEnable(GL_TEXTURE_2D);
+	//	glEnable(GL_LIGHTING);
 }
 
 void accPerspective(GLdouble fovy, GLdouble aspect, 
-                    GLdouble near, GLdouble far, GLdouble pixdx, GLdouble pixdy, 
+                    GLdouble near_p, GLdouble far_p, GLdouble pixdx, GLdouble pixdy, 
                     GLdouble eyedx, GLdouble eyedy, GLdouble focus)
 {
    GLdouble fov2, left, right, bottom, top;
 
    fov2 = fovy / 2;
 
-   top = near * tan(fov2);
+   top = near_p * tan(fov2);
    bottom = -top;
    right = top * aspect;
    left = -right;
@@ -1464,10 +1481,10 @@ void accPerspective(GLdouble fovy, GLdouble aspect,
 
    GLdouble xwsize = right - left;
    GLdouble ywsize = top - bottom;
-   GLdouble dx = -(pixdx * xwsize / (GLdouble)viewport[2] + eyedx * near / focus);
-   GLdouble dy = -(pixdy * ywsize / (GLdouble)viewport[3] + eyedy * near / focus);
+   GLdouble dx = -(pixdx * xwsize / (GLdouble)viewport[2] + eyedx * near_p / focus);
+   GLdouble dy = -(pixdy * ywsize / (GLdouble)viewport[3] + eyedy * near_p / focus);
 
-   glFrustum (left + dx, right + dx, bottom + dy, top + dy, near, far);
+   glFrustum (left + dx, right + dx, bottom + dy, top + dy, near_p, far_p);
 }
 
 void GLUTRedraw(void)
@@ -1529,14 +1546,14 @@ void GLUTRedraw(void)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Draw scene surfaces
-    if (show_faces && !startMenu) 
+    if (show_faces && regularGameplay) 
     {
       glEnable(GL_LIGHTING);
       DrawScene(scene);
       DrawCreatures();
     }
     // Draw scene edges
-    if (show_edges && !startMenu) 
+    if (show_edges && regularGameplay) 
     {
       glDisable(GL_LIGHTING);
       glColor3d(0., 0., 0.);
@@ -1557,10 +1574,15 @@ void GLUTRedraw(void)
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING); 
     
-    if (!startMenu)
+    if (regularGameplay)
       DrawHUD();
-    else
+    else if (startMenu) {
       DisplayStartMenu();
+	}
+	else if (controlsMenu) {
+		DisplayControls();
+	}
+	
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING); 
@@ -1682,6 +1704,8 @@ void GLUTMouse(int button, int state, int x, int y)
 		else if(dead) return;
 		else if (startMenu) {
 			startMenu = false;
+			regularGameplay = true;
+			controlsMenu = false;
 		}
       else if (currentSelectedCreatureIt != creatures.end()) 
       {
@@ -1722,7 +1746,7 @@ void GLUTMouse(int button, int state, int x, int y)
     else if (button == GLUT_RIGHT_BUTTON) 
     {
 
-		if(dead || startMenu) return;
+		if(dead || !regularGameplay) return;
       int block;
       int item = Main_Character->item;
       printf("%d\n", item);
@@ -1818,21 +1842,22 @@ void GLUTKeyboard(unsigned char key, int x, int y)
       if (Main_Character->number_items[R3BLOCK_WOOD] >0)
         Main_Character->item = R3BLOCK_WOOD;
       break;
-	  case 'P':
-	  case'p':
-		  startMenu = false;
-		  break;
-
 	  case 'C':
     case 'c':
       show_camera = !show_camera;
+		  controlsMenu = true;
+		  regularGameplay = false;
+		  startMenu = false;
       break;
-
+	  case 'b':
+	  case 'B':
+		  controlsMenu = false;
+		  regularGameplay = true;
+		  startMenu = false;
     case 'E':
     case 'e':
       show_edges = !show_edges;
       break;
-
 
     case 'F':
     case 'f':
@@ -1859,25 +1884,25 @@ void GLUTKeyboard(unsigned char key, int x, int y)
 	  
 
     case 'w': 
-		if(dead || startMenu) return;
+		if(dead || !regularGameplay) return;
       difference = InterpolateMotion(&(camera.eye), 
           -(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
       break;
 
     case 's': 
-		if(dead || startMenu) return;
+		if(dead || !regularGameplay) return;
       difference = InterpolateMotion(&(camera.eye), 
           (cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
       break;
 
     case 'd': 
-		if(dead || startMenu) return;
+		if(dead || !regularGameplay) return;
       difference = InterpolateMotion(&(camera.eye), 
           (sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
       break;
 
     case 'a': 
-		if(dead || startMenu) return;
+		if(dead || !regularGameplay) return;
       difference = InterpolateMotion(&(camera.eye), 
           -(sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
       break;
