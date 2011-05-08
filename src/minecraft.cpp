@@ -258,6 +258,13 @@ void InterpolateJump(R3Point *start, R3Vector direction)
 // GAME LOGIC CODE
 ////////////////////////////////////////////////////////////
 
+void EndGame()
+{
+  // Be a little nicer than this in the future
+  fprintf(stderr, "You lose!\n");
+  exit(0);
+}
+
 void AlignReticle()
 {
   currentSelection = NULL;
@@ -529,6 +536,7 @@ void DrawHUD_Hearts()
 
 void DrawHUD_Inventory() 
 {
+
 	int x = GLUTwindow_width;
     int y = GLUTwindow_height;
     int boxWidth = .0525 * x;
@@ -536,12 +544,10 @@ void DrawHUD_Inventory()
     int itemWidth = .2* x;
     int itemHeight = .1875 * y;
 
+
     glPushMatrix();
 
     glTranslatef(.1 * x, .99 * y, 0.);
-
-
-	
 	int materialsStart = DIRT_ICON;
 	
 	int i;
@@ -650,8 +656,6 @@ void DrawHUD_Inventory()
 	}
 	
     glPopMatrix();
-	
-
 
 }
 
@@ -660,12 +664,7 @@ void ChangeHealth(R3Character *character, int delta)
   character->Health += delta;
 
   if (character->Health <= 0)
-  {
-    fprintf(stderr, "You lose!\n");
-
-    // Be a little nicer than this in the future.
-    exit(0);
-  }
+    EndGame();
 }
 
 void ChangeHealth(R3Creature *creature, int delta)
@@ -1635,7 +1634,7 @@ void GLUTKeyboard(unsigned char key, int x, int y)
   
   // If you fall too much, you lose health
   if (difference.Y() < -1.f)
-    ChangeHealth(Main_Character, -10);
+    ChangeHealth(Main_Character, -1);
 
   // Remember mouse position 
   GLUTmouse[0] = x;
