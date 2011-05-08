@@ -45,9 +45,9 @@ enum {
 ////////////////////////////////////////////////////////////
 
 double GetTime(void);
-bool LegalBlock(R3Index index);
 R3Index getChunkCoordinates(R3Point p);
 void InterpolateMotion(R3Point *start, R3Vector direction);
+void InterpolateJump(R3Point *start, R3Vector direction);
 
 ////////////////////////////////////////////////////////////
 // GAME LOGIC CODE

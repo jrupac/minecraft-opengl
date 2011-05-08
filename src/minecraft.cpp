@@ -147,13 +147,6 @@ double GetTime(void)
 #endif
 }
 
-bool LegalBlock(R3Index index)
-{
-  return (index.x >= 0 && index.x < CHUNK_X &&
-          index.y >= 0 && index.y < CHUNK_Y &&
-          index.z >= 0 && index.z < CHUNK_Z);
-}
-
 R3Index getChunkCoordinates(R3Point p)
 {
   return scene->getIndex(p);
@@ -165,8 +158,7 @@ void InterpolateMotion(R3Point *start, R3Vector direction)
   int fallIndex = -1;
   
   // Check if next potential location is legal
-  if (!(coords.current->chunk[coords.x][coords.y-2][coords.z]->shape->block->walkable &&
-      LegalBlock(coords)))
+  if (!(coords.current->chunk[coords.x][coords.y-2][coords.z]->shape->block->walkable))
     return;
 
   *start += direction / INTERPOLATION;
@@ -188,6 +180,34 @@ void InterpolateMotion(R3Point *start, R3Vector direction)
   // The art of falling
   if (fallIndex != -1)
     (*start) -= (coords.y - fallIndex - 2) * R3posy_vector;
+}
+
+void InterpolateJump(R3Point *start, R3Vector direction)
+{
+  R3Index coords = getChunkCoordinates((*start) + direction);
+  
+  // If the next location is not walkable...
+  if (!(coords.current->chunk[coords.x][coords.y-2][coords.z]->shape->block->walkable))
+  {
+    // ...but the one above it is, then jump
+    if (coords.current->chunk[coords.x][coords.y-1][coords.z]->shape->block->walkable)
+    {
+      *start += R3posy_vector;
+      *start += direction;
+      scene->UpdateScene(*start);
+    }
+    return;
+  }
+
+  // Look ma, I can fly!
+  (*start) += R3posy_vector;
+  
+  // Hover in the air, motionlessly for 10 whole redraws!
+  for (int i = 0; i < 10; i++) 
+    GLUTRedraw();
+  
+  // All things that go up must come down (except time).
+  (*start) -= R3posy_vector;
 }
 
 ////////////////////////////////////////////////////////////
@@ -1255,11 +1275,6 @@ void GLUTKeyboard(unsigned char key, int x, int y)
     // Process keyboard button event 
     switch (key) 
     {
-  /*      case 'B':
-        case 'b':
-            AddBlock();
-            break;*/
-
         case 'C':
         case 'c':
             show_camera = !show_camera;
@@ -1314,6 +1329,10 @@ void GLUTKeyboard(unsigned char key, int x, int y)
             break;
 
         case ' ': 
+            InterpolateJump(&(camera.eye),     
+                    -(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point));
+        // i for info
+        case 'i':
             printf("camera %g %g %g  %g %g %g  %g  %g %g \n",
                     camera.eye[0], camera.eye[1], camera.eye[2], 
                     rot[0], rot[1], rot[2],
