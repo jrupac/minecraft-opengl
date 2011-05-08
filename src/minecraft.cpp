@@ -348,6 +348,14 @@ void AddBlock(int block)
     added = i.current->chunk[i.x][i.y][i.z];*/
     
   }
+	if (currentNormal.Y() == -1.0)
+	{ 
+		//added = scene->chunk[currentBlock->dx][currentBlock->dy + 1][currentBlock->dz];
+		p[1]--;
+		/*  i = scene->getIndex(p);
+		 added = i.current->chunk[i.x][i.y][i.z];*/
+		
+	}
 	else if (currentNormal.X() == 1.0)
 	{
 		//added = scene->chunk[currentBlock->dx + 1][currentBlock->dy][currentBlock->dz];
@@ -375,6 +383,13 @@ void AddBlock(int block)
 		p[2]--;
 	/*  i = scene->getIndex(p);
     added = i.current->chunk[i.x][i.y][i.z];*/
+	}
+	else if (currentNormal.Z() == 1.0)
+	{
+		//added = scene->chunk[currentBlock->dx][currentBlock->dy][currentBlock->dz - 1];
+		p[2]++;
+		/*  i = scene->getIndex(p);
+		 added = i.current->chunk[i.x][i.y][i.z];*/
 	}
 	
 		R3Point bottom = currentBlock->box.Centroid();
