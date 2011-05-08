@@ -115,7 +115,7 @@ inline double R3Point::
 operator[](int dim) const
 {
   // Return coordinate in given dimension (0=X, 1=Y, 2=Z)
-  assert((dim>=R3_X) && (dim<=R3_Z));
+  //assert((dim>=R3_X) && (dim<=R3_Z));
   return(v[dim]);
 }
 

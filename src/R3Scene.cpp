@@ -48,7 +48,7 @@ getIndex(R3Point p)
   newIndex.z = (int)(p[2] - terrain[chunkX][chunkZ]->start_point[2]);
   newIndex.current = NULL;
   
- // fprintf(stderr, "first guess at index: point is %d %d %d \n", newIndex.x, newIndex.y, newIndex.z);
+  //fprintf(stderr, "first guess at index: point is %d %d %d \n", newIndex.x, newIndex.y, newIndex.z);
   
   while (newIndex.x < 0)
   {
@@ -157,6 +157,8 @@ UpdateScene(R3Point loc)
     cur = terrain[(CHUNKS - 1) / 2][(CHUNKS - 1 ) / 2];
     low = cur->start_point;
     high = cur->end_point;
+    oldChunkX = cur->chunk_x; 
+    oldChunkZ = cur->chunk_z; 
   }
   
   while (loc[0] > high[0]) // moved out of higher bounds for x
@@ -184,6 +186,8 @@ UpdateScene(R3Point loc)
     cur = terrain[(CHUNKS - 1) / 2][(CHUNKS - 1 ) / 2];
     low = cur->start_point;
     high = cur->end_point;
+    oldChunkX = cur->chunk_x; 
+    oldChunkZ = cur->chunk_z;
   }
   
   // Z-directions
@@ -212,6 +216,8 @@ UpdateScene(R3Point loc)
     cur = terrain[(CHUNKS - 1) / 2][(CHUNKS - 1 ) / 2];
     low = cur->start_point;
     high = cur->end_point;
+    oldChunkX = cur->chunk_x; 
+    oldChunkZ = cur->chunk_z;
   }
 
   while (loc[2] > high[2]) // moved out of higher bounds for z
@@ -239,6 +245,8 @@ UpdateScene(R3Point loc)
     cur = terrain[(CHUNKS - 1) / 2][(CHUNKS - 1 ) / 2];
     low = cur->start_point;
     high = cur->end_point;
+    oldChunkX = cur->chunk_x; 
+    oldChunkZ = cur->chunk_z;
   }
   
   return 1;
