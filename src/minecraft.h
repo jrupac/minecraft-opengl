@@ -1,4 +1,3 @@
-
 #ifndef __MINECRAFT_H__
 #define __MINECRAFT_H__
 
@@ -9,6 +8,7 @@
 #include "raytrace.h"
 #include "cos426_opengl.h"
 
+#include <map>
 
 #ifdef _WIN32
 #  include <windows.h>
@@ -18,6 +18,7 @@
 
 #define M_2PI (2. *M_PI)
 #define RAD2DEG (180. / M_PI)
+#define ACSIZE 2
 
 // Return sign of x, with 0 as even
 #define SIGN(x) ((x) >= 0 ? 1 : -1)
@@ -41,6 +42,25 @@ enum {
   QUIT_COMMAND,
 };
 
+typedef struct 
+{
+  GLfloat x, y;
+} jitter_point;
+
+const jitter_point j2[] =
+{
+  { 0.246490,  0.249999},
+  {-0.246490, -0.249999}
+};
+
+const jitter_point j4[] =
+{
+  {-0.208147,  0.353730},
+  { 0.203849, -0.353780},
+  {-0.292626, -0.149945},
+  { 0.296924,  0.149994}
+};
+
 ////////////////////////////////////////////////////////////
 // HELPER METHODS
 ////////////////////////////////////////////////////////////
@@ -55,8 +75,9 @@ void InterpolateJump(R3Point *start, R3Vector direction);
 // GAME LOGIC CODE
 ////////////////////////////////////////////////////////////
 
+void EndGame();
 void AlignReticle();
-void AddBlock();
+void AddBlock(int block);
 void DrawHUD(); 
 void DrawHUD_Hearts();
 void DrawHUD_Inventory();
@@ -64,8 +85,6 @@ void LoadMaterial(R3Material *material);
 void ChangeHealth(R3Character *character, int delta);
 void ChangeHealth(R3Creature *creature, int delta);
 void ChangeHealth(R3Block *block, int delta);
-
-
 
 ////////////////////////////////////////////////////////////
 // SCENE DRAWING CODE
@@ -85,10 +104,8 @@ void UpdateCharacter();
 // Creature Functions
 
 void RemoveCreature();
-
-void RemoveCreature(R3Creature *died);
+void MoveCharacter(R3Vector translated, double d);
 void DrawCreatures();
-
 
 ////////////////////////////////////////////////////////////
 // GLUT USER INTERFACE CODE
@@ -121,9 +138,5 @@ R3Scene *ReadScene(const char *filename);
 ////////////////////////////////////////////////////////////
 
 int ParseArgs(int argc, char **argv);
-
-
-void MoveCharacter(R3Vector translated, double d);
-static R3Camera camera;
 
 #endif
