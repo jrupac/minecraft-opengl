@@ -519,7 +519,7 @@ void DrawShape(R3Shape *shape)
     else fprintf(stderr, "Unrecognized shape type: %d\n", shape->type);
 }
 
-//boolean is true if current face being drawn is top face
+//boolean is true if current face being drawn is top face 
 void findMaterial(R3Block *block, bool top) {
 	if (block->getBlockType() == LEAF_BLOCK) 
 	{
