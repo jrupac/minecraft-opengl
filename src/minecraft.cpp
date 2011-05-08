@@ -591,7 +591,12 @@ void DrawHUD_Inventory()
 	int i;
     for (i = 0; i <= 3; i++) 
     {	
+		if (Main_Character->number_items[i] > 0) {
 		LoadMaterial(materials[materialsStart]);
+		}
+		else {
+			LoadMaterial(materials[DEFAULT]);
+		}
         glTranslatef(x / 17, 0, 0.);
         glBegin(GL_QUADS);
 		glNormal3d(0.0, 0.0, 1.0);
@@ -1376,50 +1381,62 @@ void DisplayStartMenu()
 	int x = GLUTwindow_width;
     int y = GLUTwindow_height;
 	
-	glColor3d(.1, .1, .1);
-	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 2, 0), "Left click to play minecraft!");
-	
-/*	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-    glLoadIdentity();
-    gluOrtho2D(0, GLUTwindow_width, GLUTwindow_height, 0);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-	glLoadIdentity();
-	
+	/*	glMatrixMode(GL_PROJECTION);
+	 glPushMatrix();
+	 glLoadIdentity();
+	 gluOrtho2D(0, GLUTwindow_width, GLUTwindow_height, 0);
+	 glMatrixMode(GL_MODELVIEW);
+	 glPushMatrix();
+	 glLoadIdentity();
+	 
 	 glDisable(GL_LIGHTING); 
-	    glColor3d(.1, .1, .1);
-	   GLUTDrawText(R3Point(GLUTwindow_width / 2 - 10, GLUTwindow_height - 70, 0), "I am a dock!");
-	
-    glPopMatrix();
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();*/
+	 glColor3d(.1, .1, .1);
+	 GLUTDrawText(R3Point(GLUTwindow_width / 2 - 10, GLUTwindow_height - 70, 0), "I am a dock!");
+	 
+	 glPopMatrix();
+	 glMatrixMode(GL_PROJECTION);
+	 glPopMatrix();*/
 	
 	/*glMatrixMode (GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho (0, GLUTwindow_width, GLUTwindow_height, 0, 0, 1);
-    glMatrixMode (GL_MODELVIEW);
-    glLoadIdentity();
-	
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_LIGHTING); 
-	
-	glColor3d(.1, .1, .1);
-	GLUTDrawText(R3Point(GLUTwindow_width / 2 - 10, GLUTwindow_height - 70, 0), "HELLO");
-	
-	glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LIGHTING); 
-	
+	 glLoadIdentity();
+	 glOrtho (0, GLUTwindow_width, GLUTwindow_height, 0, 0, 1);
+	 glMatrixMode (GL_MODELVIEW);
+	 glLoadIdentity();
+	 
+	 glDisable(GL_DEPTH_TEST);
+	 glDisable(GL_LIGHTING); 
+	 
+	 glColor3d(.1, .1, .1);
+	 GLUTDrawText(R3Point(GLUTwindow_width / 2 - 10, GLUTwindow_height - 70, 0), "HELLO");
+	 
+	 glEnable(GL_DEPTH_TEST);
+	 glEnable(GL_LIGHTING); 
+	 
 	 //   glutSwapBuffers();*/
-	glDisable(GL_TEXTURE_2D);
+	//	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_LIGHTING);
 	
+	glColor3d(1,1,1);
+	
+	LoadMaterial(materials[LOGO]);
+	
 	glBegin(GL_QUADS);
+	glNormal3d(0.0, 0.0, 1.0);
+	glTexCoord2d(0, 0);
 	glVertex2f(0, 0); 
-	glVertex2f(0, 20); 
-	glVertex2f(20, 20); 
-	glVertex2f(20, 0); 
+	glTexCoord2d(0, 1);
+	glVertex2f(0, y); 
+	glTexCoord2d(1, 1);
+	glVertex2f(x, y); 
+	glTexCoord2d(1, 0);
+	glVertex2f(x, 0); 
 	glEnd();
+	
+	glDisable(GL_TEXTURE_2D);
+	glColor3d(.6, .6, .6);
+	GLUTDrawText(R3Point(GLUTwindow_width / 10, GLUTwindow_height / 4.5, 0), "A Tribute by Rohan Bansal, Dmitry Drutskoy, Ajay Roopakalu, Sarah Tang");
+	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 2, 0), "Left click - Play");
+//	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.5, 0), "Right click - Create Your Own Level");
 	
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_LIGHTING);
