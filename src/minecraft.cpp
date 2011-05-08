@@ -37,8 +37,7 @@ static float picker_width = 10;
 static bool CAPTURE_MOUSE = false;
 static R3Vector rot;	
 static vector <R3Creature *>creatures;
-//location of creature in vector
-static int currentSelectedCreature;
+static vector<R3Creature *>::iterator currentSelectedCreatureIt;
 static R3Character *Main_Character;
 static R3Vector towards;
 static double previous_time = 0;
@@ -157,14 +156,6 @@ bool LegalBlock(R3Index index)
 
 R3Index getChunkCoordinates(R3Point p)
 {
-  /*R3Vector diff = p - scene->start;  
-  R3Index ret;
-
-  ret.x = (int) diff[0];
-  ret.y = (int) diff[1];
-  ret.z = (int) diff[2];
-
-  return ret;*/
   return scene->getIndex(p);
 }
 
@@ -174,7 +165,7 @@ void InterpolateMotion(R3Point *start, R3Vector direction)
   int fallIndex = -1;
   
   // Check if next potential location is legal
-  if (!(coords.current->chunk[coords.x][coords.y-1][coords.z]->shape->block->walkable &&
+  if (!(coords.current->chunk[coords.x][coords.y-2][coords.z]->shape->block->walkable &&
       LegalBlock(coords)))
     return;
 
@@ -212,9 +203,12 @@ void AlignReticle()
   intersect.hit = false;
   R3Intersection closestIntersect;
   closestIntersect.hit = false;
-  currentSelectedCreature = -1;
+  currentSelectedCreatureIt = creatures.end();
   double smallest = DBL_MAX;
+  vector<R3Creature *>::iterator it;
 
+  // Check all blocks for the closest intersection
+  // Insert Inception joke here.
   for (int dChunkX = 0; dChunkX < CHUNKS; dChunkX++)
   {
     for (int dChunkZ = 0; dChunkZ < CHUNKS; dChunkZ++)
@@ -243,21 +237,22 @@ void AlignReticle()
     }
   }
 
-
-  //Find if it intersects a creature
-
-  for (unsigned int k = 0; k < creatures.size(); k++) 
+  // Find if the reticle is on a creature
+  for (it = creatures.begin(); it < creatures.end(); it++)
   {
-    intersect = IntersectBox(ray, creatures[k]->box);
+    intersect = IntersectBox(ray, (*it)->box);
     if (intersect.hit && intersect.t < smallest) 
     {
       smallest = intersect.t;
-      currentSelectedCreature = k;
+      currentSelectedCreatureIt = it;
     }
   }
 
-  if (currentSelectedCreature != -1)
+  // If we've hit a creature, don't update currentNormal and currentSelection
+  if (currentSelectedCreatureIt != creatures.end())
     return;
+  
+  // Set closest intersection of the terrain
   if (closestIntersect.hit) 
   {
     currentSelection = closestIntersect.node;
@@ -364,8 +359,9 @@ void RemoveBlock()
   }
 }
 
-void RemoveCreature() {
-	creatures.erase(creatures.begin() + currentSelectedCreature);
+void RemoveCreature() 
+{
+	creatures.erase(currentSelectedCreatureIt);
 }
 
 void DrawHUD() 
@@ -461,7 +457,6 @@ void DrawHUD_Inventory()
     glPopMatrix(); 
 }
 
-
 ////////////////////////////////////////////////////////////
 // SCENE DRAWING CODE
 ////////////////////////////////////////////////////////////
@@ -518,67 +513,28 @@ void DrawShape(R3Shape *shape)
     else fprintf(stderr, "Unrecognized shape type: %d\n", shape->type);
 }
 
-//boolean is true if current face being drawn is top face 
-void findMaterial(R3Block *block, bool top) {
+void FindMaterial(R3Block *block, bool isTop) 
+{
+  // Second argument specifies if top face is currently being drawn
 	if (block->getBlockType() == LEAF_BLOCK) 
-	{
 		LoadMaterial(materials[LEAF]);
-	}
 	else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
 	{
-		if (block->getUpper()->getBlockType() == AIR_BLOCK) {
-			if (top) {
+		if (block->getUpper()->getBlockType() == AIR_BLOCK) 
+    {
+			if (isTop)
 				LoadMaterial(materials[GRASS]);
-							 }
-			else {
-			LoadMaterial(materials[DIRT]);
-			}
+			else
+        LoadMaterial(materials[DIRT]);
 		}
-		else {
+		else
 			LoadMaterial(materials[ALLDIRT]);
-		}
 	}
 	else if (block->getBlockType() == BRANCH_BLOCK) 
-	{
 		LoadMaterial(materials[BRANCH]);
-	}
-	else if (block->getBlockType() == STONE_BLOCK) {
+	else if (block->getBlockType() == STONE_BLOCK)
 		LoadMaterial(materials[STONE]);
-	}
 }
-/*void DrawShape(R3Node *node)
-{
-    // Check shape type
-    if (node->shape->type == R3_BOX_SHAPE) 
-        node->shape->box->Draw();
-    else if (node->shape->type == R3_SPHERE_SHAPE) node->shape->sphere->Draw();
-    else if (node->shape->type == R3_CYLINDER_SHAPE)node->shape->cylinder->Draw();
-    else if (node->shape->type == R3_CONE_SHAPE) node->shape->cone->Draw();
-    else if (node->shape->type == R3_MESH_SHAPE) node->shape->mesh->Draw();
-    else if (node->shape->type == R3_SEGMENT_SHAPE) node->shape->segment->Draw();
-    else if (node->shape->type == R3_BLOCK_SHAPE)
-    {
-        //if (shape->block->getBlockType() != AIR_BLOCK)
-        //  shape->block->Draw();
-        if (node->shape->block->getBlockType() == LEAF_BLOCK) 
-        {
-            //  LoadMaterial(water_material);
-            node->shape->block->getBox().Draw();
-        }
-        else if (node->shape->block->getBlockType() == WATER_BLOCK) 
-        {
-            //	  LoadMaterial(water_material);
-            node->shape->block->getBox().Draw();
-        }
-        else if (node->shape->block->getBlockType() == DIRT_BLOCK) 
-        {
-            //	  LoadMaterial(dirt_material);
-            node->shape->block->getBox().Draw();
-        }
-    }
-
-    else fprintf(stderr, "Unrecognized shape type: %d\n", node->shape->type);
-}*/
 
 void LoadMatrix(R3Matrix *matrix)
 {
@@ -821,22 +777,17 @@ void LoadLights(R3Scene *scene)
 
 void DrawNode(R3Scene *scene, R3Node *node)
 {
-
     // Push transformation onto stack
     glPushMatrix();
     LoadMatrix(&node->transformation);
-
-    // Load material
-   // if (node->material) LoadMaterial(node->material);
-
 
     // Draw shape
     if (node->shape) 
     {
         // Draw face
         DrawShape(node->shape);
+
         // If this is the current selected block, highlight it
-		
         if (currentSelection == node)
         {
             glDisable(GL_LIGHTING);
@@ -863,286 +814,123 @@ void DrawNode(R3Scene *scene, R3Node *node)
         glDisable(GL_LIGHTING);
         node->bbox.Outline();
         if (lighting) glEnable(GL_LIGHTING);
-
-
     }
 }
 
 void DrawScene(R3Scene *scene) 
 {
-  int drawCounter = 0;
-    // Draw nodes recursively
-    //DrawNode(scene, scene->root);
+  bool isSelected = false;
 
-    /* ADDED: draw the new array of nodes */
-    for (int dChunkX = 0; dChunkX < CHUNKS; dChunkX++)
+  // It's okay, it's okay, we do culling here.
+  for (int dChunkX = 0; dChunkX < CHUNKS; dChunkX++)
+  {
+    for (int dChunkZ = 0; dChunkZ < CHUNKS; dChunkZ++)
     {
-      for (int dChunkZ = 0; dChunkZ < CHUNKS; dChunkZ++)
+      for (int dz = 0; dz < CHUNK_Z; dz++)
       {
-        for (int dz = 0; dz < CHUNK_Z; dz++)
+        for (int dy = 0; dy < CHUNK_Y; dy++)
         {
-          for (int dy = 0; dy < CHUNK_Y; dy++)
+          for (int dx = 0; dx < CHUNK_X; dx++)
           {
-            for (int dx = 0; dx < CHUNK_X; dx++)
+            // Terrible black magic is about to happen
+            int curChunkX = dChunkX;
+            int curChunkZ = dChunkZ;
+            int left = dx - 1;
+            int right = dx + 1;
+            int back = dz - 1;
+            int forward = dz + 1;
+
+            if (dx == 0 && dChunkX > 0)
             {
-              // Terrible black magic is about to happen
-              // We have dx, dy, dz box to draw
+              left = CHUNK_X - 1;
+              curChunkX--;
+            }
+            else if (dx == CHUNK_X - 1 && dChunkX < CHUNKS - 1)
+            {
+              right = 0;
+              curChunkX++;
+            }
+            if (dz == 0 && dChunkZ > 0)
+            {
+              back = CHUNK_Z - 1;
+              curChunkZ--;
+            }
+            else if (dz == CHUNK_Z - 1 && dChunkZ < CHUNKS - 1)
+            {
+              forward = 0;
+              curChunkZ++;
+            }
 
+            R3Node *node = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz];
+            R3Block *block = node->shape->block;
+            isSelected = (currentSelection == node);
 
-              //find coords of boxes around - if needed, shuffle around chunks
-              int curChunkX = dChunkX;
-              int curChunkZ = dChunkZ;
-              int left = dx - 1;
-              int right = dx + 1;
-              int back = dz - 1;
-              int forward = dz + 1;
-              if (dx == 0 && dChunkX > 0)
-              {
-                left = CHUNK_X - 1;
-                curChunkX--;
-              }
-              else if (dx == CHUNK_X - 1 && dChunkX < CHUNKS - 1)
-              {
-                right = 0;
-                curChunkX++;
-              }
-              if (dz == 0 && dChunkZ > 0)
-              {
-                back = CHUNK_Z - 1;
-                curChunkZ--;
-              }
-              else if (dz == CHUNK_Z - 1 && dChunkZ < CHUNKS - 1)
-              {
-                forward = 0;
-                curChunkZ++;
-              }
-              
-              // Upwards face is 3
-              R3Block* block = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz]->shape->block;
-              //Face 0
-              if (left >= 0 && scene->terrain[curChunkX][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
-              {
-				  findMaterial(block, false);
-		            if (!block->transparent)
-		            {
-		              block->getBox().DrawFace(0);
-		              drawCounter++;
-		            }
-              }
-              
-              //Face 1
-              if (right < CHUNK_X && scene->terrain[curChunkX][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
-              {
-				  findMaterial(block, false);
-              /*  if (block->getBlockType() == LEAF_BLOCK) 
-                {
-                  LoadMaterial(leaf_material);
-                }
-                else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
-                {
-                  if (block->getUpper()->getBlockType() == AIR_BLOCK) {
-                    LoadMaterial(dirt_material);
-                  }
-                  else {
-                    LoadMaterial(alldirt_material);
-                  }
-                }
-                else if (block->getBlockType() == BRANCH_BLOCK) 
-                {
-                  LoadMaterial(branch_material);
-                }
-		            else if (block->getBlockType() == STONE_BLOCK) {
-			           LoadMaterial(stone_material);
-		            }*/
-		            if (!block->transparent)
-		            {
-		              block->getBox().DrawFace(1);
-		              drawCounter++;
-		            }
-              }
-               
-              //Face 2
-              if (dy - 1 > 0 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
-              {
-				  findMaterial(block, false);
-               /*   if (block->getBlockType() == LEAF_BLOCK) 
-                  {
-                    LoadMaterial(leaf_material);
-                  }
-                  else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
-                  {
-                    if (block->getUpper()->getBlockType() == AIR_BLOCK) {
-                    LoadMaterial(dirt_material);
-                    }
-                    else {
-                      LoadMaterial(alldirt_material);
-                    }
-                  }
-                  else if (block->getBlockType() == BRANCH_BLOCK) 
-                  {
-                    LoadMaterial(branch_material);
-                  }
-		              else if (block->getBlockType() == STONE_BLOCK) {
-			              LoadMaterial(stone_material);
-		              }*/
-		              if (!block->transparent)
-		              {
-		                block->getBox().DrawFace(2);
-		                drawCounter++;
-		              }
-               }
-               
-               //Face 3
-              if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
-              {
-				  findMaterial(block, true);
-                 /* if (block->getBlockType() == LEAF_BLOCK) 
-                  {
-                    LoadMaterial(leaf_material);
-                  }
-                  else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
-                  {
-                    if (block->getUpper()->getBlockType() == AIR_BLOCK) {
-                    LoadMaterial(grass_material);
-                    }
-                    else {
-                      LoadMaterial(alldirt_material);
-                    }
-                  }
-                  else if (block->getBlockType() == BRANCH_BLOCK) 
-                  {
-                    LoadMaterial(branch_material);
-                  }
-		              else if (block->getBlockType() == STONE_BLOCK) {
-			              LoadMaterial(stone_material);
-		              }*/
-		              if (!block->transparent)
-		              {
-		                block->getBox().DrawFace(3);
-		                drawCounter++;
-		              }
-               }
-               //block->getBox().DrawFace(3);
-               
-               //Face 4
-              if (back > 0 && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][back]->shape->block->transparent)
-              {
-				  findMaterial(block, false);
-               /* if (block->getBlockType() == LEAF_BLOCK) 
-                {
-                  LoadMaterial(leaf_material);
-                }
-                else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
-                {
-                  if (block->getUpper()->getBlockType() == AIR_BLOCK) {
-                    LoadMaterial(dirt_material);
-                  }
-                  else {
-                    LoadMaterial(alldirt_material);
-                  }
-                }
-                else if (block->getBlockType() == BRANCH_BLOCK) 
-                {
-                  LoadMaterial(branch_material);
-                }
-		            else if (block->getBlockType() == STONE_BLOCK) {
-			            LoadMaterial(stone_material);
-		            }*/
-		            if (!block->transparent)
-		            {
-		              block->getBox().DrawFace(4);
-		              drawCounter++;
-		            }
-              }
-              
-              //Face 5
-              if (forward < CHUNK_Z && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][forward]->shape->block->transparent)
-              {
-				  findMaterial(block, false);
-               /* if (block->getBlockType() == LEAF_BLOCK) 
-                {
-                  LoadMaterial(leaf_material);
-                }
-                else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
-                {
-                  if (block->getUpper()->getBlockType() == AIR_BLOCK) {
-                   LoadMaterial(dirt_material);
-                  }
-                  else {
-                    LoadMaterial(alldirt_material);
-                  }
-                }
-                else if (block->getBlockType() == BRANCH_BLOCK) 
-                {
-                  LoadMaterial(branch_material);
-                }
-		            else if (block->getBlockType() == STONE_BLOCK) {
-			       //     LoadMaterial(stone_material);
-		            }*/
-		            if (!block->transparent)
-		            {
-		              block->getBox().DrawFace(5);
-		              drawCounter++;
-		            }
-              }
-              /*if (block->getBlockType() == LEAF_BLOCK) 
-              {
-                LoadMaterial(leaf_material);
-                block->getBox().Draw();
-              }
-              else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
-              {
-                  if (block->getUpper()->getBlockType() == AIR_BLOCK) {
-                      LoadMaterial(dirt_material);
-                      block->getBox().DrawFace(0);
-                      block->getBox().DrawFace(1);
-                      block->getBox().DrawFace(2);
-                      LoadMaterial(grass_material);
-                      block->getBox().DrawFace(3);
-                      LoadMaterial(dirt_material);
-                      block->getBox().DrawFace(4);
-                      block->getBox().DrawFace(5);
-                  }
-                  else {
-                      LoadMaterial(alldirt_material);
-                      block->getBox().Draw();
-                  }
-              }
-              else if (block->getBlockType() == BRANCH_BLOCK) 
-              {
-                  LoadMaterial(branch_material);
-                  block->getBox().Draw();
-              }
-		          else if (block->getBlockType() == STONE_BLOCK) {
-			          LoadMaterial(stone_material);
-			          block->getBox().Draw();
-		          }*/
+            // Face 0
+            if (left >= 0 && scene->terrain[curChunkX][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
+            {
+              FindMaterial(block, false);
+              block->Draw(0, isSelected);
+            }
+
+            // Face 1
+            if (right < CHUNK_X && scene->terrain[curChunkX][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
+            {
+              FindMaterial(block, false);
+              block->Draw(1, isSelected);
+            }
+
+            // Face 2
+            if (dy - 1 > 0 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
+            {
+              FindMaterial(block, false);
+              block->Draw(2, isSelected);
+            }
+
+            // Face 3; this is the the top face
+            if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
+            {
+              FindMaterial(block, true);
+              block->Draw(3, isSelected);
+            }
+
+            // Face 4
+            if (back > 0 && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][back]->shape->block->transparent)
+            {
+              FindMaterial(block, false);
+              block->Draw(4, isSelected);
+            }
+
+            // Face 5
+            if (forward < CHUNK_Z && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][forward]->shape->block->transparent)
+            {
+              FindMaterial(block, false);
+              block->Draw(5, isSelected);
             }
           }
         }
       }
     }
-    //what the fuck is scene here for
-    
-    //fprintf(stderr, "Frame update: drew %i faces.\n", drawCounter);
+  }
 }
 
 void DrawCreatures() 
 {
-	for (unsigned int i = 0; i < creatures.size(); i++) 
+  vector<R3Creature *>::iterator it;
+
+  for (it = creatures.begin(); it < creatures.end(); it++)
   {
-		if (creatures[i]->creaturetype == R3COW_CREATURE) 
+		if ((*it)->creaturetype == R3COW_CREATURE) 
       LoadMaterial(materials[COW]);
-		else if (creatures[i]->creaturetype == R3DEER_CREATURE) 
+		else if ((*it)->creaturetype == R3DEER_CREATURE) 
       LoadMaterial(materials[DEER]);
-		creatures[i]->box.Draw();
-		if (currentSelectedCreature == (int)i) 
+		(*it)->box.Draw();
+		if (currentSelectedCreatureIt == it) 
     {
       glDisable(GL_LIGHTING);
       glColor3d(0., 0., 0.);
       glLineWidth(15);
       glPolygonMode(GL_FRONT, GL_LINE);
-      creatures[i]->box.Draw();
+      (*it)->box.Draw();
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
       glLineWidth(1);
       glEnable(GL_LIGHTING);
@@ -1244,7 +1032,6 @@ void GLUTResize(int w, int h)
 
 void GLUTRedraw(void)
 {
-
     // Time stuff
     current_time = GetTime();
     // program just started up?
@@ -1252,7 +1039,6 @@ void GLUTRedraw(void)
     double delta_time = current_time - previous_time;
     FPS = (int)1.0/delta_time;
     
-
     // Clear window 
     glClearColor(background[0], background[1], background[2], background[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1270,7 +1056,7 @@ void GLUTRedraw(void)
     if (show_faces) {
         glEnable(GL_LIGHTING);
         DrawScene(scene);
-		DrawCreatures();
+        DrawCreatures();
     }
 
     // Draw scene edges
@@ -1397,13 +1183,13 @@ void GLUTMouse(int button, int state, int x, int y)
                 glutSetCursor(GLUT_CURSOR_NONE);
                 CAPTURE_MOUSE = true;
             }
-			else if(currentSelectedCreature != -1) {
-				creatures[currentSelectedCreature]->Health--;
-				if(creatures[currentSelectedCreature]->Health == 0) {
+			else if(currentSelectedCreatureIt != creatures.end()) {
+				(*currentSelectedCreatureIt)->Health--;
+				if((*currentSelectedCreatureIt)->Health == 0) {
 					RemoveCreature();
 					//printf("Removed! \n");
 				}
-				//printf("health: %d\n",creatures[currentSelectedCreature]->Health);
+				//printf("health: %d\n",(*currentSelectedCreatureIt)->Health);
 			}
 			else if (currentSelection != NULL) {
 				currentSelection->shape->block->health--;

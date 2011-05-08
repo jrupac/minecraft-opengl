@@ -21,6 +21,7 @@ class R3Block {
 	R3Block *getUpper() const;
 	void setUpper(R3Block *up);
   void Draw(void) const;
+  void Draw(int face, bool isSelected) const;
 
  public:
   R3Box box;

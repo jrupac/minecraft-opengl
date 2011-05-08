@@ -63,7 +63,7 @@ void LoadMaterial(R3Material *material);
 ////////////////////////////////////////////////////////////
 
 void DrawShape(R3Shape *shape);
-void DrawShape(R3Node *node);
+void FindMaterial(R3Block *block, bool isTop);
 void LoadMatrix(R3Matrix *matrix);
 void LoadMaterial(R3Material *material);
 void LoadCamera(R3Camera *camera);
@@ -73,7 +73,7 @@ void DrawScene(R3Scene *scene);
 void DrawCreatures();
 void UpdateCharacter();
 
-//creature functions
+// Creature Functions
 
 void RemoveCreature();
 void DrawCreatures();

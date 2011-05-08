@@ -56,6 +56,27 @@ Draw(void) const
 }
 
 void R3Block::
+Draw(int face, bool isSelected) const
+{
+
+  // Don't draw transparent air blocks
+  if (!transparent)
+    box.DrawFace(face);
+
+  if (!transparent && isSelected)
+  {
+      glDisable(GL_LIGHTING);
+      glColor3d(0., 0., 0.);
+      glLineWidth(15);
+      glPolygonMode(GL_FRONT, GL_LINE);
+      box.DrawFace(face);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glLineWidth(1);
+      glEnable(GL_LIGHTING);
+  }
+}
+
+void R3Block::
 changeBlock(int newType)
 {
   blockType = newType;
