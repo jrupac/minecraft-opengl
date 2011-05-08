@@ -20,6 +20,7 @@ typedef enum {
 	DEER
 } R3Texture;
 
+#include "strings.h"
 #include "R3Chunk.h"
 
 // Materials

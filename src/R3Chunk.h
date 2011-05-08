@@ -2,6 +2,8 @@
 #define __CHUNK_H__
 
 #include "R3/R3.h"
+#include "strings.h"
+
 #include <sstream>
 
 

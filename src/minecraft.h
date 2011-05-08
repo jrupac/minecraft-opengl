@@ -1,11 +1,13 @@
 #ifndef __MINECRAFT_H__
 #define __MINECRAFT_H__
 
+#include <sstream>
+
 #include "R3/R3.h"
 #include "R3Scene.h"
 #include "raytrace.h"
 #include "cos426_opengl.h"
-#include <sstream>
+
 
 #ifdef _WIN32
 #  include <windows.h>

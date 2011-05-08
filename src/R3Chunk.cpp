@@ -105,7 +105,7 @@ ReadChunk(int xChunkCoord, int zChunkCoord)
 
   std:: string name;
   std:: stringstream nameS;
-  nameS << "world/chunks/chunk" << xChunkCoord << "." << zChunkCoord << ".scn";
+  nameS << s_World << xChunkCoord << "." << zChunkCoord << ".scn";
   const char *filename = nameS.str().c_str();
 
   // Open file
