@@ -10,10 +10,13 @@ const char s_TexLeaf[] = "textures/leaf.jpg";
 const char s_TexStone[] = "textures/stone.jpg";
 const char s_TexDirtIcon[] = "textures/dirt_icon.jpg";
 const char s_TexStoneIcon[] = "textures/stone_icon.jpg";
-const char s_TexEmptyIcon[] = "textures/untitled.jpg";
+const char s_TexWoodIcon[] = "textures/deer.jpg";
+const char s_TexSandIcon[] = "textures/cow.jpg";
 const char s_TexEmptyHeart[] = "textures/emptyheart.jpg";
 const char s_TexCow[] = "textures/cow.jpg";
 const char s_TexDeer[] = "textures/deer.jpg";
+const char s_TexSuicide[] = "textures/suicide.jpg";
 const char s_World[] = "world/chunks/chunk";
+
 
 #endif

@@ -4,7 +4,7 @@
 
 
 R3Creature::
-R3Creature(void)
+	R3Creature(void)
 {
 	Health = 2;
 	MaxHealth = 2;
@@ -23,52 +23,101 @@ R3Creature::
 	creaturetype = type;
 }
 
+void R3Creature::
+	Creature_Attack(R3Character *character, R3Vector translated) {
+		switch (creaturetype)
+		{
+
+		case R3DEER_CREATURE:
+			character->Health--;
+			MoveCharacter(translated, 3);
+			return;
+
+		case R3SUICIDE_CREATURE:
+			character->Health--;
+			character->Health--;
+			character->Health--;
+			character->Health--;
+			MoveCharacter(translated, 4);
+
+		}
+}
+
+
+
 
 R3Vector R3Creature::
-UpdateCreature(R3Character *character)
+	UpdateCreature(R3Character *character)
 {
-  double x, y, z;
-  R3Vector translated;
+	double x, y, z;
+	R3Vector translated;
 
-  switch (creaturetype)
-  {
-    case R3COW_CREATURE:
-      x = RandomNumber();
-      y = RandomNumber();
-      z = RandomNumber();
+	switch (creaturetype)
+	{
+	case R3DEER_CREATURE:
+		/*    x = RandomNumber();
+		y = RandomNumber();
+		z = RandomNumber();
 
-      x = (2 * x - 1) / 20;
-      y = 0;
-      z = (2 * z - 1) / 20;
+		x = (2 * x - 1) * 5;
+		y = 0;
+		z = (2 * z - 1) * 5;*/
 
-      translated = character->position - position;
-      translated.SetY(0);
-      translated.Normalize();
-      translated /= 100;
+		translated = character->position - position;
+		translated.SetY(0);
+		//translated.SetX(translated.X() + x);
+		//translated.SetZ(translated.Z() + z);
+		translated.Normalize();
+		translated /= 20;
 
-      // Give me some space!
-      if (R3Distance(position + translated, character->position) >= 2.f)
-        return translated;
-      else 
-        return R3zero_vector;
-    case R3DEER_CREATURE:
-      x = RandomNumber();
-      y = RandomNumber();
-      z = RandomNumber();
+		// Give me some space!
+		if (R3Distance(position + translated, character->position) < 2.f) {
+			Creature_Attack(character, translated);
 
-      x = (2 * x - 1) / 20;
-      y = 0;
-      z = (2 * z - 1) / 20;
+			translated = R3zero_vector;
+		}
+		return translated;
 
-      translated = position - character->position;
-      translated.SetY(0);
-      translated.Normalize();
-      translated /= 100;
 
-      // Give me some space!
-      if (R3Distance(position + translated, character->position) >= 2.f)
-        return translated;
-      else 
-        return R3zero_vector;
-  }
+
+
+	case R3SUICIDE_CREATURE:
+		translated = character->position - position;
+		translated.SetY(0);
+		//translated.SetX(translated.X() + x);
+		//translated.SetZ(translated.Z() + z);
+		translated.Normalize();
+		translated /= 20;
+
+		// Give me some space!
+		if (R3Distance(position + translated, character->position) < 2.f) {
+			Creature_Attack(character, translated);
+
+			translated = R3zero_vector;
+		}
+		return translated;
+
+
+
+
+	case R3COW_CREATURE:
+		x = RandomNumber();
+		y = RandomNumber();
+		z = RandomNumber();
+
+		x = (2 * x - 1) / 20;
+		y = 0;
+		z = (2 * z - 1) / 20;
+
+		translated = position - character->position;
+		translated.SetY(0);
+		translated.Normalize();
+		translated /= 100;
+
+		// Give me some space!
+		if (R3Distance(position + translated, character->position) >= 2.f)
+			return translated;
+		else 
+			return R3zero_vector;
+	}
 }

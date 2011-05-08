@@ -261,6 +261,12 @@
     <ClCompile Include="R3\R3Creature.cpp">
       <Filter>Support Libraries\R3 Library\R3 Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="materials.cpp">
+      <Filter>Main Program\Main Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="R3Chunk.cpp">
+      <Filter>Main Program\Main Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="R2\R2.h">
@@ -382,6 +388,15 @@
     </ClInclude>
     <ClInclude Include="R3\R3Creature.h">
       <Filter>Support Libraries\R3 Library\R3 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="materials.h">
+      <Filter>Main Program\Main Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="R3Chunk.h">
+      <Filter>Main Program\Main Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="strings.h">
+      <Filter>Main Program\Main Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -18,12 +18,7 @@ typedef enum {
 	EMPTY_HEART,
 	COW,
 	DEER,
-	SUICIDE,
-	DIRT_ICON,
-	STONE_ICON,
-	WOOD_ICON,
-	SAND_ICON
-
+	SUICIDE
 } R3Texture;
 
 #include "strings.h"

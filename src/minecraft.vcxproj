@@ -96,6 +96,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="materials.cpp" />
     <ClCompile Include="R2\R2Distance.cpp" />
     <ClCompile Include="R2\R2Image.cpp" />
     <ClCompile Include="R2\R2Line.cpp" />
@@ -149,6 +150,7 @@
     <ClCompile Include="jpeg\jquant1.c" />
     <ClCompile Include="jpeg\jquant2.c" />
     <ClCompile Include="jpeg\jutils.c" />
+    <ClCompile Include="R3Chunk.cpp" />
     <ClCompile Include="R3\R3Block.cpp" />
     <ClCompile Include="R3\R3Box.cpp" />
     <ClCompile Include="R3\R3Character.cpp" />
@@ -171,6 +173,7 @@
     <ClCompile Include="minecraft.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="materials.h" />
     <ClInclude Include="minecraft.h" />
     <ClInclude Include="R2\R2.h" />
     <ClInclude Include="R2\R2Distance.h" />
@@ -191,6 +194,7 @@
     <ClInclude Include="jpeg\jpegint.h" />
     <ClInclude Include="jpeg\jpeglib.h" />
     <ClInclude Include="jpeg\jversion.h" />
+    <ClInclude Include="R3Chunk.h" />
     <ClInclude Include="R3\R3.h" />
     <ClInclude Include="R3\R3Block.h" />
     <ClInclude Include="R3\R3Box.h" />
@@ -211,6 +215,7 @@
     <ClInclude Include="R3\R3Vector.h" />
     <ClInclude Include="R3Scene.h" />
     <ClInclude Include="raytrace.h" />
+    <ClInclude Include="strings.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

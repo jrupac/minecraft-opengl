@@ -1,3 +1,4 @@
+
 #ifndef __MINECRAFT_H__
 #define __MINECRAFT_H__
 
@@ -55,7 +56,7 @@ void InterpolateJump(R3Point *start, R3Vector direction);
 ////////////////////////////////////////////////////////////
 
 void AlignReticle();
-void AddBlock(int block);
+void AddBlock();
 void DrawHUD(); 
 void DrawHUD_Hearts();
 void DrawHUD_Inventory();
@@ -63,6 +64,8 @@ void LoadMaterial(R3Material *material);
 void ChangeHealth(R3Character *character, int delta);
 void ChangeHealth(R3Creature *creature, int delta);
 void ChangeHealth(R3Block *block, int delta);
+
+
 
 ////////////////////////////////////////////////////////////
 // SCENE DRAWING CODE
@@ -83,6 +86,7 @@ void UpdateCharacter();
 
 void RemoveCreature();
 void DrawCreatures();
+
 
 ////////////////////////////////////////////////////////////
 // GLUT USER INTERFACE CODE
@@ -115,5 +119,9 @@ R3Scene *ReadScene(const char *filename);
 ////////////////////////////////////////////////////////////
 
 int ParseArgs(int argc, char **argv);
+
+
+void MoveCharacter(R3Vector translated, double d);
+static R3Camera camera;
 
 #endif

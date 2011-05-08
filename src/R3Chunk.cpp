@@ -9,7 +9,7 @@ GenerateChunk(int c_x, int c_z)
 {
   chunk_x = c_x;
   chunk_z = c_z;
-  fprintf(stderr, "No chunk found: generating new chunk at chunk pos (%d, %d)\n", c_x, c_z);
+  //fprintf(stderr, "No chunk found: generating new chunk at chunk pos (%d, %d)\n", c_x, c_z);
 
   start_point = R3Point((double)c_x * 16.0 - 8.0, -CHUNK_Y / 2, 
                         (double)c_z * 16.0 - 8.0);
@@ -101,7 +101,7 @@ DeleteChunk()
 int R3Chunk::
 ReadChunk(int xChunkCoord, int zChunkCoord)
 {
-  fprintf(stderr, "Chunk found: reading old chunk at chunk pos (%d, %d)\n", xChunkCoord, zChunkCoord);
+  //fprintf(stderr, "Chunk found: reading old chunk at chunk pos (%d, %d)\n", xChunkCoord, zChunkCoord);
 
   std:: string name;
   std:: stringstream nameS;
