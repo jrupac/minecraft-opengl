@@ -194,8 +194,8 @@ R3Vector InterpolateMotion(R3Point *start, R3Vector direction, bool isCharacter)
   R3Index coords = getChunkCoordinates((*start) + (direction / INTERPOLATION));
   int fallIndex = -1;
   
-  fprintf(stderr, "Coords is %d\n", coords.current);
-
+  //fprintf(stderr, "Coords is %d\n", coords.current);
+  
   // Check if next potential location is legal
   if (isCharacter)
   {
@@ -1576,12 +1576,12 @@ void GLUTRedraw(void)
     if(toSave) 
     {
       if (output_image_name) GLUTSaveImage(output_image_name);
-      //write new scene based on changes
 
-      /*if (!scene->WriteChunk(input_scene_name))
-        {
-        fprintf(stderr, "WARNING: Couldn't save new scene!!!\n");
-        }*/
+      // Write new scene based on changes
+      if (!scene->WriteScene(input_scene_name))
+      {
+          fprintf(stderr, "WARNING: Couldn't save new scene!!!\n");
+      }
     }
 
     GLUTStop();

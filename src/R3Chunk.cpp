@@ -11,8 +11,8 @@ GenerateChunk(int c_x, int c_z)
   chunk_z = c_z;
   //fprintf(stderr, "No chunk found: generating new chunk at chunk pos (%d, %d)\n", c_x, c_z);
 
-  start_point = R3Point((double)c_x * 16.0 - 8.0, -CHUNK_Y / 2, 
-                        (double)c_z * 16.0 - 8.0);
+  start_point = R3Point((double)c_x * CHUNK_X - (double)CHUNK_X/2, -CHUNK_Y / 2, 
+                        (double)c_z * CHUNK_Z - (double)CHUNK_Z/2);
   end_point = start_point + R3Point(CHUNK_X, CHUNK_Y, CHUNK_Z);
   block_side = 1.0;
 
@@ -84,6 +84,10 @@ GenerateChunk(int c_x, int c_z)
 void R3Chunk::
 DeleteChunk()
 {
+  //std:: string s;
+  std:: stringstream out;
+  out << "world/chunks/chunk" << chunk_x << "." << chunk_z << ".scn";
+  WriteChunk(out.str().c_str());
   for (int dz = 0; dz < CHUNK_Z; dz++)
   {
     for (int dy = 0; dy < CHUNK_Y; dy++)
@@ -101,7 +105,7 @@ DeleteChunk()
 int R3Chunk::
 ReadChunk(int xChunkCoord, int zChunkCoord)
 {
-  //fprintf(stderr, "Chunk found: reading old chunk at chunk pos (%d, %d)\n", xChunkCoord, zChunkCoord);
+  fprintf(stderr, "Chunk found: reading old chunk at chunk pos (%d, %d)\n", xChunkCoord, zChunkCoord);
 
   std:: string name;
   std:: stringstream nameS;
@@ -146,7 +150,7 @@ ReadChunk(int xChunkCoord, int zChunkCoord)
 
             if (fscanf(fp, "%d", &block_type) != 1)
             {
-              fprintf(stderr, "Unable to read chunk block at command %d in file %s\n", command_number, filename);
+              fprintf(stderr, "Unable to read chunk block at zyx(%d, %d, %d) in file %s\n", dz, dy, dx, filename);
               return 0;
             }
 
@@ -201,8 +205,10 @@ ReadChunk(int xChunkCoord, int zChunkCoord)
   }
   
   // Compute chunk coordinates
-  chunk_x = (int)(2 * start_point[0] / CHUNK_X) + 1; // -8*2/16 = -1
-  chunk_z = (int)(2 * start_point[2] / CHUNK_Z) + 1; // -16*2/16 = -2
+  //chunk_x = (int)(2 * start_point[0] / CHUNK_X) + 1; // -8*2/16 = -1
+  //chunk_z = (int)(2 * start_point[2] / CHUNK_Z) + 1; // -16*2/16 = -2
+  chunk_x = xChunkCoord;
+  chunk_z = zChunkCoord;
 
   // Compute global (x, y, z) coordinates
   end_point = start_point + R3Point(CHUNK_X, CHUNK_Y, CHUNK_Z);
@@ -247,11 +253,16 @@ WriteChunk(const char *filename)
       }
       tempOut << "\n";
 
-      fputs(tempOut.str().c_str(), fp);
+      while (!fputs(tempOut.str().c_str(), fp))
+      {
+        fprintf(stderr, "What the fuck %d %d %d\n", dz, dy, dz);
+      }
     }
 
     fputs("\n", fp);
   }
+  
+  fclose(fp);
 
   return 1;
 }

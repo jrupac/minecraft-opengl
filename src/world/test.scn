@@ -1,1 +1,9 @@
-
+chunk -1 -1
+chunk -1 0
+chunk -1 1
+chunk 0 -1
+chunk 0 0
+chunk 0 1
+chunk 1 -1
+chunk 1 0
+chunk 1 1
