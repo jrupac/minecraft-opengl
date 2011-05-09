@@ -98,6 +98,10 @@ void LoadMaterial(R3Material *material);
 void LoadCamera(R3Camera *camera);
 void LoadLights(R3Scene *scene);
 void DrawScene(R3Scene *scene);
+void DrawSceneNone(R3Scene *scene); // 0
+void DrawSceneViewFrustrumOnly(R3Scene *scene); // 1
+void DrawSceneOcclusionOnly(R3Scene *scene); // 2
+void DrawSceneFullOptimization(R3Scene *scene); // 3
 void DrawCreatures();
 void GenerateCreatures();
 void UpdateCharacter();

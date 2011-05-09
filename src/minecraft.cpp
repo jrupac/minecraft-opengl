@@ -42,6 +42,7 @@ static bool regularGameplay = false;
 static bool CAPTURE_MOUSE = false;
 static bool dead;
 static bool DeathMenu;
+static int culling = 3; //0 - none, 1 - view frustrum only, 2 - occlusion only, 3 - full culling
 static int show_faces = 1;
 static int show_edges = 0;
 static int show_bboxes = 0;
@@ -1044,166 +1045,6 @@ void LoadLights(R3Scene *scene)
 		// Enable light
 		glEnable(index);
 	}
-}
-
-void DrawScene(R3Scene *scene) 
-{
-	bool isSelected = false;
-  int curChunkXLeft, curChunkXRight, curChunkZLeft, curChunkZRight;
-  int left, right, back, forward;
-  
-  R3Index currentPosition = getChunkCoordinates(camera.eye);
-  int charBlockX = currentPosition.x + (CHUNK_X)*(CHUNKS-1)/2; // this is the position in the middle chunk of our character
-  int charBlockZ = currentPosition.z + (CHUNK_Z)*(CHUNKS-1)/2; // this too
-  int charBlockY = currentPosition.y;
-  
-  double viewX = towards[0];// + 0.0001;
-  double viewZ = towards[2];// + 0.0001;
-  double viewY = towards[1];
-
-	// It's okay, it's okay, we do culling here.
-	for (int dChunkX = 0; dChunkX < CHUNKS; dChunkX++)
-	{
-		for (int dChunkZ = 0; dChunkZ < CHUNKS; dChunkZ++)
-		{
-			for (int dz = 0; dz < CHUNK_Z; dz++)
-			{
-			  int blockDistZ = ((CHUNK_Z)*dChunkZ + dz) - charBlockZ;
-				for (int dy = 0; dy < CHUNK_Y; dy++)
-				{
-				  int blockDistY = dy - charBlockY;
-					for (int dx = 0; dx < CHUNK_X; dx++)
-					{
-					  int blockDistX = ((CHUNK_X)*dChunkX + dx) - charBlockX;
-					  
-					  if (blockDistX*viewX + blockDistY*viewY + blockDistZ*viewZ >= 0)
-					  {
-					    
-						  // Terrible black magic is about to happen
-              curChunkXLeft = dChunkX;
-              curChunkXRight = dChunkX;
-              curChunkZLeft = dChunkZ;
-              curChunkZRight = dChunkZ;
-              left = dx - 1;
-              right = dx + 1;
-              back = dz - 1;
-              forward = dz + 1;
-
-						  if (dx == 0 && dChunkX > 0)
-						  {
-							  left = CHUNK_X - 1;
-							  curChunkXLeft--;
-						  }
-						  if (dx == CHUNK_X - 1 && dChunkX < CHUNKS - 1)
-						  {
-							  right = 0;
-							  curChunkXRight++;
-						  }
-						  if (dz == 0 && dChunkZ > 0)
-						  {
-							  back = CHUNK_Z - 1;
-							  curChunkZLeft--;
-						  }
-						  if (dz == CHUNK_Z - 1 && dChunkZ < CHUNKS - 1)
-						  {
-							  forward = 0;
-							  curChunkZRight++;
-						  }
-
-						  R3Node *node = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz];
-						  R3Block *block = node->shape->block;
-						  isSelected = (currentSelection == node);
-
-						  double distance = R3Distance(camera.eye, block->box.Centroid());
-              bool tooFar = distance > LODcutoff;
-
-              if (tooFar) 
-              {
-                glDisable(GL_TEXTURE_2D);
-                glDisable(GL_LIGHTING);
-              }
-
-              //double maxhealth;
-
-              //switch (block->blockType)
-              //{
-                //case DIRT_BLOCK:
-                  //maxhealth = DIRT_HEALTH;
-                  //break;
-                //case AIR_BLOCK:
-                  //maxhealth = AIR_HEALTH;
-                  //break;
-                //case LEAF_BLOCK:
-                  //maxhealth = LEAF_HEALTH;
-                  //break;
-                //case WOOD_BLOCK:
-                  //maxhealth = WOOD_HEALTH;
-                  //break;
-                //case STONE_BLOCK:
-                  //maxhealth = STONE_HEALTH;
-                  //break;
-                //case SAND_BLOCK:
-                  //maxhealth = SAND_HEALTH;
-                  //break;
-                //case OBSIDIAN_BLOCK:
-                  //maxhealth = OBSIDIAN_HEALTH;
-                  //break;
-              //}
-
-              //double ratio = block->health;
-              // ATTEMPTING HEALTH COUNTERS
-              
-              // Face 3; this is the the top face, set the material every time
-              if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
-              {
-                if (tooFar) 
-                  FindColor(block, true);
-                else 
-                  FindMaterial(block, true);
-                block->Draw(3, isSelected);
-              }
-
-              // Face 0; first face decides if others get material or solid color
-              if (left >= 0 && scene->terrain[curChunkXLeft][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
-              {
-                // Only swap materials for the dirt block
-                if (block->blockType == DIRT_BLOCK)
-                {
-                  if (tooFar) 
-                    FindColor(block, false);
-                  else 
-                    FindMaterial(block, false);
-                }
-                block->Draw(0, isSelected);
-              }
-
-              // Face 1
-              if (right < CHUNK_X && scene->terrain[curChunkXRight][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
-                block->Draw(1, isSelected);
-
-              // Face 2
-              if (dy - 1 > 0 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
-                block->Draw(2, isSelected);
-
-              // Face 4
-              if (back >= 0 && scene->terrain[dChunkX][curChunkZLeft]->chunk[dx][dy][back]->shape->block->transparent)
-                block->Draw(4, isSelected);
-
-              // Face 5
-              if (forward < CHUNK_Z && scene->terrain[dChunkX][curChunkZRight]->chunk[dx][dy][forward]->shape->block->transparent)
-                block->Draw(5, isSelected);
-              
-              if (tooFar)
-              {
-                glEnable(GL_TEXTURE_2D);
-                glEnable(GL_LIGHTING);
-              }
-            } //end view frustrum check
-					} // end dx
-				} // end dy
-			} // end dz
-		} // end chunk z
-	} // end chunk x
 }
 
 void DrawCreatures() 
@@ -2276,6 +2117,10 @@ int ParseArgs(int argc, char **argv)
 			if (!strcmp(*argv, "-help")) { print_usage = 1; }
 			else if (!strcmp(*argv, "-exit_immediately")) { quit = 1; }
 			else if (!strcmp(*argv, "-output_image")) { argc--; argv++; output_image_name = *argv; }
+			else if (!strcmp(*argv, "-no_culling")) { argc--; argv++; culling = 0;}
+			else if (!strcmp(*argv, "-view_frustrum_culling")) { argc--; argv++; culling = 1;}
+			else if (!strcmp(*argv, "-occlusion_culling")) { argc--; argv++; culling = 2;}
+			else if (!strcmp(*argv, "-full_culling")) { argc--; argv++; culling = 3;}
 			else { fprintf(stderr, "Invalid program argument: %s", *argv); exit(1); }
 			argv++; argc--;
 		}
@@ -2288,7 +2133,7 @@ int ParseArgs(int argc, char **argv)
 
 	// Check input_scene_name
 	if (!input_scene_name || print_usage) {
-		printf("Usage: rayview <input.scn> [-maxdepth <int>] [-v]\n");
+		printf("Usage: rayview <input.scn> [-no_culling -view_frustrum_culling -occlusion-_culling -full_culling (default)][-maxdepth <int>] [-v]\n");
 		return 0;
 	}
 
@@ -2371,6 +2216,8 @@ void KillALData()
 
 int main(int argc, char **argv)
 {
+  // Parse program arguments
+	if (!ParseArgs(argc, argv)) exit(1);
 	// Set up jitter map
 	j[2] = j2;
 	j[4] = j4;
@@ -2397,7 +2244,7 @@ int main(int argc, char **argv)
 	MakeMaterials(materials);
 
 	// Parse program arguments
-	if (!ParseArgs(argc, argv)) exit(1);
+	//if (!ParseArgs(argc, argv)) exit(1);
 
 	// Read scene
 	scene = ReadScene(input_scene_name);
@@ -2408,6 +2255,733 @@ int main(int argc, char **argv)
 
 	// Return success 
 	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+ _______  ______   _______  _        ______   _______  _       
+(  ___  )(  ___ \ (  ___  )( (    /|(  __  \ (  ___  )( (    /|
+| (   ) || (   ) )| (   ) ||  \  ( || (  \  )| (   ) ||  \  ( |
+| (___) || (__/ / | (___) ||   \ | || |   ) || |   | ||   \ | |
+|  ___  ||  __ (  |  ___  || (\ \) || |   | || |   | || (\ \) |
+| (   ) || (  \ \ | (   ) || | \   || |   ) || |   | || | \   |
+| )   ( || )___) )| )   ( || )  \  || (__/  )| (___) || )  \  |
+|/     \||/ \___/ |/     \||/    )_)(______/ (_______)|/    )_)
+                                                               
+ _______  _        _                   _______  _______  _______ 
+(  ___  )( \      ( \        |\     /|(  ___  )(  ____ )(  ____ \
+| (   ) || (      | (        | )   ( || (   ) || (    )|| (    \/
+| (___) || |      | |        | (___) || |   | || (____)|| (__    
+|  ___  || |      | |        |  ___  || |   | ||  _____)|  __)   
+| (   ) || |      | |        | (   ) || |   | || (      | (      
+| )   ( || (____/\| (____/\  | )   ( || (___) || )      | (____/\
+|/     \|(_______/(_______/  |/     \|(_______)|/       (_______/
+                                                                 
+ _______  _        _                   _______                      _______ 
+(  ___  )( \      ( \        |\     /|(  ____ \  |\     /||\     /|(  ___  )
+| (   ) || (      | (        ( \   / )| (    \/  | )   ( || )   ( || (   ) |
+| (___) || |      | |         \ (_) / | (__      | | _ | || (___) || |   | |
+|  ___  || |      | |          \   /  |  __)     | |( )| ||  ___  || |   | |
+| (   ) || |      | |           ) (   | (        | || || || (   ) || |   | |
+| )   ( || (____/\| (____/\     | |   | (____/\  | () () || )   ( || (___) |
+|/     \|(_______/(_______/     \_/   (_______/  (_______)|/     \|(_______)
+                                                                            
+ _______  _       _________ _______  _______ 
+(  ____ \( (    /|\__   __/(  ____ \(  ____ )
+| (    \/|  \  ( |   ) (   | (    \/| (    )|
+| (__    |   \ | |   | |   | (__    | (____)|
+|  __)   | (\ \) |   | |   |  __)   |     __)
+| (      | | \   |   | |   | (      | (\ (   
+| (____/\| )  \  |   | |   | (____/\| ) \ \__
+(_______/|/    )_)   )_(   (_______/|/   \__/
+                                             
+*/
+void DrawScene(R3Scene *scene)
+{
+  if (culling == 0)
+    DrawSceneNone(scene);
+  else if (culling == 1)
+    DrawSceneViewFrustrumOnly(scene);
+  else if (culling == 2)
+    DrawSceneOcclusionOnly(scene);
+  else
+    DrawSceneFullOptimization(scene);
+}
+
+void DrawSceneFullOptimization(R3Scene *scene) 
+{
+	bool isSelected = false;
+  int curChunkXLeft, curChunkXRight, curChunkZLeft, curChunkZRight;
+  int left, right, back, forward;
+  
+  R3Index currentPosition = getChunkCoordinates(camera.eye);
+  int charBlockX = currentPosition.x + (CHUNK_X)*(CHUNKS-1)/2; // this is the position in the middle chunk of our character
+  int charBlockZ = currentPosition.z + (CHUNK_Z)*(CHUNKS-1)/2; // this too
+  int charBlockY = currentPosition.y;
+  
+  double viewX = towards[0];// + 0.0001;
+  double viewZ = towards[2];// + 0.0001;
+  double viewY = towards[1];
+  
+  int faceCount = 0;
+
+	// It's okay, it's okay, we do culling here.
+	for (int dChunkX = 0; dChunkX < CHUNKS; dChunkX++)
+	{
+		for (int dChunkZ = 0; dChunkZ < CHUNKS; dChunkZ++)
+		{
+			for (int dz = 0; dz < CHUNK_Z; dz++)
+			{
+			  int blockDistZ = ((CHUNK_Z)*dChunkZ + dz) - charBlockZ;
+				for (int dy = 0; dy < CHUNK_Y; dy++)
+				{
+				  int blockDistY = dy - charBlockY;
+					for (int dx = 0; dx < CHUNK_X; dx++)
+					{
+					  int blockDistX = ((CHUNK_X)*dChunkX + dx) - charBlockX;
+					  
+					  if (!scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz]->shape->block->transparent && blockDistX*viewX + blockDistY*viewY + blockDistZ*viewZ >= 0)
+					  {
+					    
+						  // Terrible black magic is about to happen
+              curChunkXLeft = dChunkX;
+              curChunkXRight = dChunkX;
+              curChunkZLeft = dChunkZ;
+              curChunkZRight = dChunkZ;
+              left = dx - 1;
+              right = dx + 1;
+              back = dz - 1;
+              forward = dz + 1;
+
+						  if (dx == 0 && dChunkX > 0)
+						  {
+							  left = CHUNK_X - 1;
+							  curChunkXLeft--;
+						  }
+						  if (dx == CHUNK_X - 1 && dChunkX < CHUNKS - 1)
+						  {
+							  right = 0;
+							  curChunkXRight++;
+						  }
+						  if (dz == 0 && dChunkZ > 0)
+						  {
+							  back = CHUNK_Z - 1;
+							  curChunkZLeft--;
+						  }
+						  if (dz == CHUNK_Z - 1 && dChunkZ < CHUNKS - 1)
+						  {
+							  forward = 0;
+							  curChunkZRight++;
+						  }
+
+						  R3Node *node = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz];
+						  R3Block *block = node->shape->block;
+						  isSelected = (currentSelection == node);
+
+						  double distance = R3Distance(camera.eye, block->box.Centroid());
+              bool tooFar = distance > LODcutoff;
+
+              if (tooFar) 
+              {
+                glDisable(GL_TEXTURE_2D);
+                glDisable(GL_LIGHTING);
+              }
+
+              //double maxhealth;
+
+              //switch (block->blockType)
+              //{
+                //case DIRT_BLOCK:
+                  //maxhealth = DIRT_HEALTH;
+                  //break;
+                //case AIR_BLOCK:
+                  //maxhealth = AIR_HEALTH;
+                  //break;
+                //case LEAF_BLOCK:
+                  //maxhealth = LEAF_HEALTH;
+                  //break;
+                //case WOOD_BLOCK:
+                  //maxhealth = WOOD_HEALTH;
+                  //break;
+                //case STONE_BLOCK:
+                  //maxhealth = STONE_HEALTH;
+                  //break;
+                //case SAND_BLOCK:
+                  //maxhealth = SAND_HEALTH;
+                  //break;
+                //case OBSIDIAN_BLOCK:
+                  //maxhealth = OBSIDIAN_HEALTH;
+                  //break;
+              //}
+
+              //double ratio = block->health;
+              // ATTEMPTING HEALTH COUNTERS
+              
+              // Face 3; this is the the top face, set the material every time
+              if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
+              {
+                if (tooFar) 
+                  FindColor(block, true);
+                else 
+                  FindMaterial(block, true);
+                block->Draw(3, isSelected);
+                faceCount++;
+              }
+
+              // Face 0; first face decides if others get material or solid color
+              if (left >= 0 && scene->terrain[curChunkXLeft][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
+              {
+                // Only swap materials for the dirt block
+                if (block->blockType == DIRT_BLOCK)
+                {
+                  if (tooFar) 
+                    FindColor(block, false);
+                  else 
+                    FindMaterial(block, false);
+                }
+                block->Draw(0, isSelected);
+                faceCount++;
+              }
+
+              // Face 1
+              if (right < CHUNK_X && scene->terrain[curChunkXRight][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
+              {
+                block->Draw(1, isSelected);
+                faceCount++;
+              }
+
+              // Face 2
+              if (dy - 1 > 0 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
+              {
+                block->Draw(2, isSelected);
+                faceCount++;
+              }
+
+              // Face 4
+              if (back >= 0 && scene->terrain[dChunkX][curChunkZLeft]->chunk[dx][dy][back]->shape->block->transparent)
+              {
+                block->Draw(4, isSelected);
+                faceCount++;
+              }
+
+              // Face 5
+              if (forward < CHUNK_Z && scene->terrain[dChunkX][curChunkZRight]->chunk[dx][dy][forward]->shape->block->transparent)
+              {
+                block->Draw(5, isSelected);
+                faceCount++;
+              }
+              
+              if (tooFar)
+              {
+                glEnable(GL_TEXTURE_2D);
+                glEnable(GL_LIGHTING);
+              }
+            } //end view frustrum check
+					} // end dx
+				} // end dy
+			} // end dz
+		} // end chunk z
+	} // end chunk x
+	
+	fprintf(stderr, "View Frustrum and Occlusion Culling: Rendered %d faces.\n", faceCount);
+}
+
+
+
+
+
+
+void DrawSceneViewFrustrumOnly(R3Scene *scene) 
+{
+	bool isSelected = false;
+  int curChunkXLeft, curChunkXRight, curChunkZLeft, curChunkZRight;
+  int left, right, back, forward;
+  
+  R3Index currentPosition = getChunkCoordinates(camera.eye);
+  int charBlockX = currentPosition.x + (CHUNK_X)*(CHUNKS-1)/2; // this is the position in the middle chunk of our character
+  int charBlockZ = currentPosition.z + (CHUNK_Z)*(CHUNKS-1)/2; // this too
+  int charBlockY = currentPosition.y;
+  
+  double viewX = towards[0];// + 0.0001;
+  double viewZ = towards[2];// + 0.0001;
+  double viewY = towards[1];
+  
+  int faceCount = 0;
+
+	// It's okay, it's okay, we do culling here.
+	for (int dChunkX = 0; dChunkX < CHUNKS; dChunkX++)
+	{
+		for (int dChunkZ = 0; dChunkZ < CHUNKS; dChunkZ++)
+		{
+			for (int dz = 0; dz < CHUNK_Z; dz++)
+			{
+			  int blockDistZ = ((CHUNK_Z)*dChunkZ + dz) - charBlockZ;
+				for (int dy = 0; dy < CHUNK_Y; dy++)
+				{
+				  int blockDistY = dy - charBlockY;
+					for (int dx = 0; dx < CHUNK_X; dx++)
+					{
+					  int blockDistX = ((CHUNK_X)*dChunkX + dx) - charBlockX;
+					  
+					  if (!scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz]->shape->block->transparent && blockDistX*viewX + blockDistY*viewY + blockDistZ*viewZ >= 0)
+					  {
+					    
+						  // Terrible black magic is about to happen
+              curChunkXLeft = dChunkX;
+              curChunkXRight = dChunkX;
+              curChunkZLeft = dChunkZ;
+              curChunkZRight = dChunkZ;
+              left = dx - 1;
+              right = dx + 1;
+              back = dz - 1;
+              forward = dz + 1;
+
+						  if (dx == 0 && dChunkX > 0)
+						  {
+							  left = CHUNK_X - 1;
+							  curChunkXLeft--;
+						  }
+						  if (dx == CHUNK_X - 1 && dChunkX < CHUNKS - 1)
+						  {
+							  right = 0;
+							  curChunkXRight++;
+						  }
+						  if (dz == 0 && dChunkZ > 0)
+						  {
+							  back = CHUNK_Z - 1;
+							  curChunkZLeft--;
+						  }
+						  if (dz == CHUNK_Z - 1 && dChunkZ < CHUNKS - 1)
+						  {
+							  forward = 0;
+							  curChunkZRight++;
+						  }
+
+						  R3Node *node = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz];
+						  R3Block *block = node->shape->block;
+						  isSelected = (currentSelection == node);
+
+						  double distance = R3Distance(camera.eye, block->box.Centroid());
+              bool tooFar = distance > LODcutoff;
+
+              if (tooFar) 
+              {
+                glDisable(GL_TEXTURE_2D);
+                glDisable(GL_LIGHTING);
+              }
+
+              //double maxhealth;
+
+              //switch (block->blockType)
+              //{
+                //case DIRT_BLOCK:
+                  //maxhealth = DIRT_HEALTH;
+                  //break;
+                //case AIR_BLOCK:
+                  //maxhealth = AIR_HEALTH;
+                  //break;
+                //case LEAF_BLOCK:
+                  //maxhealth = LEAF_HEALTH;
+                  //break;
+                //case WOOD_BLOCK:
+                  //maxhealth = WOOD_HEALTH;
+                  //break;
+                //case STONE_BLOCK:
+                  //maxhealth = STONE_HEALTH;
+                  //break;
+                //case SAND_BLOCK:
+                  //maxhealth = SAND_HEALTH;
+                  //break;
+                //case OBSIDIAN_BLOCK:
+                  //maxhealth = OBSIDIAN_HEALTH;
+                  //break;
+              //}
+
+              //double ratio = block->health;
+              // ATTEMPTING HEALTH COUNTERS
+              
+              // Face 3; this is the the top face, set the material every time
+              if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
+
+              {
+                if (tooFar) 
+                  FindColor(block, true);
+                else 
+                  FindMaterial(block, true);
+                block->Draw(3, isSelected);
+                faceCount++;
+              }
+
+              // Face 0; first face decides if others get material or solid color
+              if (left >= 0 && scene->terrain[curChunkXLeft][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
+              {
+                // Only swap materials for the dirt block
+                if (block->blockType == DIRT_BLOCK)
+                {
+                  if (tooFar) 
+                    FindColor(block, false);
+                  else 
+                    FindMaterial(block, false);
+                }
+                block->Draw(0, isSelected);
+                faceCount++;
+              }
+
+              // Face 1
+              if (right < CHUNK_X && scene->terrain[curChunkXRight][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
+              {
+                block->Draw(1, isSelected);
+                faceCount++;
+              }
+
+              // Face 2
+              if (dy - 1 > 0 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
+              {
+                block->Draw(2, isSelected);
+                faceCount++;
+              }
+
+              // Face 4
+              if (back >= 0 && scene->terrain[dChunkX][curChunkZLeft]->chunk[dx][dy][back]->shape->block->transparent)
+              {
+                block->Draw(4, isSelected);
+                faceCount++;
+              }
+
+              // Face 5
+              if (forward < CHUNK_Z && scene->terrain[dChunkX][curChunkZRight]->chunk[dx][dy][forward]->shape->block->transparent)
+              {
+                block->Draw(5, isSelected);
+                faceCount++;
+              }
+              
+              if (tooFar)
+              {
+                glEnable(GL_TEXTURE_2D);
+                glEnable(GL_LIGHTING);
+              }
+            } //end view frustrum check
+					} // end dx
+				} // end dy
+			} // end dz
+		} // end chunk z
+	} // end chunk x
+	
+	fprintf(stderr, "View Frustrum Culling Only: Rendered %d faces.\n", faceCount);
+}
+
+
+
+
+void DrawSceneOcclusionOnly(R3Scene *scene) 
+{
+	bool isSelected = false;
+  int curChunkXLeft, curChunkXRight, curChunkZLeft, curChunkZRight;
+  int left, right, back, forward;
+  
+  R3Index currentPosition = getChunkCoordinates(camera.eye);
+  int charBlockX = currentPosition.x + (CHUNK_X)*(CHUNKS-1)/2; // this is the position in the middle chunk of our character
+  int charBlockZ = currentPosition.z + (CHUNK_Z)*(CHUNKS-1)/2; // this too
+  int charBlockY = currentPosition.y;
+  
+  double viewX = towards[0];// + 0.0001;
+  double viewZ = towards[2];// + 0.0001;
+  double viewY = towards[1];
+  
+  int faceCount = 0;
+
+	// It's okay, it's okay, we do culling here.
+	for (int dChunkX = 0; dChunkX < CHUNKS; dChunkX++)
+	{
+		for (int dChunkZ = 0; dChunkZ < CHUNKS; dChunkZ++)
+		{
+			for (int dz = 0; dz < CHUNK_Z; dz++)
+			{
+			  int blockDistZ = ((CHUNK_Z)*dChunkZ + dz) - charBlockZ;
+				for (int dy = 0; dy < CHUNK_Y; dy++)
+				{
+				  int blockDistY = dy - charBlockY;
+					for (int dx = 0; dx < CHUNK_X; dx++)
+					{
+					  int blockDistX = ((CHUNK_X)*dChunkX + dx) - charBlockX;
+					  
+					  if (!scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz]->shape->block->transparent && blockDistX*viewX + blockDistY*viewY + blockDistZ*viewZ >= 0)
+					  {
+					    
+						  // Terrible black magic is about to happen
+              curChunkXLeft = dChunkX;
+              curChunkXRight = dChunkX;
+              curChunkZLeft = dChunkZ;
+              curChunkZRight = dChunkZ;
+              left = dx - 1;
+              right = dx + 1;
+              back = dz - 1;
+              forward = dz + 1;
+
+						  if (dx == 0 && dChunkX > 0)
+						  {
+							  left = CHUNK_X - 1;
+							  curChunkXLeft--;
+						  }
+						  if (dx == CHUNK_X - 1 && dChunkX < CHUNKS - 1)
+						  {
+							  right = 0;
+							  curChunkXRight++;
+						  }
+						  if (dz == 0 && dChunkZ > 0)
+						  {
+							  back = CHUNK_Z - 1;
+							  curChunkZLeft--;
+						  }
+						  if (dz == CHUNK_Z - 1 && dChunkZ < CHUNKS - 1)
+						  {
+							  forward = 0;
+							  curChunkZRight++;
+						  }
+
+						  R3Node *node = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz];
+						  R3Block *block = node->shape->block;
+						  isSelected = (currentSelection == node);
+
+						  double distance = R3Distance(camera.eye, block->box.Centroid());
+              bool tooFar = distance > LODcutoff;
+
+              if (tooFar) 
+              {
+                glDisable(GL_TEXTURE_2D);
+                glDisable(GL_LIGHTING);
+              }
+
+              //double maxhealth;
+
+              //switch (block->blockType)
+              //{
+                //case DIRT_BLOCK:
+                  //maxhealth = DIRT_HEALTH;
+                  //break;
+                //case AIR_BLOCK:
+                  //maxhealth = AIR_HEALTH;
+                  //break;
+                //case LEAF_BLOCK:
+                  //maxhealth = LEAF_HEALTH;
+                  //break;
+                //case WOOD_BLOCK:
+                  //maxhealth = WOOD_HEALTH;
+                  //break;
+                //case STONE_BLOCK:
+                  //maxhealth = STONE_HEALTH;
+                  //break;
+                //case SAND_BLOCK:
+                  //maxhealth = SAND_HEALTH;
+                  //break;
+                //case OBSIDIAN_BLOCK:
+                  //maxhealth = OBSIDIAN_HEALTH;
+                  //break;
+              //}
+
+              //double ratio = block->health;
+              // ATTEMPTING HEALTH COUNTERS
+              
+              // Face 3; this is the the top face, set the material every time
+              if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
+
+              {
+                if (tooFar) 
+                  FindColor(block, true);
+                else 
+                  FindMaterial(block, true);
+                block->Draw(3, isSelected);
+                faceCount++;
+              }
+
+              // Face 0; first face decides if others get material or solid color
+              if (left >= 0 && scene->terrain[curChunkXLeft][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
+              {
+                // Only swap materials for the dirt block
+                if (block->blockType == DIRT_BLOCK)
+                {
+                  if (tooFar) 
+                    FindColor(block, false);
+                  else 
+                    FindMaterial(block, false);
+                }
+                block->Draw(0, isSelected);
+                faceCount++;
+              }
+
+              // Face 1
+              if (right < CHUNK_X && scene->terrain[curChunkXRight][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
+              {
+                block->Draw(1, isSelected);
+                faceCount++;
+              }
+
+              // Face 2
+              if (dy - 1 > 0 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
+              {
+                block->Draw(2, isSelected);
+                faceCount++;
+              }
+
+              // Face 4
+              if (back >= 0 && scene->terrain[dChunkX][curChunkZLeft]->chunk[dx][dy][back]->shape->block->transparent)
+              {
+                block->Draw(4, isSelected);
+                faceCount++;
+              }
+
+              // Face 5
+              if (forward < CHUNK_Z && scene->terrain[dChunkX][curChunkZRight]->chunk[dx][dy][forward]->shape->block->transparent)
+              {
+                block->Draw(5, isSelected);
+                faceCount++;
+              }
+              
+              if (tooFar)
+              {
+                glEnable(GL_TEXTURE_2D);
+                glEnable(GL_LIGHTING);
+              }
+            } //end view frustrum check
+					} // end dx
+				} // end dy
+			} // end dz
+		} // end chunk z
+	} // end chunk x
+	
+	fprintf(stderr, "Occlusion Culling Only: Rendered %d faces.\n", faceCount);
+}
+
+
+
+
+void DrawSceneNone(R3Scene *scene) 
+{
+	bool isSelected = false;
+  
+  int faceCount = 0;
+
+	// It's okay, it's okay, we do culling here.
+	for (int dChunkX = 0; dChunkX < CHUNKS; dChunkX++)
+	{
+		for (int dChunkZ = 0; dChunkZ < CHUNKS; dChunkZ++)
+		{
+			for (int dz = 0; dz < CHUNK_Z; dz++)
+			{
+				for (int dy = 0; dy < CHUNK_Y; dy++)
+				{
+					for (int dx = 0; dx < CHUNK_X; dx++)
+          {
+
+						  R3Node *node = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz];
+						  R3Block *block = node->shape->block;
+						  isSelected = (currentSelection == node);
+
+						  double distance = R3Distance(camera.eye, block->box.Centroid());
+              bool tooFar = distance > LODcutoff;
+
+              if (tooFar) 
+              {
+                glDisable(GL_TEXTURE_2D);
+                glDisable(GL_LIGHTING);
+              }
+
+              //double maxhealth;
+
+              //switch (block->blockType)
+              //{
+                //case DIRT_BLOCK:
+                  //maxhealth = DIRT_HEALTH;
+                  //break;
+                //case AIR_BLOCK:
+                  //maxhealth = AIR_HEALTH;
+                  //break;
+                //case LEAF_BLOCK:
+                  //maxhealth = LEAF_HEALTH;
+                  //break;
+                //case WOOD_BLOCK:
+                  //maxhealth = WOOD_HEALTH;
+                  //break;
+                //case STONE_BLOCK:
+                  //maxhealth = STONE_HEALTH;
+                  //break;
+                //case SAND_BLOCK:
+                  //maxhealth = SAND_HEALTH;
+                  //break;
+                //case OBSIDIAN_BLOCK:
+                  //maxhealth = OBSIDIAN_HEALTH;
+                  //break;
+              //}
+
+              //double ratio = block->health;
+              // ATTEMPTING HEALTH COUNTERS
+              
+              // Face 3; this is the the top face, set the material every time
+                if (tooFar) 
+                  FindColor(block, true);
+                else 
+                  FindMaterial(block, true);
+                block->Draw(3, isSelected);
+                faceCount++;
+              // Face 0; first face decides if others get material or solid color
+                // Only swap materials for the dirt block
+                if (block->blockType == DIRT_BLOCK)
+                {
+                  if (tooFar) 
+                    FindColor(block, false);
+                  else 
+                    FindMaterial(block, false);
+                }
+                block->Draw(0, isSelected);
+                faceCount++;
+
+              // Face 1
+                block->Draw(1, isSelected);
+                faceCount++;
+
+
+              // Face 2
+                block->Draw(2, isSelected);
+                faceCount++;
+
+              // Face 4
+                block->Draw(4, isSelected);
+                faceCount++;
+
+              // Face 5
+                block->Draw(5, isSelected);
+                faceCount++;
+              
+              if (tooFar)
+              {
+                glEnable(GL_TEXTURE_2D);
+                glEnable(GL_LIGHTING);
+              }
+					} // end dx
+				} // end dy
+			} // end dz
+		} // end chunk z
+	} // end chunk x
+	
+	fprintf(stderr, "No culling: Rendered %d faces.\n", faceCount);
 }
 
 

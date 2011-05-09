@@ -24,8 +24,9 @@ GenerateChunk(int c_x, int c_z)
       for (int dx = 0; dx < CHUNK_X; dx++)
       {
         int block_type;
-
-        if (dy < CHUNK_Y / 2)
+        if (dy == 0)
+          block_type = OBSIDIAN_BLOCK;
+        else if (dy < CHUNK_Y / 2)
           block_type = DIRT_BLOCK;
         else 
           block_type = AIR_BLOCK;
