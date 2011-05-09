@@ -18,11 +18,11 @@
 static char *input_scene_name = NULL;
 static char *output_image_name = NULL;
 
-// Display variables 
+// Display variables
 
 static bool startMenu = true;
-
 static R3Scene *scene = NULL;
+static R3Camera camera;
 static int show_faces = 1;
 static int show_edges = 0;
 static int show_bboxes = 0;
@@ -47,7 +47,8 @@ static double previous_time = 0;
 static double current_time = 0;
 static int FPS = 0;
 static R3Intersection closestintersect;
-bool dead;
+static map<int, const jitter_point *> j;
+static bool dead;
 static int LODcutoff = 15;
 
 R3Material **materials = new R3Material*[40];
@@ -248,15 +249,21 @@ void InterpolateJump(R3Point *start, R3Vector direction)
     return;
   }
 
-  // Look ma, I can fly!
-  (*start) += R3posy_vector;
-  
-  // Hover in the air, motionlessly for 10 whole redraws!
-  for (int i = 0; i < 10; i++) 
+  int NUM_FRAMES_PER_JUMP = 12;
+
+  // What goes up...
+  for (int i = 0; i < NUM_FRAMES_PER_JUMP / 2; i++)
+  {
+    (*start) += R3posy_vector / (NUM_FRAMES_PER_JUMP / 2);
     GLUTRedraw();
-  
-  // All things that go up must come down (except time).
-  (*start) -= R3posy_vector;
+  }
+  // ...must come down.
+  for (int i = 0; i < NUM_FRAMES_PER_JUMP / 2; i++)
+  {
+    (*start) -= R3posy_vector / (NUM_FRAMES_PER_JUMP / 2);
+    GLUTRedraw();
+  }
+
 }
 
 ////////////////////////////////////////////////////////////
@@ -468,7 +475,6 @@ void RemoveCreature()
 	creatures.erase(currentSelectedCreatureIt);
 }
 
-
 void RemoveCreature(R3Creature *died) 
 {
 	R3Creature *iteration;
@@ -481,14 +487,13 @@ void RemoveCreature(R3Creature *died)
 	}
 }
 
-
-void MoveCharacter(R3Vector translated, double d) {
+void MoveCharacter(R3Vector translated, double d) 
+{
 	printf("TRANSLATED: (%f, %f, %f)", translated.X(), translated.Y(), translated.Z());
 	translated.Normalize();
 	camera.eye = camera.eye + translated*d;
 	GLUTRedraw();
 }
-
 
 void DrawHUD() 
 {  
@@ -529,7 +534,6 @@ void DrawHUD()
 
     // This is just temporary text
     glColor3d(.1, .1, .1);
-    //GLUTDrawText(R3Point(GLUTwindow_width / 2 - 10, GLUTwindow_height - 70, 0), "I am a dock!");
 
 	if(dead) {
 		
@@ -712,7 +716,6 @@ void ChangeHealth(R3Creature *creature, int delta)
 void ChangeHealth(R3Block *block, int delta)
 {
   block->health += delta;
-
 }
 
 ////////////////////////////////////////////////////////////
@@ -823,8 +826,6 @@ void FindColor(R3Block *block, bool isTop)
 		glColor3f(.2, .2, .2);
 
 }
-
-
 
 void LoadMatrix(R3Matrix *matrix)
 {
@@ -953,7 +954,6 @@ void LoadCamera(R3Camera *camera)
   R3Point e = camera->eye;
 
   glMatrixMode(GL_MODELVIEW);
-
 
   glRotatef(rot[1] * 180 / M_PI, 1., 0., 0);
   glRotatef(rot[0] * 180 / M_PI, 0., 1., 0);
@@ -1253,9 +1253,8 @@ void DrawCreatures()
 void UpdateCharacter() 
 {
 	Main_Character->position.Reset(camera.eye.X(), camera.eye.Y(), camera.eye.Z());
-	if(Main_Character->Health <= 0) {
+	if (Main_Character->Health <= 0) 
 		dead = true;
-	}
 }
 
 ////////////////////////////////////////////////////////////
@@ -1264,15 +1263,15 @@ void UpdateCharacter()
 
 void GLUTMainLoop(void)
 {
-	// Run main loop -- never returns 
-	glutMainLoop();
+    // Run main loop -- never returns 
+    glutMainLoop();
 }
 
 void GLUTIdleFunction(void) 
 {
-	
-	if (startMenu == true) {
-		glutPostRedisplay();
+	if (startMenu == true) 
+  {
+    glutPostRedisplay();
 		return;
 	}
 	
@@ -1282,14 +1281,13 @@ void GLUTIdleFunction(void)
 	for (unsigned int i = 0; i < creatures.size(); i++)\
 
 	{
-		if(!dead) {
+		if (!dead) 
+    {
 			direction = creatures[i]->UpdateCreature(Main_Character);
 			direction = InterpolateMotion(&(creatures[i]->position), direction, false);
-			//PRINT_VECTOR(direction);
 			creatures[i]->box.Translate(direction);
 		}
 	}
-
 
   glutPostRedisplay();
 }
@@ -1372,7 +1370,8 @@ void GLUTResize(int w, int h)
     glutPostRedisplay();
 }
 
-void DisplayStartMenu() {
+void DisplayStartMenu() 
+{
 	//printf(":(");
 	int x = GLUTwindow_width;
     int y = GLUTwindow_height;
@@ -1426,81 +1425,105 @@ void DisplayStartMenu() {
 	glEnable(GL_LIGHTING);
 }
 
+void accPerspective(GLdouble fovy, GLdouble aspect, 
+                    GLdouble near, GLdouble far, GLdouble pixdx, GLdouble pixdy, 
+                    GLdouble eyedx, GLdouble eyedy, GLdouble focus)
+{
+   GLdouble fov2, left, right, bottom, top;
+
+   fov2 = fovy / 2;
+
+   top = near * tan(fov2);
+   bottom = -top;
+   right = top * aspect;
+   left = -right;
+
+   glMatrixMode(GL_PROJECTION);
+   glLoadIdentity();
+
+   GLint viewport[4];
+
+   glGetIntegerv(GL_VIEWPORT, viewport);
+
+   GLdouble xwsize = right - left;
+   GLdouble ywsize = top - bottom;
+   GLdouble dx = -(pixdx * xwsize / (GLdouble)viewport[2] + eyedx * near / focus);
+   GLdouble dy = -(pixdy * ywsize / (GLdouble)viewport[3] + eyedy * near / focus);
+
+   glFrustum (left + dx, right + dx, bottom + dy, top + dy, near, far);
+}
+
 void GLUTRedraw(void)
 {
-	
-    // Time stuff
-    current_time = GetTime();
-    // program just started up?
-    if (previous_time == 0) previous_time = current_time;
-    double delta_time = current_time - previous_time;
-    FPS = (int)1.0/delta_time;
+  // Time stuff
+  current_time = GetTime();
+  // program just started up?
+  if (previous_time == 0) previous_time = current_time;
+  double delta_time = current_time - previous_time;
+  FPS = (int)1.0/delta_time;
+  
+  // Clear window 
+  glClearColor(background[0], background[1], background[2], background[3]);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  // Initialize selected block
+  AlignReticle();
+
+  // Load scene lights
+  LoadLights(scene);
+
+  // Clear accumulation buffer
+  glClear(GL_ACCUM_BUFFER_BIT);
+  
+  // Iterate through the jitter array to write to accumulation buffer
+  for (int jitter = 0; jitter < ACSIZE; jitter++) 
+  {
+    // Jitter perspective
+    accPerspective(camera.yfov, 
+                   (GLdouble) GLUTwindow_width /(GLdouble) GLUTwindow_height, 
+                   0.01, 10000, j[2][jitter].x, j[2][jitter].y, 0.0, 0.0, 1.0);
     
-    // Clear window 
-    glClearColor(background[0], background[1], background[2], background[3]);
+    towards.Reset(0, 0, -1);
+    float n[16], *nn = n;
+    R3Point e = camera.eye;
+
+    // Set up modelview matrix
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    
+    // Re-transform
+    glRotatef(rot[1] * 180 / M_PI, 1., 0., 0);
+    glRotatef(rot[0] * 180 / M_PI, 0., 1., 0);
+    glTranslated(-e[0], -e[1], -e[2]);
+
+    // Get the current transformation matrix
+    glGetFloatv(GL_MODELVIEW_MATRIX, n);
+
+    R3Matrix rotation = R3Matrix(nn);
+    towards.Transform(rotation);
+    towards.Normalize();
+
+    // Clear screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Initialize selected block
-    AlignReticle();
-
-    // Load camera
-    LoadCamera(&camera);
-
-    // Load scene lights
-    LoadLights(scene);
-
-	
-	/*if (startMenu == true) {
-		DisplayStartMenu();
-		return;
-	}*/
-	
     // Draw scene surfaces
-    if (show_faces && !startMenu) {
-        glEnable(GL_LIGHTING);
-        DrawScene(scene);
-        DrawCreatures();
+    if (show_faces && !startMenu) 
+    {
+      glEnable(GL_LIGHTING);
+      DrawScene(scene);
+      DrawCreatures();
     }
-
     // Draw scene edges
-    if (show_edges) {
-        glDisable(GL_LIGHTING);
-        glColor3d(0., 0., 0.);
-        glLineWidth(3);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        DrawScene(scene);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glLineWidth(1);
+    if (show_edges && !startMenu) 
+    {
+      glDisable(GL_LIGHTING);
+      glColor3d(0., 0., 0.);
+      glLineWidth(3);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      DrawScene(scene);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glLineWidth(1);
     }
-
-    // Save image
-    if (save_image) {
-        char image_name[256];
-        static int image_number = 1;
-        for (;;) {
-            sprintf(image_name, "image%d.jpg", image_number++);
-            FILE *fp = fopen(image_name, "r");
-            if (!fp) break; 
-            else fclose(fp);
-        }
-        GLUTSaveImage(image_name);
-        printf("Saved %s\n", image_name);
-        save_image = 0;
-    }
-
-	// Quit here so that can save image before exit
-	if (quit) {
-		if(toSave) {
-			if (output_image_name) GLUTSaveImage(output_image_name);
-			//write new scene based on changes
-
-			if (!scene->WriteScene(input_scene_name))
-			{
-				fprintf(stderr, "WARNING: Couldn't save new scene!!!\n");
-			}
-		}
-		GLUTStop();
-	}
 
     // Get into 2D mode
     glMatrixMode (GL_PROJECTION);
@@ -1511,68 +1534,107 @@ void GLUTRedraw(void)
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING); 
-
-	if (!startMenu) {
-    DrawHUD();
-	}
-	else {
-		DisplayStartMenu();
-	}
+    
+    if (!startMenu)
+      DrawHUD();
+    else
+      DisplayStartMenu();
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING); 
 
-    // Swap buffers 
-    glutSwapBuffers();
-    
-    previous_time = current_time;
+    // Add back buffer (the one written to) to the accumulation buffer and
+    // weight with a fraction of the jitter size
+    glAccum(GL_ACCUM, 1.0 / ACSIZE);
+ }
+
+  // Put the composited buffer together and write to back buffer
+  glAccum (GL_RETURN, 1.0);
+
+  // Move back buffer to front and relish the fruits of your labor.
+  glutSwapBuffers();
+
+  // Save image
+  if (save_image) 
+  {
+    char image_name[256];
+    static int image_number = 1;
+    for (;;) {
+      sprintf(image_name, "image%d.jpg", image_number++);
+      FILE *fp = fopen(image_name, "r");
+      if (!fp) break; 
+      else fclose(fp);
+    }
+    GLUTSaveImage(image_name);
+    printf("Saved %s\n", image_name);
+    save_image = 0;
+  }
+
+  // Quit here so that can save image before exit
+  if (quit) 
+  {
+    if(toSave) 
+    {
+      if (output_image_name) GLUTSaveImage(output_image_name);
+
+      // Write new scene based on changes
+      if (!scene->WriteScene(input_scene_name))
+      {
+          fprintf(stderr, "WARNING: Couldn't save new scene!!!\n");
+      }
+    }
+
+    GLUTStop();
+  }
+
+  previous_time = current_time;
 }    
 
 void GLUTPassiveMotion(int x, int y)
 {
-    if (!CAPTURE_MOUSE) 
-    {
-        GLUTmouse[0] = x;
-        GLUTmouse[1] = y;
-        return;
-    }
+  if (!CAPTURE_MOUSE) 
+  {
+    GLUTmouse[0] = x;
+    GLUTmouse[1] = y;
+    return;
+  }
 
-    // Invert y coordinate
-    y = GLUTwindow_height - y;
+  // Invert y coordinate
+  y = GLUTwindow_height - y;
 
-    // Compute mouse movement
-    int dx = x - GLUTmouse[0];
-    int dy = y - GLUTmouse[1];
+  // Compute mouse movement
+  int dx = x - GLUTmouse[0];
+  int dy = y - GLUTmouse[1];
 
-    if (x < 30 || x > GLUTwindow_width - 30 || 
-            y < 30 || y > GLUTwindow_height - 30)
-    {
-        glutWarpPointer(GLUTwindow_width / 2, GLUTwindow_height / 2);
-        GLUTmouse[0] = x;
-        GLUTmouse[1] = y;
-        glutPostRedisplay();
-        return;
-    }
-
-    if (x == GLUTwindow_width / 2 && y == GLUTwindow_height / 2)
-    {
-        GLUTmouse[0] = x;
-        GLUTmouse[1] = y;
-        glutPostRedisplay();
-        return;
-    }
-
-    // Compute ratios to approximate angle of rotation
-    double vx = (double) dx / (double) GLUTwindow_width;
-    double vy = (double) dy / (double) GLUTwindow_height;
-
-    // Update and clamp x-rotation and y-rotation
-    rot[0] = WRAP(rot[0] + vx, -M_2PI, M_2PI);
-    rot[1] = CLAMP(rot[1] - vy, -M_PI / 2, M_PI / 2);
-
+  if (x < 30 || x > GLUTwindow_width - 30 || 
+      y < 30 || y > GLUTwindow_height - 30)
+  {
+    glutWarpPointer(GLUTwindow_width / 2, GLUTwindow_height / 2);
     GLUTmouse[0] = x;
     GLUTmouse[1] = y;
     glutPostRedisplay();
+    return;
+  }
+
+  if (x == GLUTwindow_width / 2 && y == GLUTwindow_height / 2)
+  {
+    GLUTmouse[0] = x;
+    GLUTmouse[1] = y;
+    glutPostRedisplay();
+    return;
+  }
+
+  // Compute ratios to approximate angle of rotation
+  double vx = (double) dx / (double) GLUTwindow_width;
+  double vy = (double) dy / (double) GLUTwindow_height;
+
+  // Update and clamp x-rotation and y-rotation
+  rot[0] = WRAP(rot[0] + vx, -M_2PI, M_2PI);
+  rot[1] = CLAMP(rot[1] - vy, -M_PI / 2, M_PI / 2);
+
+  GLUTmouse[0] = x;
+  GLUTmouse[1] = y;
+  glutPostRedisplay();
 }
 
 void GLUTMouse(int button, int state, int x, int y)
@@ -1842,34 +1904,17 @@ void GLUTCommand(int cmd)
     glutPostRedisplay();
 }
 
-void GLUTCreateMenu(void)
-{
-  /*  // Display sub-menu
-    int display_menu = glutCreateMenu(GLUTCommand);
-    glutAddMenuEntry("Faces (F)", DISPLAY_FACE_TOGGLE_COMMAND);
-    glutAddMenuEntry("Edges (E)", DISPLAY_EDGE_TOGGLE_COMMAND);
-    glutAddMenuEntry("Bounding boxes (B)", DISPLAY_BBOXES_TOGGLE_COMMAND);
-    glutAddMenuEntry("Lights (L)", DISPLAY_LIGHTS_TOGGLE_COMMAND);
-    glutAddMenuEntry("Camera (C)", DISPLAY_CAMERA_TOGGLE_COMMAND);
-
-    // Main menu
-    glutCreateMenu(GLUTCommand);
-    glutAddSubMenu("Display", display_menu);
-    glutAddMenuEntry("Save Image (F1)", SAVE_IMAGE_COMMAND);
-    glutAddMenuEntry("Quit", QUIT_COMMAND);
-
-    // Attach main menu to right mouse button
-    glutAttachMenu(GLUT_RIGHT_BUTTON);*/
-}
-
 void GLUTInit(int *argc, char **argv)
 {
     // Open window 
     glutInit(argc, argv);
     glutInitWindowPosition(100, 100);
     glutInitWindowSize(GLUTwindow_width, GLUTwindow_height);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // | GLUT_STENCIL
+    glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_ACCUM | GLUT_DEPTH);
+
     GLUTwindow = glutCreateWindow("OpenGL Viewer");
+    glShadeModel(GL_SMOOTH);
+    glEnable(GL_BLEND);
 
     // Initialize GLUT callback functions 
     glutReshapeFunc(GLUTResize);
@@ -1879,7 +1924,7 @@ void GLUTInit(int *argc, char **argv)
     glutMouseFunc(GLUTMouse);
     glutPassiveMotionFunc(GLUTPassiveMotion);
     glutEntryFunc(GLUTMouseEntry);
-	glutIdleFunc(GLUTIdleFunction);
+    glutIdleFunc(GLUTIdleFunction);
 
     // Initialize graphics modes 
     glEnable(GL_NORMALIZE);
@@ -1887,19 +1932,19 @@ void GLUTInit(int *argc, char **argv)
     glEnable(GL_DEPTH_TEST);
     glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
 
-    // Create menus
-    GLUTCreateMenu();
 
     // Initialize OpenGL drawing modes
     glEnable(GL_LIGHTING);
-    glDisable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ZERO);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(true);
+    glClearAccum(0.0, 0.0, 0.0, 0.0);
 
     //Initialize Character    
-	Main_Character = new R3Character();
-	//R3Creature *newcreature1 = new R3Creature(R3Point(-2, .5, -3), R3SUICIDE_CREATURE);
-	//creatures.push_back(newcreature1);
+    Main_Character = new R3Character();
+    R3Creature *newcreature1 = new R3Creature(R3Point(-2, .5, -3), R3COW_CREATURE);
+    R3Creature *newcreature2 = new R3Creature(R3Point(2, .5, -3), R3DEER_CREATURE);
+    creatures.push_back(newcreature1);
+    creatures.push_back(newcreature2);
 }
 
 ////////////////////////////////////////////////////////////
@@ -2047,6 +2092,10 @@ void KillALData()
 
 int main(int argc, char **argv)
 {
+    // Set up jitter map
+    j[2] = j2;
+    j[4] = j4;
+
     // Initialize GLUT
     GLUTInit(&argc, argv);
 
