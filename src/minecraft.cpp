@@ -55,12 +55,14 @@ static int FPS = 0;
 static int LODcutoff = 15;
 static int worldbuilder = 0;
 static int currentLevel = 0;
+static int num_creatures_to_make = 0;
 static float picker_height = 10;
 static float picker_width = 10;
 static double previous_time = 0;
 static double current_time = 0;
 static double previousLevelTime = 0;
-static double distanceToRenderCreature = 10;
+static double distanceToRenderCreature = 30;
+static double distanceToUpdateCreature = 20;
 static double AlignReticleDistance = 10;
 static R3Rgb background = R3Rgb(0.529, 0.807, 0.980, 1.);
 static R3Scene *scene = NULL;
@@ -255,6 +257,17 @@ R3Vector InterpolateMotion(R3Point *start, R3Vector direction, bool isCharacter)
 	// Starting from below character, keep going down until you find something
 	// you can't walk through 
 	for (int i = (isCharacter) ? coords.y - 2 : coords.y - 1; i >= 0; i--)
+	{
+		R3Node *current = coords.current->chunk[coords.x][i][coords.z];
+		R3Block *curBlock = current->shape->block;
+
+		if (curBlock->walkable)
+			fallIndex = i;
+		else if (fallIndex != -1)
+			break;
+	}	
+
+	for (int i = (!isCharacter) ? coords.y : coords.y - 1; i >= 0; i--)
 	{
 		R3Node *current = coords.current->chunk[coords.x][i][coords.z];
 		R3Block *curBlock = current->shape->block;
@@ -558,6 +571,7 @@ void DrawHUD()
 
 void DrawHUD_Hearts() 
 {
+	glDisable(GL_TEXTURE_2D);
 	int x = GLUTwindow_width;
 	int y = GLUTwindow_height;
 
@@ -582,6 +596,7 @@ void DrawHUD_Hearts()
 
 	glPopMatrix();
 	glColor3d(.7, .7, .7);
+	glEnable(GL_TEXTURE_2D);
 }
 
 void DrawHUD_Inventory() 
@@ -735,8 +750,15 @@ void ChangeHealth(R3Creature *creature, int delta)
 
 	if (creature->Health <= 0) 
   {
-    Main_Character->Health = MIN(Main_Character->Health + creature->MaxHealth,
-                                 Main_Character->MaxHealth);
+	  if(creature->creaturetype == R3COW_CREATURE) {
+		  Main_Character->Health = MIN(Main_Character->Health + 2,
+			  Main_Character->MaxHealth);
+	  }
+	  else if (creature->creaturetype == R3DEER_CREATURE) {
+
+		  Main_Character->Health = MIN(Main_Character->Health + 1,
+			  Main_Character->MaxHealth);
+	  }
 		RemoveCreature();
 	}
 }
@@ -1085,6 +1107,9 @@ void DrawCreatures()
 			glEnable(GL_LIGHTING);
 		}
 	}*/
+
+		double d = R3Distance(camera.eye, (*it)->box.centroid);
+		if(d > distanceToRenderCreature) continue;
 	float view[16];
 	
 	glGetFloatv(GL_MODELVIEW_MATRIX, view);
@@ -1161,12 +1186,85 @@ void DrawCreatures()
 }
 }
 
-void GenerateCreatures() 
+void GenerateCreatures(int num_to_create) 
 {
-	int num_to_create = 1;
+	//int num_to_create = 10;
 	double distance_to_gen = 8;
 
+	//total number of horizontal chunks
+	double numspaces = CHUNKS*CHUNKS*CHUNK_X*CHUNK_Z;
 
+	double probability = 1/numspaces;
+	probability = num_to_create * probability;
+
+	//loop through all chunks around you and find one that has two air above it
+	for (int dChunkX = 0; dChunkX < CHUNKS; dChunkX++)
+	{
+		for (int dChunkZ = 0; dChunkZ < CHUNKS; dChunkZ++)
+		{
+			for (int dz = 0; dz < CHUNK_Z; dz++)
+			{
+				for (int dy = 0; dy < CHUNK_Y-2; dy++)
+				{
+					for (int dx = 0; dx < CHUNK_X; dx++)
+					{
+						//printf("InterBlock.\n");
+						R3Block *currentblock = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz]->shape->block;
+						if(!currentblock->transparent) {
+							R3Block *aboveblock = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy+1][dz]->shape->block;
+							if(aboveblock->transparent) {
+								R3Block *secondaboveblock = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy+2][dz]->shape->block;
+								if(secondaboveblock->transparent) {
+									//printf("We have a valid block at (%d, %d) and (%d, %d, %d)\n", dChunkX, dChunkZ, dx, dy, dz);
+									int randomnum = (int)(RandomNumber() / probability);
+
+									//CREATE A MONSTER!!
+									if(randomnum == 0) {
+										double x = RandomNumber()*2 - 1;
+										double z = RandomNumber()*2 - 1;
+										int rand_creature = (int)(RandomNumber() * 3);
+
+										//create a point at the location of the centroid of the box
+										R3Point newpoint(aboveblock->box.centroid);
+										R3Creature *newcreature1;
+										switch (rand_creature)
+										{
+										case 0: 
+											newcreature1 = new R3Creature(newpoint, R3COW_CREATURE);
+											break;
+										case 1:    
+
+											newcreature1 = new R3Creature(newpoint, R3DEER_CREATURE);
+											break;
+										case 2:
+
+											newcreature1 = new R3Creature(newpoint, R3SUICIDE_CREATURE);
+											break;
+										}
+										creatures.push_back(newcreature1);
+									}
+									//THIS IS A VALID BLOCK TO PUT A CREATURE ON!!!!
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 	for (int rohan_i = 0; rohan_i < num_to_create; rohan_i++) 
   {
 		double x = RandomNumber()*2 - 1;
@@ -1195,19 +1293,23 @@ void GenerateCreatures()
 			break;
 		}
 		creatures.push_back(newcreature1);
-	}
+	}*/
 }
 
 void UpdateCharacter() 
 {
 	Main_Character->position.Reset(camera.eye.X(), camera.eye.Y(), camera.eye.Z());
-
+	/*printf("inventory: ");
+					for (int i = 0; i < 8; i++)
+						printf("%d, ", Main_Character->number_items[i]);
+					printf("\n");*/
 	if (worldbuilder) 
   {
-    memset(Main_Character->number_items, INT_MAX, 5);
-		//for(int i = 0; i < 5; i++) {
-			//Main_Character->number_items[i] = INT_MAX;
-		//}
+	  //memset doesn't work for me......
+    //memset(Main_Character->number_items, INT_MAX, 5);
+		for(int i = 0; i < 5; i++) {
+			Main_Character->number_items[i] = INT_MAX;
+		}
 	}
 
 	R3Index loc = getChunkCoordinates(Main_Character->position);
@@ -1284,11 +1386,13 @@ void GLUTIdleFunction(void)
 		return;
 	}
 
-	if (worldbuilder == 0 && GetTime() >= previousLevelTime + 5) 
+	if (worldbuilder == 0 && GetTime() >= previousLevelTime + 10) 
   {
 		currentLevel++;
 		previousLevelTime = GetTime();
-		GenerateCreatures();
+
+		GenerateCreatures(num_creatures_to_make);
+		num_creatures_to_make += 10;
 		printf("Now on Level %d! with %d Creatures.\n", currentLevel, creatures.size());
 	}
 
@@ -1314,8 +1418,7 @@ void GLUTIdleFunction(void)
         direction = creatures[i]->UpdateCreature(Main_Character);
 
 		if(direction == R3zero_vector) continue;
-		
-        InterpolateMotion(&(creatures[i]->position), direction, false);
+		if(creaturedist < distanceToUpdateCreature) InterpolateMotion(&(creatures[i]->position), direction, false);
       }
     }
   }
@@ -1814,22 +1917,24 @@ void GLUTMouse(int button, int state, int x, int y)
 			int block;
 			int item = Main_Character->item;
 			printf("%d\n", item);
-			//block = STONE_BLOCK;
-			if (item < 8) 
-			{
-				if (Main_Character->number_items[item] > 0) 
-				{
-					if (item == R3BLOCK_DIRT) block = DIRT_BLOCK;
-					if (item == R3BLOCK_WOOD) block = WOOD_BLOCK;
-					if (item == R3BLOCK_STONE) { block = STONE_BLOCK; }
-					if (item == R3BLOCK_SAND) block = SAND_BLOCK;
-					if (item == R3BLOCK_OBSIDIAN) block = OBSIDIAN_BLOCK;
 
-					Main_Character->number_items[item]--;
-					if (Main_Character->number_items[item] == 0) {
-						Main_Character->item = R3BLOCK_AIR;
+			if (currentSelection) {
+				if (item < 8) 
+				{
+					if (Main_Character->number_items[item] > 0) 
+					{
+						if (item == R3BLOCK_DIRT) block = DIRT_BLOCK;
+						if (item == R3BLOCK_WOOD) block = WOOD_BLOCK;
+						if (item == R3BLOCK_STONE) { block = STONE_BLOCK; }
+						if (item == R3BLOCK_SAND) block = SAND_BLOCK;
+						if (item == R3BLOCK_OBSIDIAN) block = OBSIDIAN_BLOCK;
+
+						Main_Character->number_items[item]--;
+						if (Main_Character->number_items[item] == 0) {
+							Main_Character->item = R3BLOCK_AIR;
+						}
+						AddBlock(block);
 					}
-					AddBlock(block);
 				}
 			}
 		}
@@ -2088,7 +2193,8 @@ void GLUTInit(int *argc, char **argv)
 
 	//Initialize Character    
 	Main_Character = new R3Character();
-	GenerateCreatures();
+
+	//GenerateCreatures();
 	//R3Creature *newcreature1 = new R3Creature(R3Point(-2, .5, -3), R3COW_CREATURE);
 	//R3Creature *newcreature2 = new R3Creature(R3Point(30, .5, -2), R3DEER_CREATURE);
 	//creatures.push_back(newcreature1);
@@ -2308,7 +2414,7 @@ int main(int argc, char **argv)
 
 
 /*
- _______  ______   _______  _        ______   _______  _       
+_______  ______   _______  _        ______   _______  _       
 (  ___  )(  ___ \ (  ___  )( (    /|(  __  \ (  ___  )( (    /|
 | (   ) || (   ) )| (   ) ||  \  ( || (  \  )| (   ) ||  \  ( |
 | (___) || (__/ / | (___) ||   \ | || |   ) || |   | ||   \ | |
@@ -2316,8 +2422,8 @@ int main(int argc, char **argv)
 | (   ) || (  \ \ | (   ) || | \   || |   ) || |   | || | \   |
 | )   ( || )___) )| )   ( || )  \  || (__/  )| (___) || )  \  |
 |/     \||/ \___/ |/     \||/    )_)(______/ (_______)|/    )_)
-                                                               
- _______  _        _                   _______  _______  _______ 
+
+_______  _        _                   _______  _______  _______ 
 (  ___  )( \      ( \        |\     /|(  ___  )(  ____ )(  ____ \
 | (   ) || (      | (        | )   ( || (   ) || (    )|| (    \/
 | (___) || |      | |        | (___) || |   | || (____)|| (__    
@@ -2325,8 +2431,8 @@ int main(int argc, char **argv)
 | (   ) || |      | |        | (   ) || |   | || (      | (      
 | )   ( || (____/\| (____/\  | )   ( || (___) || )      | (____/\
 |/     \|(_______/(_______/  |/     \|(_______)|/       (_______/
-                                                                 
- _______  _        _                   _______                      _______ 
+
+_______  _        _                   _______                      _______ 
 (  ___  )( \      ( \        |\     /|(  ____ \  |\     /||\     /|(  ___  )
 | (   ) || (      | (        ( \   / )| (    \/  | )   ( || )   ( || (   ) |
 | (___) || |      | |         \ (_) / | (__      | | _ | || (___) || |   | |
@@ -2334,8 +2440,8 @@ int main(int argc, char **argv)
 | (   ) || |      | |           ) (   | (        | || || || (   ) || |   | |
 | )   ( || (____/\| (____/\     | |   | (____/\  | () () || )   ( || (___) |
 |/     \|(_______/(_______/     \_/   (_______/  (_______)|/     \|(_______)
-                                                                            
- _______  _       _________ _______  _______ 
+
+_______  _       _________ _______  _______ 
 (  ____ \( (    /|\__   __/(  ____ \(  ____ )
 | (    \/|  \  ( |   ) (   | (    \/| (    )|
 | (__    |   \ | |   | |   | (__    | (____)|
@@ -2343,18 +2449,18 @@ int main(int argc, char **argv)
 | (      | | \   |   | |   | (      | (\ (   
 | (____/\| )  \  |   | |   | (____/\| ) \ \__
 (_______/|/    )_)   )_(   (_______/|/   \__/
-                                             
+
 */
 void DrawScene(R3Scene *scene)
 {
-  if (culling == 0)
-    DrawSceneNone(scene);
-  else if (culling == 1)
-    DrawSceneViewFrustrumOnly(scene);
-  else if (culling == 2)
-    DrawSceneOcclusionOnly(scene);
-  else
-    DrawSceneFullOptimization(scene);
+	//if (culling == 0)
+	//	DrawSceneNone(scene);
+	//else if (culling == 1)
+	//	DrawSceneViewFrustrumOnly(scene);
+	//else if (culling == 2)
+	//	DrawSceneOcclusionOnly(scene);
+	//else
+		DrawSceneFullOptimization(scene);
 }
 
 void DrawSceneFullOptimization(R3Scene *scene) 
@@ -2476,6 +2582,8 @@ void DrawSceneFullOptimization(R3Scene *scene)
                 block->Draw(3, isSelected);
                 faceCount++;
               }
+				//ADDED to fix materials
+				//FindMaterial(block, false);
 
               // Face 0; first face decides if others get material or solid color
               if (left >= 0 && scene->terrain[curChunkXLeft][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
@@ -2532,7 +2640,7 @@ void DrawSceneFullOptimization(R3Scene *scene)
 		} // end chunk z
 	} // end chunk x
 	
-	fprintf(stderr, "View Frustrum and Occlusion Culling: Rendered %d faces.\n", faceCount);
+	//printf(stderr, "View Frustrum and Occlusion Culling: Rendered %d faces.\n", faceCount);
 }
 
 
@@ -2661,6 +2769,9 @@ void DrawSceneViewFrustrumOnly(R3Scene *scene)
                 faceCount++;
               }
 
+			  //ADDED to fix materials
+	          //FindMaterial(block, false);
+
               // Face 0; first face decides if others get material or solid color
               if (left >= 0 && scene->terrain[curChunkXLeft][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
               {
@@ -2675,7 +2786,7 @@ void DrawSceneViewFrustrumOnly(R3Scene *scene)
                 block->Draw(0, isSelected);
                 faceCount++;
               }
-
+			  
               // Face 1
               if (right < CHUNK_X && scene->terrain[curChunkXRight][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
               {
@@ -2843,6 +2954,10 @@ void DrawSceneOcclusionOnly(R3Scene *scene)
                 faceCount++;
               }
 
+			  //ADDED to fix materials
+			  
+                    FindMaterial(block, false);
+
               // Face 0; first face decides if others get material or solid color
               if (left >= 0 && scene->terrain[curChunkXLeft][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
               {
@@ -2857,7 +2972,8 @@ void DrawSceneOcclusionOnly(R3Scene *scene)
                 block->Draw(0, isSelected);
                 faceCount++;
               }
-
+					//ADDED to fix materials.
+                  //FindMaterial(block, false);
               // Face 1
               if (right < CHUNK_X && scene->terrain[curChunkXRight][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
               {
@@ -2898,7 +3014,7 @@ void DrawSceneOcclusionOnly(R3Scene *scene)
 		} // end chunk z
 	} // end chunk x
 	
-	fprintf(stderr, "Occlusion Culling Only: Rendered %d faces.\n", faceCount);
+	//fprintf(stderr, "Occlusion Culling Only: Rendered %d faces.\n", faceCount);
 }
 
 

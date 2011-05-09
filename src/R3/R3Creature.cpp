@@ -84,8 +84,6 @@ R3Vector R3Creature::
 
 	box.Translate(box_translation);
 
-	
-
 
 
 
