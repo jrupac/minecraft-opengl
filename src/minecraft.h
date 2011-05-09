@@ -104,6 +104,7 @@ void LoadLights(R3Scene *scene);
 void DrawNode(R3Scene *scene, R3Node *node);
 void DrawScene(R3Scene *scene);
 void DrawCreatures();
+void GenerateCreatures();
 void UpdateCharacter();
 
 // Creature Functions

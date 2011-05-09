@@ -44,12 +44,59 @@ Creature_Attack(R3Character *character, R3Vector translated)
   }
 }
 
+void R3Creature::
+	UpdateCreatureFall(R3Character *character) {
+		
+	//printf("Enter Update Fall.\n");
+		//printf("Animal Pos: (%f, %f, %f)\n", position.X(), position.Y(), position.Z());
+		R3Index coords = getChunkCoordinates(position);
+
+		int fallIndex = -1;
+		for (int i = coords.y; i >= 0; i--)
+		{
+			R3Node *current = coords.current->chunk[coords.x][i][coords.z];
+			//printf("Coords: (%d, %d, %d)\n", coords.x, i, coords.z);
+			//if(current==NULL) printf("ITS NULL. \n");
+			R3Block *curBlock = current->shape->block;
+			//printf("I: %d\n", i);
+			if (curBlock->walkable)
+				fallIndex = i;
+			else if (fallIndex != -1)
+				break;
+		}	
+
+		// The art of falling
+		if (fallIndex != -1) { 	  
+			position -= (coords.y - fallIndex) * R3posy_vector;
+		}
+		
+	//printf("Exit Update Fall..\n");
+
+}
 R3Vector R3Creature::
 	UpdateCreature(R3Character *character)
 {
+
+	
+	//printf("Enter Update Creature.\n");
+	R3Vector box_translation( (position-R3Point(.5, .5, .5)).Point() - box.minpt);
+
+	box.Translate(box_translation);
+
+	
+
+
+
+
+
+
+
+
+
+
+
 	double x, y, z;
 	R3Vector translated;
-
   switch (creaturetype)
   {
     case R3DEER_CREATURE:
@@ -74,6 +121,8 @@ R3Vector R3Creature::
         Creature_Attack(character, translated);
         translated = R3zero_vector;
       }
+	  
+	//printf("Exit Update Creature.\n");
       return translated;
 
     case R3SUICIDE_CREATURE:

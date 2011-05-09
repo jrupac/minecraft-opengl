@@ -66,7 +66,6 @@ class R3Box {
   void Outline(void) const;
   void Print(FILE *fp = stdout) const;
 
- private:
   R3Point minpt;
   R3Point maxpt;
 };

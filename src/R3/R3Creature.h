@@ -15,6 +15,7 @@ class R3Creature {
     R3Creature(void);
     R3Creature(R3Point init, R3CreatureType creaturetype);
     R3Vector UpdateCreature(R3Character *character);
+    void UpdateCreatureFall(R3Character *character);
     void Creature_Attack(R3Character *character, R3Vector translated);
 
   public:
