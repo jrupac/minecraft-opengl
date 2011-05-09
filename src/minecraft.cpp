@@ -53,6 +53,7 @@ static R3Intersection closestintersect;
 static map<int, const jitter_point *> j;
 static bool dead;
 static int LODcutoff = 15;
+static int worldbuilder = 0;
 
 R3Material **materials = new R3Material*[40];
 
@@ -621,6 +622,7 @@ void DrawHUD_Inventory()
         glVertex2f(boxWidth, 0); 
         glEnd();
 
+		//Drawing the line
 		if(Main_Character->item == i) {
 			glColor3f(1,1,1);
 		}
@@ -1275,6 +1277,11 @@ void DrawCreatures()
 void UpdateCharacter() 
 {
 	Main_Character->position.Reset(camera.eye.X(), camera.eye.Y(), camera.eye.Z());
+	if(worldbuilder) {
+		for(int i = 0; i < 4; i++) {
+			Main_Character->number_items[i] = INT_MAX;
+		}
+	}
 	if (Main_Character->Health <= 0) 
 		dead = true;
 }
@@ -1465,6 +1472,7 @@ void DisplayStartMenu()
 	glColor3d(.6, .6, .6);
 	GLUTDrawText(R3Point(GLUTwindow_width / 10, GLUTwindow_height / 4.5, 0), "A Tribute by Rohan Bansal, Dmitry Drutskoy, Ajay Roopakalu, Sarah Tang");
 	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 2, 0), "Left click - Play");
+	GLUTDrawTitle(R3Point(GLUTwindow_width / 5, GLUTwindow_height / 1.5, 0), "Press N to enter WorldBuilder Mode");
 //	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.5, 0), "Right click - Create Your Own Level");
 	
 	glEnable(GL_TEXTURE_2D);
@@ -1943,7 +1951,17 @@ void GLUTKeyboard(unsigned char key, int x, int y)
       glutSetCursor(GLUT_CURSOR_INHERIT);
       break;
 	  
-
+	case 'N':
+	case 'n':
+	if (CAPTURE_MOUSE == false) break;	
+	if (startMenu) {
+		
+			worldbuilder = 1;
+			startMenu = false;
+			regularGameplay = true;
+			controlsMenu = false;
+		}
+		break;
     case 'w': 
 		if(dead || !regularGameplay) return;
       difference = InterpolateMotion(&(camera.eye), 
@@ -2051,10 +2069,10 @@ void GLUTInit(int *argc, char **argv)
 
     //Initialize Character    
     Main_Character = new R3Character();
-    R3Creature *newcreature1 = new R3Creature(R3Point(-2, .5, -3), R3COW_CREATURE);
+    /*R3Creature *newcreature1 = new R3Creature(R3Point(-2, .5, -3), R3COW_CREATURE);
     R3Creature *newcreature2 = new R3Creature(R3Point(2, .5, -3), R3DEER_CREATURE);
     creatures.push_back(newcreature1);
-    creatures.push_back(newcreature2);
+    creatures.push_back(newcreature2);*/
 }
 
 ////////////////////////////////////////////////////////////

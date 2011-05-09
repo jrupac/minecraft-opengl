@@ -19,8 +19,21 @@ void MakeMaterials(R3Material **materials)
 	 default_material->indexofrefraction = 1;
 	 default_material->texture = NULL;
 	 default_material->id = 0;
+	 
+	 // Read texture image
+	 default_material->texture = new R2Image();
+	 if (!default_material->texture->Read(s_TexDefault)) {
+	 fprintf(stderr, "Unable to read texture from file");
+	 //	return 0;
+	 }	
+
 	materials[DEFAULT] = default_material;
 	 
+
+
+
+
+
 	R3Material * alldirt_material = new R3Material();
 	 alldirt_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
 	 alldirt_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
