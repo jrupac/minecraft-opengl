@@ -85,9 +85,11 @@ void R3Chunk::
 DeleteChunk()
 {
   //std:: string s;
-  std:: stringstream out;
-  out << s_World << chunk_x << "." << chunk_z << ".scn";
-  WriteChunk(out.str().c_str());
+  //std:: stringstream out;
+  //out << s_World << chunk_x << "." << chunk_z << ".scn";
+  char filename[64];
+  sprintf(filename, "%s%d.%d.scn", s_World, chunk_x, chunk_z);
+  WriteChunk(filename);
   for (int dz = 0; dz < CHUNK_Z; dz++)
   {
     for (int dy = 0; dy < CHUNK_Y; dy++)
@@ -108,8 +110,8 @@ ReadChunk(int xChunkCoord, int zChunkCoord)
 {
   fprintf(stderr, "Chunk found: reading old chunk at chunk pos (%d, %d)\n", xChunkCoord, zChunkCoord);
 
-  std:: string name;
-  std:: stringstream nameS;
+  //std:: string name;
+  //std:: stringstream nameS;
   char filename[1024];
   sprintf(filename, "%s%d.%d.scn", s_World, xChunkCoord, zChunkCoord);
   
@@ -233,36 +235,42 @@ WriteChunk(const char *filename)
   // Assumes blocks
   R3Point chunkStart = chunk[0][0][0]->shape->block->getBox().Min();
 
-  std:: string s;
-  std:: stringstream out;
-  out << "# chunk chunk_id mat_id\n# low_x low_y low_z\n" <<
-         "# block_size (1 side)\n# 16x16x16 (z, y, x) block types\n";
-  out << "chunk 1 -1       " << chunkStart[0] << " " << chunkStart[1] <<
-         " " << chunkStart[2] << " " << "1\n";
+  //std:: string s;
+  //std:: stringstream out;
+  //char temp[1024];
+  fprintf(fp, "# chunk chunk_id mat_id\n# low_x low_y low_z\n# block_size (1 side)\n# 16x16x16 (z, y, x) blocktypes\n");
+  fprintf(fp, "chunk 1 -1    %f %f %f   1\n", chunkStart[0], chunkStart[1], chunkStart[2]);
+  //out << "# chunk chunk_id mat_id\n# low_x low_y low_z\n" <<
+  //       "# block_size (1 side)\n# 16x16x16 (z, y, x) block types\n";
+  //out << "chunk 1 -1       " << chunkStart[0] << " " << chunkStart[1] <<
+  //       " " << chunkStart[2] << " " << "1\n";
 
-  s = out.str();
-  fputs(s.c_str(), fp);
+  //s = out.str();
+  //fputs(temp, fp);
 
   for (int dz = 0; dz < CHUNK_Z; dz++)
   {
     for (int dy = 0; dy < CHUNK_Y; dy++)
     {
-      std:: string tempS;
-      std:: stringstream tempOut;
+      //std:: string tempS;
+      //std:: stringstream tempOut;
 
       for (int dx = 0; dx < CHUNK_X; dx++)
       {
-        tempOut << chunk[dx][dy][dz]->shape->block->getBlockType() << " ";
+        //tempOut << chunk[dx][dy][dz]->shape->block->getBlockType() << " ";
+        fprintf(fp, "%i ", chunk[dx][dy][dz]->shape->block->getBlockType());
       }
-      tempOut << "\n";
+      fprintf(fp, "\n");
+      //tempOut << "\n";
 
-      while (!fputs(tempOut.str().c_str(), fp))
-      {
-        fprintf(stderr, "What the fuck %d %d %d\n", dz, dy, dz);
-      }
+      //while (!fputs(tempOut.str().c_str(), fp))
+      //{
+      //  fprintf(stderr, "What the fuck %d %d %d\n", dz, dy, dz);
+      //}
     }
 
-    fputs("\n", fp);
+    //fputs("\n", fp);
+    fprintf(fp, "\n");
   }
   
   fclose(fp);

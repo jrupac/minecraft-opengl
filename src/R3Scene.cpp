@@ -1074,9 +1074,10 @@ WriteScene(const char* filename)
   for ( it=generatedChunks.begin() ; it != generatedChunks.end(); it++ )
   {
     fprintf(stderr, "Saving chunk: (%d, %d) ", it->first, it->second);
-    std:: stringstream out;
-    out << "chunk " << it->first << " " << it->second << "\n";
-    fputs(out.str().c_str(), fp);
+    //std:: stringstream out;
+    //out << "chunk " << it->first << " " << it->second << "\n";
+    //fputs(out.str().c_str(), fp);
+    fprintf(fp, "chunk %d %d\n", it->first, it->second);
     
   }
   

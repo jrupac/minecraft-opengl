@@ -1144,8 +1144,10 @@ void DrawScene(R3Scene *scene)
           for (int dx = 0; dx < CHUNK_X; dx++)
           {
             // Terrible black magic is about to happen
-            int curChunkX = dChunkX;
-            int curChunkZ = dChunkZ;
+            int curChunkXLeft = dChunkX;
+            int curChunkXRight = dChunkX;
+            int curChunkZLeft = dChunkZ;
+            int curChunkZRight = dChunkZ;
             int left = dx - 1;
             int right = dx + 1;
             int back = dz - 1;
@@ -1154,22 +1156,22 @@ void DrawScene(R3Scene *scene)
             if (dx == 0 && dChunkX > 0)
             {
               left = CHUNK_X - 1;
-              curChunkX--;
+              curChunkXLeft--;
             }
-            else if (dx == CHUNK_X - 1 && dChunkX < CHUNKS - 1)
+            if (dx == CHUNK_X - 1 && dChunkX < CHUNKS - 1)
             {
               right = 0;
-              curChunkX++;
+              curChunkXRight++;
             }
             if (dz == 0 && dChunkZ > 0)
             {
               back = CHUNK_Z - 1;
-              curChunkZ--;
+              curChunkZLeft--;
             }
-            else if (dz == CHUNK_Z - 1 && dChunkZ < CHUNKS - 1)
+            if (dz == CHUNK_Z - 1 && dChunkZ < CHUNKS - 1)
             {
               forward = 0;
-              curChunkZ++;
+              curChunkZRight++;
             }
 
             R3Node *node = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz];
@@ -1183,7 +1185,7 @@ void DrawScene(R3Scene *scene)
 			glDisable(GL_LIGHTING);
 			}
             // Face 0
-            if (left >= 0 && scene->terrain[curChunkX][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
+            if (left >= 0 && scene->terrain[curChunkXLeft][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
 			{
 				if(tooFar) FindColor(block, false);
 				else FindMaterial(block, false);
@@ -1193,7 +1195,7 @@ void DrawScene(R3Scene *scene)
             }
 
             // Face 1
-            if (right < CHUNK_X && scene->terrain[curChunkX][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
+            if (right < CHUNK_X && scene->terrain[curChunkXRight][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
             {
 				if(tooFar) FindColor(block, false);
 				else FindMaterial(block, false);
@@ -1218,7 +1220,7 @@ void DrawScene(R3Scene *scene)
             }
 
             // Face 4
-            if (back > 0 && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][back]->shape->block->transparent)
+            if (back >= 0 && scene->terrain[dChunkX][curChunkZLeft]->chunk[dx][dy][back]->shape->block->transparent)
             {
 				if(tooFar) FindColor(block, false);
 				else FindMaterial(block, false);
@@ -1226,7 +1228,7 @@ void DrawScene(R3Scene *scene)
             }
 
             // Face 5
-            if (forward < CHUNK_Z && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][forward]->shape->block->transparent)
+            if (forward < CHUNK_Z && scene->terrain[dChunkX][curChunkZRight]->chunk[dx][dy][forward]->shape->block->transparent)
             {
 				if(tooFar) FindColor(block, false);
 				else FindMaterial(block, false);
@@ -1467,6 +1469,7 @@ void DisplayStartMenu()
 	
 	glEnable(GL_TEXTURE_2D);
 //	glEnable(GL_LIGHTING);
+
 }
 
 void DisplayControls() 
@@ -1710,8 +1713,8 @@ void GLUTPassiveMotion(int x, int y)
   int dx = x - GLUTmouse[0];
   int dy = y - GLUTmouse[1];
 
-  if (x < 30 || x > GLUTwindow_width - 30 || 
-      y < 30 || y > GLUTwindow_height - 30)
+  if (x < 60 || x > GLUTwindow_width - 60 || 
+      y < 60 || y > GLUTwindow_height - 60)
   {
     glutWarpPointer(GLUTwindow_width / 2, GLUTwindow_height / 2);
     GLUTmouse[0] = x;
