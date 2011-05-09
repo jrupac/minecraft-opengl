@@ -1193,7 +1193,7 @@ void DrawCreatures()
 
 	for (it = creatures.begin(); it < creatures.end(); it++)
 	{
-		if (R3Distance((*it)->position, Main_Character->position) > distanceToRenderCreature) 
+	/*	if (R3Distance((*it)->position, Main_Character->position) > distanceToRenderCreature) 
       continue;
 
 		if ((*it)->creaturetype == R3COW_CREATURE) 
@@ -1216,7 +1216,83 @@ void DrawCreatures()
 			glLineWidth(1);
 			glEnable(GL_LIGHTING);
 		}
+	}*/
+	float view[16];
+	
+	glGetFloatv(GL_MODELVIEW_MATRIX, view);
+	
+	R3Vector right = R3Vector(view[0], view[4], view[8]);
+	R3Vector up = R3Vector(view[1], view[5], view[9]);
+	
+	printf("right: %f, %f, %f\n", right.X(), right.Y(), right.Z());
+	printf("up: %f, %f, %f\n",up.X(), up.Y(), up.Z());
+	
+	right.Normalize();
+	up.Normalize();
+	
+	R3Vector boardLook = camera.eye - (*it)->position;
+	boardLook.Normalize();
+	//board right vector
+	R3Vector boardRight = R3Vector(boardLook);
+	boardRight.Cross(up);
+	//board up vector
+	R3Vector boardUp = R3Vector(boardRight);
+	boardUp.Cross(boardLook);
+	
+	//boardRight *= -1;
+	
+	printf("boardLook: %f, %f, %f\n", boardLook.X(), boardLook.Y(), boardLook.Z());
+	printf("boardRight: %f, %f, %f\n", boardRight.X(), boardRight.Y(), boardRight.Z());
+	printf("boardUp: %f, %f, %f\n", boardUp.X(), boardUp.Y(), boardUp.Z());
+	printf("boardposition: %f, %f, %f\n", (*it)->position.X(), (*it)->position.Y(), (*it)->position.Z());
+	
+	R3Matrix billboard = R3Matrix(boardRight.X(), boardUp.X(), boardLook.X(), (*it)->position.X(),
+								  boardRight.Y(), boardUp.Y(), boardLook.Y(), (*it)->position.Y(),
+								  boardRight.Z(), boardUp.Z(), boardLook.Z(), (*it)->position.Z(),
+								  0, 0, 0, 1);
+	/*	R3Matrix billboard = R3Matrix(boardRight.X(), boardUp.X(), boardLook.X(), 0,
+	 boardRight.Y(), boardUp.Y(), boardLook.Y(), 0.5,
+	 boardRight.Z(), boardUp.Z(), boardLook.Z(), -8,
+	 0, 0, 0, 1);*/
+	
+	glPushMatrix();
+	LoadMatrix(&billboard);
+	//glTranslatef(.25 * x, .9 * y, 0);
+	//	glEnable(GL_BLEND);
+	//	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	
+	//glColor3f(1, 1, 1);
+	
+	LoadMaterial(materials[COW]);
+	
+	glBegin(GL_QUADS);
+	glNormal3d(boardLook.X(),boardLook.Y(), boardLook.Z());
+	glNormal3d(0.0, 0.0, 1.0);
+	glTexCoord2d(0, 1);
+	glVertex2f(-0.5, -0.5);
+	glTexCoord2d(0, 0);
+	glVertex2f(0.5, -0.5);
+	glTexCoord2d(1, 0);
+	glVertex2f(0.5, 0.5); 
+	glTexCoord2d(1, 1);
+	glVertex2f(-0.5, 0.5); 
+	
+	glEnd();
+	
+	glPopMatrix();
+	
+	if (currentSelectedCreatureIt == it) 
+	{
+		glDisable(GL_LIGHTING);
+		glColor3d(0., 0., 0.);
+		glLineWidth(15);
+		glPolygonMode(GL_FRONT, GL_LINE);
+		(*it)->box.Draw();
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glLineWidth(1);
+		glEnable(GL_LIGHTING);
 	}
+}
 }
 
 void GenerateCreatures() 
@@ -1274,7 +1350,7 @@ void ModulateLighting()
 	int nightLength = 1e2;
 	static int nightIndex;
 	static bool isNight = false;
-	double FACTOR = 1e2;
+	double FACTOR = 500e2;
 	R3Rgb diff;
 
 	for (unsigned int i = 0; i < 2; i++)

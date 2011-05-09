@@ -113,7 +113,7 @@ R3Vector R3Creature::
       //translated.SetX(translated.X() + x);
       //translated.SetZ(translated.Z() + z);
       translated.Normalize();
-      translated /= 20;
+      translated /= 80;
 
       // Give me some space!
       if (R3Distance(position + translated, character->position) < 2.f) 
