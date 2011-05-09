@@ -120,11 +120,18 @@ LoadChunk(int x_chunk, int z_chunk)
   }
   else
   {
-    while (!newCh->ReadChunk(x_chunk, z_chunk))
+    int failure = 10;
+    while (!newCh->ReadChunk(x_chunk, z_chunk) && failure > 0)
     {
-      fprintf(stderr, "Unable to open chunk file: %d, %d!!!\n Generating instead!", x_chunk, z_chunk);
-      //newCh->GenerateChunk(x_chunk, z_chunk)
+      fprintf(stderr, "Unable to open chunk file: %d, %d!!!\n %d tries remaining \n", x_chunk, z_chunk, failure);
+      //newCh->GenerateChunk(x_chunk, z_chunk);
+      failure--;
       //return NULL;
+    }
+    if (failure == 1)
+    {
+      fprintf(stderr, "Fuck it - making new chunk. \n");
+      newCh->GenerateChunk(x_chunk, z_chunk);
     }
   }
 

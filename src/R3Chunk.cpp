@@ -115,7 +115,7 @@ ReadChunk(int xChunkCoord, int zChunkCoord)
   // Open file
   FILE *fp;
   if (!(fp = fopen(filename, "r"))) {
-    fprintf(stderr, "Unable to open file %s", filename);
+    fprintf(stderr, "Unable to open file %s\n", filename);
     return 0;
   }
   
