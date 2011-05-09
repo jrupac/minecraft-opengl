@@ -1193,15 +1193,18 @@ void DrawCreatures()
 
 	for (it = creatures.begin(); it < creatures.end(); it++)
 	{
-		if(R3Distance((*it)->position, Main_Character->position) > distanceToRenderCreature) continue;
+		if (R3Distance((*it)->position, Main_Character->position) > distanceToRenderCreature) 
+      continue;
+
 		if ((*it)->creaturetype == R3COW_CREATURE) 
 			LoadMaterial(materials[COW]);
 		else if ((*it)->creaturetype == R3DEER_CREATURE) 
 			LoadMaterial(materials[DEER]);
 		else if ((*it)->creaturetype == R3SUICIDE_CREATURE) 
 			LoadMaterial(materials[SUICIDE]);
-		//printf("Drawing position minpt(%f, %f, %f)\n",  (*it)->box.minpt.X(), (*it)->box.minpt.Y(), (*it)->box.minpt.Z());
+
 		(*it)->box.Draw();
+
 		if (currentSelectedCreatureIt == it) 
 		{
 			glDisable(GL_LIGHTING);
@@ -1220,7 +1223,9 @@ void GenerateCreatures()
 {
 	int num_to_create = 1;
 	double distance_to_gen = 8;
-	for(int rohan_i = 0; rohan_i < num_to_create; rohan_i++) {
+
+	for (int rohan_i = 0; rohan_i < num_to_create; rohan_i++) 
+  {
 		double x = RandomNumber()*2 - 1;
 		double z = RandomNumber()*2 - 1;
 		R3Vector CreatureLocation(x,0,z);
@@ -1229,23 +1234,23 @@ void GenerateCreatures()
 		R3Point newpoint = Main_Character->position + CreatureLocation;
 		newpoint.SetY(14.5);
 		R3Creature *newcreature1 = new R3Creature(newpoint, R3DEER_CREATURE);
-
 		creatures.push_back(newcreature1);
 	}
-
 }
 
 void UpdateCharacter() 
 {
 	Main_Character->position.Reset(camera.eye.X(), camera.eye.Y(), camera.eye.Z());
-	if(worldbuilder) {
-		for(int i = 0; i < 5; i++) {
-			Main_Character->number_items[i] = INT_MAX;
-		}
+
+	if (worldbuilder) 
+  {
+    memset(Main_Character->number_items, INT_MAX, 5);
+		//for(int i = 0; i < 5; i++) {
+			//Main_Character->number_items[i] = INT_MAX;
+		//}
 	}
 
 	R3Index loc = getChunkCoordinates(Main_Character->position);
-	//printf("Character coords: %d, %d, %d\n", loc);
 
 	if (Main_Character->Health <= 0)
   {
@@ -1266,10 +1271,10 @@ void ModulateLighting()
 	static R3Rgb backgroundDayColor = R3Rgb(0.529, 0.807, 0.980, 1.);
 	static R3Rgb backgroundNightColor = R3Rgb(0., 0., 0.400, 1);
 	static R3Rgb nightColor = R3Rgb(.2, .2, .2, 1);
-	int nightLength = 100;
+	int nightLength = 1e2;
 	static int nightIndex;
 	static bool isNight = false;
-	double FACTOR = 100e1;
+	double FACTOR = 1e2;
 	R3Rgb diff;
 
 	for (unsigned int i = 0; i < 2; i++)
@@ -1313,14 +1318,14 @@ void GLUTMainLoop(void)
 
 void GLUTIdleFunction(void) 
 {
-	//printf("Current Time: %f\n", GetTime());
 	if (regularGameplay == false || dead) 
 	{
 		glutPostRedisplay();
 		return;
 	}
 
-	if (worldbuilder == 0 && GetTime() >= previousLevelTime + 5) {
+	if (worldbuilder == 0 && GetTime() >= previousLevelTime + 5) 
+  {
 		currentLevel++;
 		previousLevelTime = GetTime();
 		GenerateCreatures();
@@ -1342,9 +1347,7 @@ void GLUTIdleFunction(void)
         double creaturedist = R3Distance(Main_Character->position, creatures[i]->position);
 
         if (creaturedist < distanceToRenderCreature) 
-        {
           creatures[i]->UpdateCreatureFall(Main_Character);
-        }
         creatures[i]->position.Translate(direction);
       }
     }
@@ -1421,7 +1424,7 @@ void GLUTResize(int w, int h)
 	glViewport(0, 0, w, h);
 
 	// Resize camera vertical field of view to match aspect ratio of viewport
-	camera.yfov = atan(tan(camera.xfov) * (double) h/ (double) w); 
+	camera.yfov = atan(tan(camera.xfov) * (double) h / (double) w); 
 
 	// Remember window size 
 	GLUTwindow_width = w;
@@ -1524,10 +1527,10 @@ void DisplayControls()
 	glEnd();*/
 
 	glBegin(GL_QUADS);
-	glVertex2f(0, 0); 
-	glVertex2f(0, y); 
-	glVertex2f(x, y); 
-	glVertex2f(x, 0); 
+    glVertex2f(0, 0); 
+    glVertex2f(0, y); 
+    glVertex2f(x, y); 
+    glVertex2f(x, 0); 
 	glEnd();
 
 	//glDisable(GL_TEXTURE_2D);
@@ -1542,19 +1545,19 @@ void DisplayControls()
 	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 6*GLUTwindow_height /30, 0), "q - quit");
 	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 7*GLUTwindow_height /30, 0), "shft-q - quit and save world");
 	//GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1, 0), "Left click - Play");
-	//	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.5, 0), "Right click - Create Your Own Level");
+	//GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.5, 0), "Right click - Create Your Own Level");
 
 	//glEnable(GL_TEXTURE_2D);
-	//	glEnable(GL_LIGHTING);
+	//glEnable(GL_LIGHTING);
 }
 
-void accPerspective(GLdouble fovy, GLdouble aspect, 
-	GLdouble near_p, GLdouble far_p, GLdouble pixdx, GLdouble pixdy, 
-	GLdouble eyedx, GLdouble eyedy, GLdouble focus)
+void JitterPerspective(GLdouble fovy, GLdouble aspect, GLdouble near_p, 
+                       GLdouble far_p, GLdouble pixdx, GLdouble pixdy, 
+	                     GLdouble eyedx, GLdouble eyedy, GLdouble focus)
 {
 	GLdouble fov2, left, right, bottom, top;
 
-	fov2 = fovy / 2;
+	fov2 = fovy;
 
 	top = near_p * tan(fov2);
 	bottom = -top;
@@ -1603,7 +1606,7 @@ void GLUTRedraw(void)
 	for (int jitter = 0; jitter < ACSIZE; jitter++) 
 	{
 		// Jitter perspective
-		accPerspective(camera.yfov, 
+		JitterPerspective(camera.yfov, 
 			(GLdouble) GLUTwindow_width /(GLdouble) GLUTwindow_height, 
 			0.01, 10000, j[2][jitter].x, j[2][jitter].y, 0.0, 0.0, 1.0);
 

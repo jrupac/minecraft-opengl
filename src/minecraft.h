@@ -2,25 +2,20 @@
 #define __MINECRAFT_H__
 
 #include <sstream>
+#include <map>
 
 #include "R3/R3.h"
 #include "R3Scene.h"
 #include "raytrace.h"
 #include "cos426_opengl.h"
 
-#include <map>
-
-#ifdef _WIN32
-#  include <windows.h>
-#else
-#  include <sys/time.h>
-#endif
-
-#define M_2PI (2. *M_PI)
+#define M_2PI (2. * M_PI)
 #define RAD2DEG (180. / M_PI)
+
+// Fudge factor
 #define EPS 1e-4
 
-// Amount of anti-aliasing
+// Amount of anti-aliasing (either 0 = none, 2 = medium, 4 = high
 #define ACSIZE 0
 
 // Return sign of x, with 0 as even
@@ -124,6 +119,9 @@ void GLUTDrawText(const R3Point& p, const char *s);
 void GLUTSaveImage(const char *filename);
 void GLUTStop(void);
 void GLUTResize(int w, int h);
+void JitterPerspective(GLdouble fovy, GLdouble aspect, GLdouble near_p, 
+                       GLdouble far_p, GLdouble pixdx, GLdouble pixdy, 
+	                     GLdouble eyedx, GLdouble eyedy, GLdouble focus);
 void GLUTRedraw(void);
 void GLUTPassiveMotion(int x, int y);
 void GLUTMouse(int button, int state, int x, int y);

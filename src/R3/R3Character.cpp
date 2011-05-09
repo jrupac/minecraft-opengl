@@ -9,9 +9,6 @@ R3Character(void)
 	position = R3Point(0, 0, 0);
 	item = R3BLOCK_AIR;
 
-for (int i = 0; i < 8; i++) {
-		number_items[i] = 0;
-	}
 /*	
 	//NOTE: NOT UPDATED!
 	belt[0] = R3BLOCK_AIR;

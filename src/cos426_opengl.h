@@ -16,9 +16,11 @@
 /* Mac OS */
 #elif defined(__APPLE__) 
 #include <GLUT/glut.h>
+#include <sys/time.h>
 
 /* Linux */
 #else 
+#include <sys/time.h>
 #include <GL/glut.h>
 #include <AL/al.h>
 #include <AL/alc.h>
