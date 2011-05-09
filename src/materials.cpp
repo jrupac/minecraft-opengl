@@ -7,7 +7,7 @@
 
 void MakeMaterials(R3Material **materials) 
 {
-	printf("make materials\n");
+	//printf("make materials\n");
 	  //Load materials
 	 R3Material *default_material = new R3Material();
 	 default_material->ka = R3Rgb(0.2, 0.2, 0.2, 1);
@@ -131,8 +131,24 @@ void MakeMaterials(R3Material **materials)
 	 stone_material->id = 5;
      materials[STONE] = stone_material;
 	
-
-
+	//call me mr.flintstone, cause i can make your bedrock
+	R3Material *bedrock_material = new R3Material();
+	bedrock_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	bedrock_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	bedrock_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	bedrock_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	bedrock_material->emission = R3Rgb(0, 0, 0, 0);
+	bedrock_material->shininess = 10;
+	bedrock_material->indexofrefraction = 1;
+	
+	// Read texture image
+	bedrock_material->texture = new R2Image();
+	if (!bedrock_material->texture->Read(s_TexBedrock)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	bedrock_material->id = 5;
+	materials[BEDROCK] = bedrock_material;
 	 //Icon materials
 
 

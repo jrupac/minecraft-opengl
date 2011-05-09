@@ -437,6 +437,13 @@ void AddBlock(int block)
 
 void RemoveBlock() 
 {
+	//if bedrock, don't destroy
+	if (currentSelection->shape->block->getBlockType() == DIRT_BLOCK) {
+		if (currentSelection->shape->block->dy == 0) {
+			return;
+		}
+	}
+	
   R3Node *lower = currentSelection;
   R3Block *lowerBlock = lower->shape->block;
   //black magic
@@ -792,7 +799,10 @@ void FindMaterial(R3Block *block, bool isTop)
 		LoadMaterial(materials[LEAF]);
 	else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
 	{
-		if (block->getUpper()->getBlockType() == AIR_BLOCK) 
+		if (block->dx == 0) {
+			LoadMaterial(materials[BEDROCK]);
+		}
+		else if (block->getUpper()->getBlockType() == AIR_BLOCK) 
     {
 			if (isTop)
 				LoadMaterial(materials[GRASS]);
