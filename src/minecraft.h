@@ -105,6 +105,8 @@ void UpdateCharacter();
 // Creature Functions
 
 void RemoveCreature();
+
+void RemoveCreature(R3Creature *died);
 void MoveCharacter(R3Vector translated, double d);
 void DrawCreatures();
 void DisplayDeathMenu();

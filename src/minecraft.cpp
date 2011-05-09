@@ -59,7 +59,8 @@ static float picker_width = 10;
 static double previous_time = 0;
 static double current_time = 0;
 static double previousLevelTime = 0;
-static double distanceToRenderCreature = 20;
+static double distanceToRenderCreature = 10;
+static double AlignReticleDistance = 10;
 static R3Rgb background = R3Rgb(0.529, 0.807, 0.980, 1.);
 static R3Scene *scene = NULL;
 static R3Camera camera;
@@ -347,6 +348,7 @@ void AlignReticle()
     // Break if you reach too far with this ray
 		if (!cur.current)
 			break;
+		if( dt > AlignReticleDistance) break;
 
 		R3Node *curNode = cur.current->chunk[cur.x][cur.y][cur.z];
     
@@ -491,10 +493,16 @@ void RemoveCreature()
 
 void RemoveCreature(R3Creature *died) 
 {
-  vector<R3Creature *>::iterator it;
+	//return;
 
-  if ((it = find(creatures.begin(), creatures.end(), died)) != creatures.end())
-    creatures.erase(it);
+  for(unsigned int i = 0; i < creatures.size(); i++) {
+	  printf("Current i: %d\n", i);
+	  if(creatures[i] == died) {
+		  printf("I to be killed: %d\n", i);
+		  creatures.erase(creatures.begin() + i);
+		  break;
+	  }
+  }
 }
 
 void MoveCharacter(R3Vector translated, double d) 
@@ -1195,7 +1203,7 @@ void DrawCreatures()
 	{
 	/*	if (R3Distance((*it)->position, Main_Character->position) > distanceToRenderCreature) 
       continue;
-
+	  
 		if ((*it)->creaturetype == R3COW_CREATURE) 
 			LoadMaterial(materials[COW]);
 		else if ((*it)->creaturetype == R3DEER_CREATURE) 
@@ -1224,8 +1232,6 @@ void DrawCreatures()
 	R3Vector right = R3Vector(view[0], view[4], view[8]);
 	R3Vector up = R3Vector(view[1], view[5], view[9]);
 	
-	printf("right: %f, %f, %f\n", right.X(), right.Y(), right.Z());
-	printf("up: %f, %f, %f\n",up.X(), up.Y(), up.Z());
 	
 	right.Normalize();
 	up.Normalize();
@@ -1240,11 +1246,6 @@ void DrawCreatures()
 	boardUp.Cross(boardLook);
 	
 	//boardRight *= -1;
-	
-	printf("boardLook: %f, %f, %f\n", boardLook.X(), boardLook.Y(), boardLook.Z());
-	printf("boardRight: %f, %f, %f\n", boardRight.X(), boardRight.Y(), boardRight.Z());
-	printf("boardUp: %f, %f, %f\n", boardUp.X(), boardUp.Y(), boardUp.Z());
-	printf("boardposition: %f, %f, %f\n", (*it)->position.X(), (*it)->position.Y(), (*it)->position.Z());
 	
 	R3Matrix billboard = R3Matrix(boardRight.X(), boardUp.X(), boardLook.X(), (*it)->position.X(),
 								  boardRight.Y(), boardUp.Y(), boardLook.Y(), (*it)->position.Y(),
@@ -1263,7 +1264,12 @@ void DrawCreatures()
 	
 	//glColor3f(1, 1, 1);
 	
-	LoadMaterial(materials[COW]);
+		if ((*it)->creaturetype == R3COW_CREATURE) 
+			LoadMaterial(materials[COW]);
+		else if ((*it)->creaturetype == R3DEER_CREATURE) 
+			LoadMaterial(materials[DEER]);
+		else if ((*it)->creaturetype == R3SUICIDE_CREATURE) 
+			LoadMaterial(materials[SUICIDE]);
 	
 	glBegin(GL_QUADS);
 	glNormal3d(boardLook.X(),boardLook.Y(), boardLook.Z());
@@ -1300,16 +1306,34 @@ void GenerateCreatures()
 	int num_to_create = 1;
 	double distance_to_gen = 8;
 
+
 	for (int rohan_i = 0; rohan_i < num_to_create; rohan_i++) 
   {
 		double x = RandomNumber()*2 - 1;
 		double z = RandomNumber()*2 - 1;
+		int rand_creature = (int)(RandomNumber() * 3);
+		
 		R3Vector CreatureLocation(x,0,z);
 		CreatureLocation.Normalize();
 		CreatureLocation *= distance_to_gen;
 		R3Point newpoint = Main_Character->position + CreatureLocation;
-		newpoint.SetY(14.5);
-		R3Creature *newcreature1 = new R3Creature(newpoint, R3DEER_CREATURE);
+		newpoint.SetY(0.5);
+		R3Creature *newcreature1;
+		switch (rand_creature)
+		{
+		case 0: 
+			
+		newcreature1 = new R3Creature(newpoint, R3COW_CREATURE);
+			break;
+		case 1:    
+			
+		newcreature1 = new R3Creature(newpoint, R3DEER_CREATURE);
+			break;
+		case 2:
+			
+		newcreature1 = new R3Creature(newpoint, R3SUICIDE_CREATURE);
+			break;
+		}
 		creatures.push_back(newcreature1);
 	}
 }
@@ -1419,12 +1443,19 @@ void GLUTIdleFunction(void)
     {
       if (!dead) 
       {
-        direction = creatures[i]->UpdateCreature(Main_Character);
+		  
         double creaturedist = R3Distance(Main_Character->position, creatures[i]->position);
+		if(creaturedist >= distanceToRenderCreature) {
+			printf("Creature %d to be killed. \n", i);
+			RemoveCreature(creatures[i]);
+			i--;
+			continue;
+		}
+        direction = creatures[i]->UpdateCreature(Main_Character);
 
-        if (creaturedist < distanceToRenderCreature) 
-          creatures[i]->UpdateCreatureFall(Main_Character);
-        creatures[i]->position.Translate(direction);
+		if(direction == R3zero_vector) continue;
+		
+        InterpolateMotion(&(creatures[i]->position), direction, false);
       }
     }
   }
@@ -2195,7 +2226,7 @@ void GLUTInit(int *argc, char **argv)
 
 	//Initialize Character    
 	Main_Character = new R3Character();
-
+	GenerateCreatures();
 	//R3Creature *newcreature1 = new R3Creature(R3Point(-2, .5, -3), R3COW_CREATURE);
 	//R3Creature *newcreature2 = new R3Creature(R3Point(30, .5, -2), R3DEER_CREATURE);
 	//creatures.push_back(newcreature1);
