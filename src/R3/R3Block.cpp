@@ -1,13 +1,6 @@
 
 #include "R3.h"
 
-#define DIRT_HEALTH 3
-#define AIR_HEALTH -1
-#define LEAF_HEALTH 1
-#define WOOD_HEALTH 2
-#define STONE_HEALTH 5
-#define SAND_HEALTH 1
-#define OBSIDIAN_HEALTH 10
 
 R3Block::
 R3Block(const R3Box& box, int type)
@@ -72,7 +65,37 @@ Draw(void) const
 void R3Block::
 Draw(int face, bool isSelected) const
 {
+	//printf("Why is this called?!!?\n");
+  // Don't draw transparent air blocks
+	
+  if (!transparent) {
+	  
+    box.DrawFace(face);
+  }
 
+  if (!transparent && isSelected)
+  {
+      glDisable(GL_LIGHTING);
+      glColor3d(0., 0., 0.);
+      glLineWidth(15);
+      glPolygonMode(GL_FRONT, GL_LINE);
+
+      box.DrawFace(face);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glLineWidth(1);
+      glEnable(GL_LIGHTING);
+  }
+	
+	glDisable(GL_COLOR_MATERIAL);
+}
+
+
+void R3Block::
+Draw(int face, bool isSelected, double ratio) const
+{
+	/*
+	glColorMaterial(GL_FRONT, GL_DIFFUSE);
+	glColor3f(1, ratio, ratio);*/
   // Don't draw transparent air blocks
   if (!transparent)
     box.DrawFace(face);
@@ -89,6 +112,8 @@ Draw(int face, bool isSelected) const
       glLineWidth(1);
       glEnable(GL_LIGHTING);
   }
+	
+	glDisable(GL_COLOR_MATERIAL);
 }
 
 void R3Block::

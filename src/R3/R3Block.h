@@ -11,6 +11,14 @@ typedef enum {
 	OBSIDIAN_BLOCK //6
 } R3BlockType;
 
+#define DIRT_HEALTH 3
+#define AIR_HEALTH -1
+#define LEAF_HEALTH 1
+#define WOOD_HEALTH 2
+#define STONE_HEALTH 5
+#define SAND_HEALTH 1
+#define OBSIDIAN_HEALTH 10
+
 class R3Block {
  public:
   R3Block(const R3Box& box, int type);
@@ -23,6 +31,7 @@ class R3Block {
 	void setUpper(R3Block *up);
   void Draw(void) const;
   void Draw(int face, bool isSelected) const;
+  void Draw(int face, bool isSelected, double ratio) const;
 
  public:
   R3Box box;

@@ -54,6 +54,7 @@ static map<int, const jitter_point *> j;
 static bool dead;
 static int LODcutoff = 15;
 static int worldbuilder = 0;
+double distanceToRenderCreature = 20;
 
 R3Material **materials = new R3Material*[40];
 
@@ -657,13 +658,13 @@ void DrawHUD_Inventory()
     glPushMatrix();
     glTranslatef(.75 * x, .9 * y, 0.);
 
-	
 	////find correct material to load
-	if(Main_Character->item != 8) {
+	if(Main_Character->item != R3BLOCK_AIR) {
 	if(Main_Character->item == R3BLOCK_DIRT) LoadMaterial(materials[GRASS]);
 	else if(Main_Character->item == R3BLOCK_STONE) LoadMaterial(materials[STONE]);
-
-	//LoadMaterial(materials[STONE]);
+	else if(Main_Character->item == R3BLOCK_WOOD) LoadMaterial(materials[WOOD]);
+	else if(Main_Character->item == R3BLOCK_SAND) LoadMaterial(materials[SAND]);
+	else if(Main_Character->item == R3BLOCK_OBSIDIAN) LoadMaterial(materials[OBSIDIAN]);
 
 	
 	if(Main_Character->item == R3BLOCK_DIRT) LoadMaterial(materials[GRASS]);
@@ -1190,10 +1191,39 @@ void DrawScene(R3Scene *scene)
 				{glDisable(GL_TEXTURE_2D);
 			glDisable(GL_LIGHTING);
 			}
-            // Face 0
-            if (left >= 0 && scene->terrain[curChunkXLeft][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
+			double maxhealth;
+			switch (block->blockType)
+			{
+			case DIRT_BLOCK:
+				maxhealth = DIRT_HEALTH;
+				break;
+			case AIR_BLOCK:
+				maxhealth = AIR_HEALTH;
+				break;
+			case LEAF_BLOCK:
+				maxhealth = LEAF_HEALTH;
+				break;
+			case WOOD_BLOCK:
+				maxhealth = WOOD_HEALTH;
+				break;
+			case STONE_BLOCK:
+				maxhealth = STONE_HEALTH;
+				break;
+			case SAND_BLOCK:
+				maxhealth = SAND_HEALTH;
+				break;
+			case OBSIDIAN_BLOCK:
+				maxhealth = OBSIDIAN_HEALTH;
+				break;
+			}
+			double ratio = block->health;
+
+			// ATTEMPTING HEALTH COUNTERS
+			// Face 0
+			if (left >= 0 && scene->terrain[curChunkXLeft][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
 			{
 				if(tooFar) FindColor(block, false);
+				
 				else FindMaterial(block, false);
 				
 			
@@ -1257,6 +1287,7 @@ void DrawCreatures()
 
   for (it = creatures.begin(); it < creatures.end(); it++)
   {
+	  if(R3Distance((*it)->position, Main_Character->position) > distanceToRenderCreature) continue;
     if ((*it)->creaturetype == R3COW_CREATURE) 
       LoadMaterial(materials[COW]);
     else if ((*it)->creaturetype == R3DEER_CREATURE) 
@@ -1282,10 +1313,14 @@ void UpdateCharacter()
 {
 	Main_Character->position.Reset(camera.eye.X(), camera.eye.Y(), camera.eye.Z());
 	if(worldbuilder) {
-		for(int i = 0; i < 4; i++) {
+		for(int i = 0; i < 5; i++) {
 			Main_Character->number_items[i] = INT_MAX;
 		}
 	}
+
+	R3Index loc = getChunkCoordinates(Main_Character->position);
+	printf("Character coords: %d, %d, %d\n", loc);
+
 	if (Main_Character->Health <= 0) 
 		dead = true;
 }
@@ -1346,6 +1381,7 @@ void GLUTMainLoop(void)
 
 void GLUTIdleFunction(void) 
 {
+	//printf("Current Time: %f\n", GetTime());
   if (regularGameplay == false) 
   {
     glutPostRedisplay();
@@ -1362,8 +1398,12 @@ void GLUTIdleFunction(void)
     if (!dead) 
     {
       direction = creatures[i]->UpdateCreature(Main_Character);
-      direction = InterpolateMotion(&(creatures[i]->position), direction, false);
-      creatures[i]->box.Translate(direction);
+	  double creaturedist = R3Distance(Main_Character->position, creatures[i]->position);
+	  printf("Distance to creature: %f\n", creaturedist);
+	  if(creaturedist < distanceToRenderCreature) {
+		  direction = InterpolateMotion(&(creatures[i]->position), direction, false);
+		 creatures[i]->box.Translate(direction);
+	  }
     }
   }
 
@@ -1828,22 +1868,22 @@ void GLUTMouse(int button, int state, int x, int y)
       printf("%d\n", item);
       //block = STONE_BLOCK;
       if (item < 8) 
-      {
-        if (Main_Character->number_items[item] > 0) 
-        {
-				if (item == R3BLOCK_DIRT) block = DIRT_BLOCK;
-				if (item == R3BLOCK_WOOD) block = WOOD_BLOCK;
-				if (item == R3BLOCK_STONE) { block = STONE_BLOCK; }
-			if (item == R3BLOCK_SAND) block = SAND_BLOCK;
-			if (item == R3BLOCK_OBSIDIAN) block = OBSIDIAN_BLOCK;
-			
-				Main_Character->number_items[item]--;
-				if (Main_Character->number_items[item] == 0) {
-					Main_Character->item = R3BLOCK_AIR;
-				}
-				AddBlock(block);
-			}
-		}
+	  {
+		  if (Main_Character->number_items[item] > 0) 
+		  {
+			  if (item == R3BLOCK_DIRT) block = DIRT_BLOCK;
+			  if (item == R3BLOCK_WOOD) block = WOOD_BLOCK;
+			  if (item == R3BLOCK_STONE) { block = STONE_BLOCK; }
+			  if (item == R3BLOCK_SAND) block = SAND_BLOCK;
+			  if (item == R3BLOCK_OBSIDIAN) block = OBSIDIAN_BLOCK;
+
+			  Main_Character->number_items[item]--;
+			  if (Main_Character->number_items[item] == 0) {
+				  Main_Character->item = R3BLOCK_AIR;
+			  }
+			  AddBlock(block);
+		  }
+	  }
     }
   }
 
@@ -1926,8 +1966,10 @@ void GLUTKeyboard(unsigned char key, int x, int y)
 			  Main_Character->item = R3BLOCK_SAND;
 		  break;
 	  case '5':
-		  if (Main_Character->number_items[R3BLOCK_OBSIDIAN] >0)
+		  if (Main_Character->number_items[R3BLOCK_OBSIDIAN] >0) {
+
 			  Main_Character->item = R3BLOCK_OBSIDIAN;
+		  }
 		  break;
 	  case 'C':
     case 'c':
@@ -2087,10 +2129,10 @@ void GLUTInit(int *argc, char **argv)
 
     //Initialize Character    
     Main_Character = new R3Character();
-    /*R3Creature *newcreature1 = new R3Creature(R3Point(-2, .5, -3), R3COW_CREATURE);
+    R3Creature *newcreature1 = new R3Creature(R3Point(-2, .5, -3), R3COW_CREATURE);
     R3Creature *newcreature2 = new R3Creature(R3Point(2, .5, -3), R3DEER_CREATURE);
     creatures.push_back(newcreature1);
-    creatures.push_back(newcreature2);*/
+    creatures.push_back(newcreature2);
 }
 
 ////////////////////////////////////////////////////////////
