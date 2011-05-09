@@ -799,7 +799,7 @@ void FindMaterial(R3Block *block, bool isTop)
 		LoadMaterial(materials[LEAF]);
 	else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
 	{
-		if (block->dx == 0) {
+		if (block->dy == 0) {
 			LoadMaterial(materials[BEDROCK]);
 		}
 		else if (block->getUpper()->getBlockType() == AIR_BLOCK) 
@@ -1879,7 +1879,7 @@ void GLUTSpecial(int key, int x, int y)
 void GLUTKeyboard(unsigned char key, int x, int y)
 {
   R3Vector difference;
-
+  difference.SetY(0);
   // Invert y coordinate
   y = GLUTwindow_height - y;
 

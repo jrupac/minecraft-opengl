@@ -102,6 +102,7 @@ DeleteChunk()
   }
 }
 
+
 int R3Chunk::
 ReadChunk(int xChunkCoord, int zChunkCoord)
 {
@@ -109,9 +110,11 @@ ReadChunk(int xChunkCoord, int zChunkCoord)
 
   std:: string name;
   std:: stringstream nameS;
-  nameS << s_World << xChunkCoord << "." << zChunkCoord << ".scn";
-  const char *filename = nameS.str().c_str();
-
+  char filename[1024];
+  sprintf(filename, "%s%d.%d.scn", s_World, xChunkCoord, zChunkCoord);
+  
+  //nameS << s_World << xChunkCoord << "." << zChunkCoord << ".scn";
+  
   // Open file
   FILE *fp;
   if (!(fp = fopen(filename, "r"))) {
