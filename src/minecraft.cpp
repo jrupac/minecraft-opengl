@@ -57,6 +57,7 @@ static int worldbuilder = 0;
 double distanceToRenderCreature = 20;
 static int currentLevel = 0;
 static double previousLevelTime = 0;
+static bool DeathMenu;
 
 R3Material **materials = new R3Material*[40];
 
@@ -557,13 +558,13 @@ void DrawHUD()
 
 	// This is just temporary text
 	glColor3d(.1, .1, .1);
-
+/*
 	if(dead) {
 
 		glLineWidth(10);
 		glColor3d(1, 0, 0);
 		GLUTDrawText(R3Point(GLUTwindow_width / 2, GLUTwindow_height/2, 0), "You have died.");
-	}
+	}*/
 }
 
 void DrawHUD_Hearts() 
@@ -1351,8 +1352,15 @@ void UpdateCharacter()
 	R3Index loc = getChunkCoordinates(Main_Character->position);
 	//printf("Character coords: %d, %d, %d\n", loc);
 
-	if (Main_Character->Health <= 0) 
+	if (Main_Character->Health <= 0) {
+		
 		dead = true;
+		DeathMenu = true;
+		show_camera = !show_camera;
+		regularGameplay = false;
+		startMenu = false;
+	}
+
 }
 
 void ModulateLighting()
@@ -1412,7 +1420,7 @@ void GLUTMainLoop(void)
 void GLUTIdleFunction(void) 
 {
 	//printf("Current Time: %f\n", GetTime());
-	if (regularGameplay == false) 
+	if (regularGameplay == false || dead) 
 	{
 		glutPostRedisplay();
 		return;
@@ -1420,7 +1428,7 @@ void GLUTIdleFunction(void)
 
 
 
-	if(GetTime() >= previousLevelTime + 5) {
+	if(worldbuilder == 0 && GetTime() >= previousLevelTime + 5) {
 		currentLevel++;
 		previousLevelTime = GetTime();
 		GenerateCreatures();
@@ -1432,21 +1440,23 @@ void GLUTIdleFunction(void)
 	UpdateCharacter();
 	R3Vector direction;
 
-	for (unsigned int i = 0; i < creatures.size(); i++)
-	{
-		if (!dead) 
+	if(worldbuilder == 0) {
+		for (unsigned int i = 0; i < creatures.size(); i++)
 		{
+			if (!dead) 
+			{
 
-			direction = creatures[i]->UpdateCreature(Main_Character);
-			double creaturedist = R3Distance(Main_Character->position, creatures[i]->position);
-			//printf("Distance to creature: %f\n", creaturedist);
-			if(creaturedist < distanceToRenderCreature) {
-				creatures[i]->UpdateCreatureFall(Main_Character);
-				//direction = InterpolateMotion(&(creatures[i]->position), direction, false);
-				//printf("Passed interpolate motion. \n");
+				direction = creatures[i]->UpdateCreature(Main_Character);
+				double creaturedist = R3Distance(Main_Character->position, creatures[i]->position);
+				//printf("Distance to creature: %f\n", creaturedist);
+				if(creaturedist < distanceToRenderCreature) {
+					creatures[i]->UpdateCreatureFall(Main_Character);
+					//direction = InterpolateMotion(&(creatures[i]->position), direction, false);
+					//printf("Passed interpolate motion. \n");
+				}
+
+				creatures[i]->position.Translate(direction);
 			}
-
-			creatures[i]->position.Translate(direction);
 		}
 	}
 
@@ -1560,6 +1570,42 @@ void DisplayStartMenu()
 	GLUTDrawText(R3Point(GLUTwindow_width / 10, GLUTwindow_height / 4.5, 0), "A Tribute by Rohan Bansal, Dmitry Drutskoy, Ajay Roopakalu, Sarah Tang");
 	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 2, 0), "Left click - Play");
 	GLUTDrawTitle(R3Point(GLUTwindow_width / 5, GLUTwindow_height / 1.5, 0), "Press N to enter WorldBuilder Mode");
+	//	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.5, 0), "Right click - Create Your Own Level");
+
+	glEnable(GL_TEXTURE_2D);
+	//	glEnable(GL_LIGHTING);
+
+}
+void DisplayDeathMenu() 
+{
+	//printf(":(");
+	int x = GLUTwindow_width;
+	int y = GLUTwindow_height;
+
+	//glDisable(GL_LIGHTING);
+
+	glColor3d(1,1,1);
+
+	LoadMaterial(materials[LOGO]);
+
+	glBegin(GL_QUADS);
+	glNormal3d(0.0, 0.0, 1.0);
+	glTexCoord2d(0, 0);
+	glVertex2f(0, 0); 
+	glTexCoord2d(0, 1);
+	glVertex2f(0, y); 
+	glTexCoord2d(1, 1);
+	glVertex2f(x, y); 
+	glTexCoord2d(1, 0);
+	glVertex2f(x, 0); 
+	glEnd();
+
+	glDisable(GL_TEXTURE_2D);
+	glColor3d(.6, .6, .6);
+	GLUTDrawText(R3Point(GLUTwindow_width / 10, GLUTwindow_height / 4.5, 0), "A Tribute by Rohan Bansal, Dmitry Drutskoy, Ajay Roopakalu, Sarah Tang");
+	
+	glColor3f(1, 0,0);
+	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.8, 0), "You have died.");
 	//	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.5, 0), "Right click - Create Your Own Level");
 
 	glEnable(GL_TEXTURE_2D);
@@ -1739,6 +1785,10 @@ void GLUTRedraw(void)
 	else if (controlsMenu) {
 		DisplayControls();
 	}
+	
+	else if (dead) {
+		DisplayDeathMenu();
+	}
 
 
 	glEnable(GL_DEPTH_TEST);
@@ -1870,7 +1920,8 @@ void GLUTMouse(int button, int state, int x, int y)
 			}
 			else if (currentSelection != NULL) 
 			{
-				ChangeHealth(currentSelection->shape->block, -1);
+				if(worldbuilder == 1) ChangeHealth(currentSelection->shape->block, -20);
+				else ChangeHealth(currentSelection->shape->block, -1);
 				//	printf("out of health\n");
 
 				if (currentSelection->shape->block->health <= 0) {
@@ -2101,6 +2152,9 @@ void GLUTKeyboard(unsigned char key, int x, int y)
 			rot[0], rot[1], rot[2],
 			camera.xfov, camera.neardist, camera.fardist); 
 		break; 
+
+	case 'k':
+		Main_Character->Health--;
 	}
 
 	// If you fall too much, you lose health

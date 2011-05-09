@@ -112,6 +112,7 @@ void UpdateCharacter();
 void RemoveCreature();
 void MoveCharacter(R3Vector translated, double d);
 void DrawCreatures();
+void DisplayDeathMenu();
 
 ////////////////////////////////////////////////////////////
 // GLUT USER INTERFACE CODE
