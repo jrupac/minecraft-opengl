@@ -24,7 +24,7 @@ class R3Box {
   double ZMax(void) const;
   double Coord(int dir, int dim) const;
   R3Point Corner(int xdir, int ydir, int zdir) const;
-  R3Point Centroid(void) const;
+  const R3Point Centroid(void) const;
   R3Point ClosestPoint(const R3Point& point) const;
   bool IsEmpty(void) const;
   double XLength(void) const;
@@ -68,6 +68,7 @@ class R3Box {
 
   R3Point minpt;
   R3Point maxpt;
+  R3Point centroid;
 };
 
 
@@ -116,6 +117,12 @@ Max (void) const
   return maxpt;
 }
 
+inline const R3Point R3Box::
+Centroid (void) const
+{
+  // Return center point
+  return centroid;
+}
 
 
 inline double R3Box::
@@ -304,7 +311,6 @@ ZCenter (void) const
   // Return center in Z dimension
   return this->AxisCenter(R3_Z);
 }
-
 
 
 inline bool R3Box::

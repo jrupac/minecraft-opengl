@@ -102,7 +102,6 @@ void LoadMatrix(R3Matrix *matrix);
 void LoadMaterial(R3Material *material);
 void LoadCamera(R3Camera *camera);
 void LoadLights(R3Scene *scene);
-void DrawNode(R3Scene *scene, R3Node *node);
 void DrawScene(R3Scene *scene);
 void DrawCreatures();
 void GenerateCreatures();

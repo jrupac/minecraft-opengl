@@ -32,6 +32,7 @@ R3Box(const R3Box& box)
   : minpt(box.minpt),
     maxpt(box.maxpt)
 {
+  centroid = R3Point(XCenter(), YCenter(), ZCenter());
 }
 
 
@@ -41,6 +42,7 @@ R3Box(const R3Point& minpt, const R3Point& maxpt)
   : minpt(minpt), 
     maxpt(maxpt)
 {
+  centroid = R3Point(XCenter(), YCenter(), ZCenter());
 }
 
 
@@ -51,6 +53,7 @@ R3Box(double xmin, double ymin, double zmin,
   : minpt(xmin, ymin, zmin),
     maxpt(xmax, ymax, zmax)
 {
+  centroid = R3Point(XCenter(), YCenter(), ZCenter());
 }
 
 
@@ -169,15 +172,6 @@ ClosestPoint(const R3Point& point) const
   if (closest.Z() < ZMin()) closest[R3_Z] = ZMin();
   else if (closest.Z() > ZMax()) closest[R3_Z] = ZMax();
   return closest;
-}
-
-
-
-R3Point R3Box::
-Centroid (void) const
-{
-  // Return center point
-  return R3Point(XCenter(), YCenter(), ZCenter());
 }
 
 
