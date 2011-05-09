@@ -24,7 +24,6 @@ static char *output_image_name = NULL;
 static bool startMenu = true;
 static bool controlsMenu = false;
 static bool regularGameplay = false;
-
 static R3Scene *scene = NULL;
 static R3Camera camera;
 static int show_faces = 1;
@@ -1118,13 +1117,6 @@ void DrawNode(R3Scene *scene, R3Node *node)
 void DrawScene(R3Scene *scene) 
 {
   bool isSelected = false;
-  /*int faceCount0 = 0;
-  int faceCount1 = 0;
-  int faceCount2 = 0;
-  int faceCount3 = 0;
-  int faceCount4 = 0;
-  int faceCount5 = 0;
-  int total = 0;*/
 
   // It's okay, it's okay, we do culling here.
   for (int dChunkX = 0; dChunkX < CHUNKS; dChunkX++)
@@ -1137,13 +1129,9 @@ void DrawScene(R3Scene *scene)
         {
           for (int dx = 0; dx < CHUNK_X; dx++)
           {
-            //bool check = false;
-            //total++;
             // Terrible black magic is about to happen
-            int curChunkXLeft = dChunkX;
-            int curChunkXRight = dChunkX;
-            int curChunkZLeft = dChunkZ;
-            int curChunkZRight = dChunkZ;
+            int curChunkX = dChunkX;
+            int curChunkZ = dChunkZ;
             int left = dx - 1;
             int right = dx + 1;
             int back = dz - 1;
@@ -1152,94 +1140,83 @@ void DrawScene(R3Scene *scene)
             if (dx == 0 && dChunkX > 0)
             {
               left = CHUNK_X - 1;
-              curChunkXLeft--;
-              //check = true;
+              curChunkX--;
             }
             else if (dx == CHUNK_X - 1 && dChunkX < CHUNKS - 1)
             {
               right = 0;
-              curChunkXRight++;
+              curChunkX++;
             }
             if (dz == 0 && dChunkZ > 0)
             {
               back = CHUNK_Z - 1;
-              curChunkZLeft--;
+              curChunkZ--;
             }
             else if (dz == CHUNK_Z - 1 && dChunkZ < CHUNKS - 1)
             {
               forward = 0;
-              curChunkZRight++;
+              curChunkZ++;
             }
 
             R3Node *node = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz];
             R3Block *block = node->shape->block;
             isSelected = (currentSelection == node);
+			double distance = R3Distance(camera.eye, block->box.Centroid());
 			bool tooFar = false;
-		  double distance = R3Distance(camera.eye, block->box.Centroid());
 			if(distance > LODcutoff) tooFar = true;
 			if (tooFar) 
 				{glDisable(GL_TEXTURE_2D);
 			glDisable(GL_LIGHTING);
 			}
-			if (!block->transparent)
+            // Face 0
+            if (left >= 0 && scene->terrain[curChunkX][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
 			{
-              // Face 0
-              if (left >= 0 && scene->terrain[curChunkXLeft][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
-			  {
-				  if(tooFar) FindColor(block, false);
-				  else FindMaterial(block, false);
+				if(tooFar) FindColor(block, false);
+				else FindMaterial(block, false);
 				
 			
-				  block->Draw(0, isSelected);
-				  //faceCount0++;
-				  
-              }
+				block->Draw(0, isSelected);
+            }
 
-              // Face 1
-              if (right < CHUNK_X && scene->terrain[curChunkXRight][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
-              {
-				  if(tooFar) FindColor(block, false);
-				  else FindMaterial(block, false);
+            // Face 1
+            if (right < CHUNK_X && scene->terrain[curChunkX][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
+            {
+				if(tooFar) FindColor(block, false);
+				else FindMaterial(block, false);
 
-                block->Draw(1, isSelected);
-                //faceCount1++;
-              }
+              block->Draw(1, isSelected);
+            }
 
-              // Face 2
-              if (dy - 1 > 0 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
-              {
-				  if(tooFar) FindColor(block, false);
-				  else FindMaterial(block, false);
-                block->Draw(2, isSelected);
-                //faceCount2++;
-              }
+            // Face 2
+            if (dy - 1 > 0 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
+            {
+				if(tooFar) FindColor(block, false);
+				else FindMaterial(block, false);
+              block->Draw(2, isSelected);
+            }
 
-              // Face 3; this is the the top face
-              if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
-              {
-				  if(tooFar) FindColor(block, true);
-				  else FindMaterial(block, true);
-                block->Draw(3, isSelected);
-                //faceCount3++;
-              }
+            // Face 3; this is the the top face
+            if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
+            {
+				if(tooFar) FindColor(block, true);
+				else FindMaterial(block, true);
+              block->Draw(3, isSelected);
+            }
 
-              // Face 4
-              if (back > 0 && scene->terrain[dChunkX][curChunkZLeft]->chunk[dx][dy][back]->shape->block->transparent)
-              {
-				  if(tooFar) FindColor(block, false);
-				  else FindMaterial(block, false);
-                block->Draw(4, isSelected);
-                //faceCount4++;
-              }
+            // Face 4
+            if (back > 0 && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][back]->shape->block->transparent)
+            {
+				if(tooFar) FindColor(block, false);
+				else FindMaterial(block, false);
+              block->Draw(4, isSelected);
+            }
 
-              // Face 5
-              if (forward < CHUNK_Z && scene->terrain[dChunkX][curChunkZRight]->chunk[dx][dy][forward]->shape->block->transparent)
-              {
-				  if(tooFar) FindColor(block, false);
-				  else FindMaterial(block, false);
-                block->Draw(5, isSelected);
-                //faceCount5++;
-              }
+            // Face 5
+            if (forward < CHUNK_Z && scene->terrain[dChunkX][curChunkZ]->chunk[dx][dy][forward]->shape->block->transparent)
+            {
+				if(tooFar) FindColor(block, false);
+				else FindMaterial(block, false);
+              block->Draw(5, isSelected);
             }
 			
 			glEnable(GL_TEXTURE_2D);
@@ -1250,13 +1227,6 @@ void DrawScene(R3Scene *scene)
       }
     }
   }
-  /*fprintf(stderr, "Face count 0 is: %d\n", faceCount0);
-  fprintf(stderr, "Face count 1 is: %d\n", faceCount1);
-  fprintf(stderr, "Face count 2 is: %d\n", faceCount2);
-  fprintf(stderr, "Face count 3 is: %d\n", faceCount3);
-  fprintf(stderr, "Face count 4 is: %d\n", faceCount4);
-  fprintf(stderr, "Face count 5 is: %d\n", faceCount5);
-  fprintf(stderr, "Total is       : %d\n\n", total);*/
 }
 
 void DrawCreatures() 
@@ -1293,6 +1263,50 @@ void UpdateCharacter()
 		dead = true;
 }
 
+void ModulateLighting()
+{
+  // Adjust the color of the first two lights (the global lighting) and the 
+  // glClearColor based on the time of day
+
+  static R3Rgb dayColor = R3Rgb(1, 1, 1, 1);
+  static R3Rgb backgroundDayColor = R3Rgb(0.529, 0.807, 0.980, 1.);
+  static R3Rgb backgroundNightColor = R3Rgb(0., 0., 0.400, 1);
+  static R3Rgb nightColor = R3Rgb(.2, .2, .2, 1);
+  int nightLength = 100;
+  static int nightIndex;
+  static bool isNight = false;
+  double FACTOR = 1e1;
+  R3Rgb diff;
+
+  for (unsigned int i = 0; i < 2; i++)
+  {
+    R3Light *light = scene->lights[i];
+
+    if (!isNight)
+      diff = nightColor - light->color;
+    else
+      diff = dayColor - light->color;
+
+    light->color += diff / FACTOR;
+
+    if (nightIndex >= nightLength &&
+        ABS(diff[0]) < EPS && ABS(diff[1]) < EPS && ABS(diff[2]) < EPS)
+    {
+      isNight = !isNight;
+      nightIndex = 0;
+    }
+    else 
+      nightIndex++;
+  }
+
+  if (!isNight)
+    diff = backgroundNightColor - background;
+  else
+    diff = backgroundDayColor - background;
+
+  background += diff / FACTOR;
+}
+
 ////////////////////////////////////////////////////////////
 // GLUT USER INTERFACE CODE
 ////////////////////////////////////////////////////////////
@@ -1305,25 +1319,26 @@ void GLUTMainLoop(void)
 
 void GLUTIdleFunction(void) 
 {
-	if (regularGameplay == false) 
+  if (regularGameplay == false) 
   {
     glutPostRedisplay();
-		return;
-	}
-	
-	UpdateCharacter();
-	R3Vector direction;
+    return;
+  }
 
-	for (unsigned int i = 0; i < creatures.size(); i++)
+  ModulateLighting();
 
-	{
-		if (!dead) 
+  UpdateCharacter();
+  R3Vector direction;
+
+  for (unsigned int i = 0; i < creatures.size(); i++)
+  {
+    if (!dead) 
     {
-			direction = creatures[i]->UpdateCreature(Main_Character);
-			direction = InterpolateMotion(&(creatures[i]->position), direction, false);
-			creatures[i]->box.Translate(direction);
-		}
-	}
+      direction = creatures[i]->UpdateCreature(Main_Character);
+      direction = InterpolateMotion(&(creatures[i]->position), direction, false);
+      creatures[i]->box.Translate(direction);
+    }
+  }
 
   glutPostRedisplay();
 }
@@ -1540,7 +1555,6 @@ void GLUTRedraw(void)
   glClear(GL_ACCUM_BUFFER_BIT);
  
   // Iterate through the jitter array to write to accumulation buffer
-
   for (int jitter = 0; jitter < ACSIZE; jitter++) 
   {
     // Jitter perspective

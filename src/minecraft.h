@@ -18,10 +18,15 @@
 
 #define M_2PI (2. *M_PI)
 #define RAD2DEG (180. / M_PI)
+#define EPS 1e-4
+
+// Amount of anti-aliasing
 #define ACSIZE 0
 
 // Return sign of x, with 0 as even
 #define SIGN(x) ((x) >= 0 ? 1 : -1)
+// Return the absolute value of the given number
+#define ABS(x) ((x) * SIGN(x))
 // Clamp x to [low, high]
 #define CLAMP(x, low, high) MIN(MAX((x), (low)), (high))
 // Wrap x around so it's between [low, high]

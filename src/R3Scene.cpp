@@ -309,6 +309,40 @@ Read(const char *filename, R3Node *node)
   group_nodes[0] = (node) ? node : root;
   group_materials[0] = default_material;
   int depth = 0;
+
+  // Provide these two lights by default
+  
+  // Create first directional light
+  R3Light *light = new R3Light();
+  R3Vector direction(-3,-4,-5);
+  direction.Normalize();
+  light->type = R3_DIRECTIONAL_LIGHT;
+  light->color = R3Rgb(1, 1, 1, 1);
+  light->position = R3Point(0, 0, 0);
+  light->direction = direction;
+  light->radius = 0;
+  light->constant_attenuation = 0;
+  light->linear_attenuation = 0;
+  light->quadratic_attenuation = 0;
+  light->angle_attenuation = 0;
+  light->angle_cutoff = M_PI;
+  lights.push_back(light);
+
+  // Create second directional light
+  light = new R3Light();
+  direction = R3Vector(3,2,3);
+  direction.Normalize();
+  light->type = R3_DIRECTIONAL_LIGHT;
+  light->color = R3Rgb(1, 1, 1, 1);
+  light->position = R3Point(0, 0, 0);
+  light->direction = direction;
+  light->radius = 0;
+  light->constant_attenuation = 0;
+  light->linear_attenuation = 0;
+  light->quadratic_attenuation = 0;
+  light->angle_attenuation = 0;
+  light->angle_cutoff = M_PI;
+  lights.push_back(light);
 	
   // Read body
   char cmd[128];
@@ -998,42 +1032,6 @@ Read(const char *filename, R3Node *node)
     camera.fardist = 100 * scene_radius;
   }
 
-  // Provide default lights
-  if (lights.size() == 0) {
-    // Create first directional light
-    R3Light *light = new R3Light();
-    R3Vector direction(-3,-4,-5);
-    direction.Normalize();
-    light->type = R3_DIRECTIONAL_LIGHT;
-    light->color = R3Rgb(1,1,1,1);
-    light->position = R3Point(0, 0, 0);
-    light->direction = direction;
-    light->radius = 0;
-    light->constant_attenuation = 0;
-    light->linear_attenuation = 0;
-    light->quadratic_attenuation = 0;
-    light->angle_attenuation = 0;
-    light->angle_cutoff = M_PI;
-    lights.push_back(light);
-
-    // Create second directional light
-    light = new R3Light();
-    direction = R3Vector(3,2,3);
-    direction.Normalize();
-    light->type = R3_DIRECTIONAL_LIGHT;
-    light->color = R3Rgb(0.5, 0.5, 0.5, 1);
-    light->position = R3Point(0, 0, 0);
-    light->direction = direction;
-    light->radius = 0;
-    light->constant_attenuation = 0;
-    light->linear_attenuation = 0;
-    light->quadratic_attenuation = 0;
-    light->angle_attenuation = 0;
-    light->angle_cutoff = M_PI;
-    lights.push_back(light);
-  }
-  
-  // Provide default chunks
   // Provide completely non-default chunks :)
   //if (foundChunks == false) {
     for (int xChunks = 0; xChunks < CHUNKS; xChunks++)
@@ -1058,8 +1056,6 @@ Read(const char *filename, R3Node *node)
   // Return success
   return 1;
 }
-
-
 
 int R3Scene::
 WriteScene(const char* filename)
