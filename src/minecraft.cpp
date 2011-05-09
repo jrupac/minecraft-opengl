@@ -193,7 +193,7 @@ R3Vector InterpolateMotion(R3Point *start, R3Vector direction, bool isCharacter)
   R3Index coords = getChunkCoordinates((*start) + (direction / INTERPOLATION));
   int fallIndex = -1;
   
-  fprintf(stderr, "Coords is %d\n", coords.current);
+  //fprintf(stderr, "Coords is %d\n", coords.current);
   
   // Check if next potential location is legal
   if (isCharacter)
@@ -954,6 +954,7 @@ void LoadCamera(R3Camera *camera)
 
   glMatrixMode(GL_MODELVIEW);
 
+
   glRotatef(rot[1] * 180 / M_PI, 1., 0., 0);
   glRotatef(rot[0] * 180 / M_PI, 0., 1., 0);
   glTranslated(-e[0], -e[1], -e[2]);
@@ -1493,10 +1494,10 @@ void GLUTRedraw(void)
 			if (output_image_name) GLUTSaveImage(output_image_name);
 			//write new scene based on changes
 
-			/*if (!scene->WriteChunk(input_scene_name))
+			if (!scene->WriteScene(input_scene_name))
 			{
 				fprintf(stderr, "WARNING: Couldn't save new scene!!!\n");
-			}*/
+			}
 		}
 		GLUTStop();
 	}

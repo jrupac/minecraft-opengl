@@ -91,6 +91,15 @@ getIndex(R3Point p)
 R3Chunk* R3Scene::
 LoadChunk(int x_chunk, int z_chunk)
 {
+  fprintf(stderr, "Loading chunk: %d, %d.\n", x_chunk, z_chunk);
+  /*fprintf(stderr, "Current generated chunks are: ");
+  set< pair<int, int> >:: iterator it;
+  for ( it=generatedChunks.begin() ; it != generatedChunks.end(); it++ )
+    fprintf(stderr, "(%d, %d) ", it->first, it->second);
+  fprintf(stderr, "\n");*/
+
+
+  
   R3Chunk* newCh = new R3Chunk();
   pair <int, int> checkPair (x_chunk, z_chunk);
 
@@ -103,13 +112,19 @@ LoadChunk(int x_chunk, int z_chunk)
        fprintf(stderr, "Unable to generate chunk: %d, %d!!!\n", x_chunk, z_chunk);
        return NULL;
      }
+     else
+     {
+       pair<int, int> newChunk (x_chunk, z_chunk);
+       generatedChunks.insert(newChunk);
+     }
   }
   else
   {
-    if (!newCh->ReadChunk(x_chunk, z_chunk))
+    while (!newCh->ReadChunk(x_chunk, z_chunk))
     {
-      fprintf(stderr, "Unable to open chunk file: %d, %d!!!\n", x_chunk, z_chunk);
-      return NULL;
+      fprintf(stderr, "Unable to open chunk file: %d, %d!!!\n Generating instead!", x_chunk, z_chunk);
+      //newCh->GenerateChunk(x_chunk, z_chunk)
+      //return NULL;
     }
   }
 
@@ -129,7 +144,7 @@ UpdateScene(R3Point loc)
   int oldChunkX = cur->chunk_x; 
   int oldChunkZ = cur->chunk_z; 
 
-  fprintf(stderr, "Old chunk x is %d and z is %d\n", oldChunkX, oldChunkZ);
+  //fprintf(stderr, "Old chunk x is %d and z is %d\n", oldChunkX, oldChunkZ);
   
   // X-directions
   while (loc[0] < low[0]) // moved out of lower bounds for x
@@ -1012,7 +1027,8 @@ Read(const char *filename, R3Node *node)
   }
   
   // Provide default chunks
-  if (foundChunks == false) {
+  // Provide completely non-default chunks :)
+  //if (foundChunks == false) {
     for (int xChunks = 0; xChunks < CHUNKS; xChunks++)
     {
       for (int zChunks = 0; zChunks < CHUNKS; zChunks++)
@@ -1022,12 +1038,55 @@ Read(const char *filename, R3Node *node)
         terrain[xChunks][zChunks] = LoadChunk(xChunkCoord, zChunkCoord);
       }
     }
-  }
+  //}
+  /*if (!UpdateScene(R3Point(0, 0, 0)))
+  {
+    fprintf(stderr, "Fucked up.\n");
+    return 0;
+  }*/
 
   // Close file
   fclose(fp);
 
   // Return success
   return 1;
+}
+
+
+
+int R3Scene::
+WriteScene(const char* filename)
+{
+  fprintf(stderr, "Saving entire scene ");
+  // Open file
+  FILE *fp;
+  if (!(fp = fopen(filename, "w")))
+  {
+    fprintf(stderr, "Unable to write to scene %s", filename);
+    return 0;
+  }
+  
+  //write which chunks to look for:
+  set< pair<int, int> >:: iterator it;
+  for ( it=generatedChunks.begin() ; it != generatedChunks.end(); it++ )
+  {
+    fprintf(stderr, "Saving chunk: (%d, %d) ", it->first, it->second);
+    std:: stringstream out;
+    out << "chunk " << it->first << " " << it->second << "\n";
+    fputs(out.str().c_str(), fp);
+    
+  }
+  
+  for (int dx = 0; dx < CHUNKS; dx++)
+  {
+    for (int dz = 0; dz < CHUNKS; dz++)
+    {
+      terrain[dx][dz]->DeleteChunk();
+    }
+  }
+  fclose(fp);
+  
+  return 1;
+  
 }
 
