@@ -715,8 +715,12 @@ void ChangeHealth(R3Creature *creature, int delta)
 {
   creature->Health += delta;
 
-  if (creature->Health <= 0)
+	if (creature->Health <= 0) {
+		Main_Character->Health += creature->MaxHealth;
+		if (Main_Character->Health > Main_Character->MaxHealth) Main_Character->Health = Main_Character->MaxHealth;
+	
     RemoveCreature();
+	}
 }
 
 void ChangeHealth(R3Block *block, int delta)
@@ -1275,7 +1279,7 @@ void ModulateLighting()
   int nightLength = 100;
   static int nightIndex;
   static bool isNight = false;
-  double FACTOR = 1e1;
+  double FACTOR = 100e1;
   R3Rgb diff;
 
   for (unsigned int i = 0; i < 2; i++)
