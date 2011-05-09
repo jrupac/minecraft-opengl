@@ -73,6 +73,7 @@ const jitter_point j4[] =
 double RandomNumber(void);
 double GetTime(void);
 R3Index getChunkCoordinates(R3Point p);
+bool LegalPositions(R3Point *start, R3Vector direction, R3Index *c, bool isCharacter);
 R3Vector InterpolateMotion(R3Point *start, R3Vector direction, bool isCharacter);
 void InterpolateJump(R3Point *start, R3Vector direction);
 

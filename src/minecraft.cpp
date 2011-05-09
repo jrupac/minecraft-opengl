@@ -1,31 +1,46 @@
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+//                         MINECRAFT - v.0.0.1                               //
+//                             Written by:                                   //
+//                             Rohan Bansal                                  //
+//                            Dmitry Drutskoy                                //
+//                            Ajay Roopakalu                                 //
+//                              Sarah Tang                                   //
+//                                                                           //
+// This game is a tribute to famous Minecraft game written by Markus "Notch" // 
+// Persson and Jens Bergensten. That game, written in Java, is still still   //
+// being actively developed, having first launched in May of 2009. Here is   //
+// our tribute to the game, in C++ and OpenGL.                               //
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
 // INCLUDE FILES
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 #include "minecraft.h"
 #include "float.h"
 #include "materials.h"
-//#include <OpenAL/al.h>
-//#include <OpenAL/alc.h>
 #include "strings.h"
 
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // GLOBAL VARIABLES
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////////////////////////
 // Program arguments 
+///////////////////////////////////////////////////////////////////////////////
 
 static char *input_scene_name = NULL;
 static char *output_image_name = NULL;
 
+///////////////////////////////////////////////////////////////////////////////
 // Display variables
+///////////////////////////////////////////////////////////////////////////////
 
-//Screens
 static bool startMenu = true;
 static bool controlsMenu = false;
 static bool regularGameplay = false;
-static R3Scene *scene = NULL;
-static R3Camera camera;
+static bool CAPTURE_MOUSE = false;
+static bool dead;
 static int show_faces = 1;
 static int show_edges = 0;
 static int show_bboxes = 0;
@@ -34,46 +49,33 @@ static int show_camera = 0;
 static int save_image = 0;
 static int quit = 0;
 static int toSave = 0;
-static int INTERPOLATION = 1;
-static R3Node *currentSelection = NULL;
-static R3Vector currentNormal;
-static R3Rgb background = R3Rgb(0.529, 0.807, 0.980, 1.);
+static int FPS = 0;
+static int LODcutoff = 15;
+static int worldbuilder = 0;
+static int currentLevel = 0;
 static float picker_height = 10;
 static float picker_width = 10;
-static bool CAPTURE_MOUSE = false;
+static double previous_time = 0;
+static double current_time = 0;
+static double previousLevelTime = 0;
+static double distanceToRenderCreature = 20;
+static R3Rgb background = R3Rgb(0.529, 0.807, 0.980, 1.);
+static R3Scene *scene = NULL;
+static R3Camera camera;
+static R3Node *currentSelection = NULL;
+static R3Vector currentNormal;
 static R3Vector rot;	
+static R3Vector towards;
 static vector <R3Creature *>creatures;
 static vector<R3Creature *>::iterator currentSelectedCreatureIt;
 static R3Character *Main_Character;
-static R3Vector towards;
-static double previous_time = 0;
-static double current_time = 0;
-static int FPS = 0;
 static R3Intersection closestintersect;
 static map<int, const jitter_point *> j;
-static bool dead;
-static int LODcutoff = 15;
-static int worldbuilder = 0;
-double distanceToRenderCreature = 20;
-static int currentLevel = 0;
-static double previousLevelTime = 0;
-
 R3Material **materials = new R3Material*[40];
 
-/*static R3Material *default_material;
-static R3Material *branch_material;
-static R3Material *dirt_material;
-static R3Material *grass_material;
-static R3Material *leaf_material;
-static R3Material *alldirt_material;
-static R3Material *stone_material;
-
-static R3Material *heart_material;
-static R3Material *empty_heart_material;
-static R3Material *cow_material;
-static R3Material *deer_material;*/
-
-// GLUT variables 
+///////////////////////////////////////////////////////////////////////////////
+// GLUT Variables 
+///////////////////////////////////////////////////////////////////////////////
 
 static int GLUTwindow = 0;
 static int GLUTwindow_height = 512;
@@ -82,37 +84,36 @@ static int GLUTmouse[2] = { 0, 0 };
 static int GLUTbutton[3] = { 0, 0, 0 };
 static int GLUTmodifiers = 0;
 
-// OpenAL nonsense
+///////////////////////////////////////////////////////////////////////////////
+// OpenAL Buffers
+///////////////////////////////////////////////////////////////////////////////
 
 #ifdef  __linux__
-// Buffers to hold sound data
+
 ALuint Buffer;
-// Point source of sound
 ALuint Source;
-// Position of the source sound
 ALfloat SourcePos[] = { 0.0, 0.0, 0.0 };
-// Velocity of the source sound
 ALfloat SourceVel[] = { 0.0, 0.0, 0.0 };
-// Position of the listener
 ALfloat ListenerPos[] = { 0.0, 0.0, 0.0 };
-// Velocity of the listener.
 ALfloat ListenerVel[] = { 0.0, 0.0, 0.0 };
-// Orientation of the listener. (first 3 elements are "at", second 3 are "up")
 ALfloat ListenerOri[] = { 0.0, 0.0, -1.0,  
-	0.0, 1.0, 0.0 };
+                          0.0, 1.0, 0.0 };
 #endif
 
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // HELPER METHODS
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 double RandomNumber(void)
 {
+// Windows
 #ifdef _WIN32
+
 	// Seed random number generator
 	static int first = 1;
 
-	if (first) {
+	if (first) 
+  {
 		srand(GetTickCount());
 		first = 0;
 	}
@@ -121,10 +122,15 @@ double RandomNumber(void)
 	int r1 = rand();
 	double r2 = ((double) rand()) / ((double) RAND_MAX);
 	return (r1 + r2) / ((double) RAND_MAX);
+
+// Mac OS and Linux
 #else 
+
 	// Seed random number generator
 	static int first = 1;
-	if (first) {
+
+	if (first) 
+  {
 		struct timeval timevalue;
 		gettimeofday(&timevalue, 0);
 		srand48(timevalue.tv_usec);
@@ -133,14 +139,15 @@ double RandomNumber(void)
 
 	// Return random number
 	return drand48();
+
 #endif
 }
 
 double GetTime(void)
 {
-
-	/* Windows */
+// Windows
 #ifdef _WIN32
+
 	// Return number of seconds since start of execution
 	static int first = 1;
 	static LARGE_INTEGER timefreq;
@@ -157,14 +164,14 @@ double GetTime(void)
 	}
 	else 
 	{
-		// Return time since start
-		LARGE_INTEGER current_timevalue;
-		QueryPerformanceCounter(&current_timevalue);
-		return ((double) current_timevalue.QuadPart - 
-			(double) start_timevalue.QuadPart) / 
-			(double) timefreq.QuadPart;
-	}
-	/* Linux or Mac OS */
+    // Return time since start
+    LARGE_INTEGER current_timevalue;
+    QueryPerformanceCounter(&current_timevalue);
+    return ((double) current_timevalue.QuadPart - 
+        (double) start_timevalue.QuadPart) / (double) timefreq.QuadPart;
+  }
+
+// Linux or Mac OS 
 #else
 	// Return number of seconds since start of execution
 	static int first = 1;
@@ -187,6 +194,7 @@ double GetTime(void)
 		int usecs = current_timevalue.tv_usec - start_timevalue.tv_usec;
 		return (double) (secs + 1.0E-6F * usecs);
 	}
+
 #endif
 }
 
@@ -195,37 +203,57 @@ R3Index getChunkCoordinates(R3Point p)
 	return scene->getIndex(p);
 }
 
+bool LegalPositions(R3Point *start, R3Vector direction, R3Index *c, bool isCharacter)
+{
+  double magnitude = direction.Length();
+  double index = 1.0;
+  R3Index coords;
+  
+  // Check every block along the way
+  do 
+  {
+    coords = (*c) = getChunkCoordinates((*start) + direction / magnitude);
+    
+    if (isCharacter)
+    {
+      if (!coords.current || !coords.current->chunk[coords.x][coords.y-2][coords.z]->shape->block->walkable)
+        return false;
+    }
+    else
+    {
+      if (!coords.current || !coords.current->chunk[coords.x][coords.y][coords.z]->shape->block->walkable)
+        return false;
+    }
+
+  } while (++index < magnitude);
+
+  return true;
+}
+
 R3Vector InterpolateMotion(R3Point *start, R3Vector direction, bool isCharacter)
 {
 	R3Point initial = *start;
-	R3Index coords = getChunkCoordinates((*start) + (direction / INTERPOLATION));
+	R3Index coords;
 	int fallIndex = -1;
 
-	//fprintf(stderr, "Coords is %d\n", coords.current);
+	// Check if every position from here to there is legal; otherwise, don't move
+  if (!LegalPositions(start, direction, &coords, isCharacter))
+      return R3zero_vector;
 
-	// Check if next potential location is legal
-	if (isCharacter)
-	{
-		if (!coords.current || !coords.current->chunk[coords.x][coords.y-2][coords.z]->shape->block->walkable)
-			return R3zero_vector;
-	}
-	else 
-	{
-		if (!coords.current || !coords.current->chunk[coords.x][coords.y][coords.z]->shape->block->walkable)
-			return InterpolateMotion(start, -4*direction, false);
-	}
+  // Update position
+	*start += direction;
 
-	*start += direction / INTERPOLATION;
+  // Update world
 	if (isCharacter)	
 		scene->UpdateScene(*start);
 
 	// Starting from below character, keep going down until you find something
 	// you can't walk through 
-	for (int i = coords.y - 2; i >= 0; i--)
+	for (int i = (isCharacter) ? coords.y - 2 : coords.y - 1; i >= 0; i--)
 	{
 		R3Node *current = coords.current->chunk[coords.x][i][coords.z];
 		R3Block *curBlock = current->shape->block;
-		//printf("I: %d\n", i);
+
 		if (curBlock->walkable)
 			fallIndex = i;
 		else if (fallIndex != -1)
@@ -233,23 +261,21 @@ R3Vector InterpolateMotion(R3Point *start, R3Vector direction, bool isCharacter)
 	}	
 
 	// The art of falling
-	if (fallIndex != -1) { 
-		if(isCharacter) {//printf("is character. =( \n");
-			//printf("Falling! %d\n", fallIndex);
-
-			//printf("Falling2! %d\n", coords.y - fallIndex - 2);
+	if (fallIndex != -1) 
+  { 
+		if (isCharacter) 
 			(*start) -= (coords.y - fallIndex - 2) * R3posy_vector;
-		}
-
+    else
+			(*start) -= (coords.y - fallIndex) * R3posy_vector;
 	}
-	R3Vector ret_vec = (*start) - initial;
-	//printf("ret_vec (%f, %f, %f) \n", ret_vec.X(), ret_vec.Y(), ret_vec.Z());
+
 	return (*start) - initial;
 }
 
 void InterpolateJump(R3Point *start, R3Vector direction)
 {
 	R3Index coords = getChunkCoordinates((*start) + direction);
+	int NUM_FRAMES_PER_JUMP = 12;
 
 	// If the next location is not walkable...
 	if (!(coords.current->chunk[coords.x][coords.y-2][coords.z]->shape->block->walkable))
@@ -257,14 +283,18 @@ void InterpolateJump(R3Point *start, R3Vector direction)
 		// ...but the one above it is, then jump
 		if (coords.current->chunk[coords.x][coords.y-1][coords.z]->shape->block->walkable)
 		{
-			*start += R3posy_vector;
+      // Smoother upwards movement
+      for (int i = 0; i < NUM_FRAMES_PER_JUMP / 2; i++)
+      {
+        (*start) += R3posy_vector / (NUM_FRAMES_PER_JUMP / 2);
+        GLUTRedraw();
+      }
+
 			*start += direction;
 			scene->UpdateScene(*start);
 		}
 		return;
 	}
-
-	int NUM_FRAMES_PER_JUMP = 12;
 
 	// What goes up...
 	for (int i = 0; i < NUM_FRAMES_PER_JUMP / 2; i++)
@@ -281,9 +311,9 @@ void InterpolateJump(R3Point *start, R3Vector direction)
 
 }
 
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // GAME LOGIC CODE
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 void EndGame()
 {
@@ -295,25 +325,31 @@ void EndGame()
 void AlignReticle()
 {
 	currentSelection = NULL;
-	R3Ray ray = R3Ray(camera.eye, towards);
-	R3Intersection intersect;
-	intersect.hit = false;
-	R3Intersection closestIntersect;
-	closestIntersect.hit = false;
 	currentSelectedCreatureIt = creatures.end();
-	double smallest = DBL_MAX;
+	R3Ray ray = R3Ray(camera.eye, towards);
 	vector<R3Creature *>::iterator it;
+	double smallest = DBL_MAX;
 	double dt = 0.0;
 
-	while (++dt)
-	{
-		R3Index cur = getChunkCoordinates(ray.Point(dt / 2));
+	R3Intersection intersect;
+	intersect.hit = false;
 
+	R3Intersection closestIntersect;
+	closestIntersect.hit = false;
+
+  // Loop until you go beyond the boundaries of the currently loaded map
+	while (true)
+	{
+    dt += .5;
+		R3Index cur = getChunkCoordinates(ray.Point(dt));
+    
+    // Break if you reach too far with this ray
 		if (!cur.current)
 			break;
 
 		R3Node *curNode = cur.current->chunk[cur.x][cur.y][cur.z];
-
+    
+    // Intersect with the first non-transparent box
 		if (!curNode->shape->block->transparent)
 		{
 			closestIntersect = IntersectBox(ray, curNode->shape->block->getBox());
@@ -363,74 +399,32 @@ void AddBlock(int block)
 	R3Index i;
 
 	if (currentNormal.Y() == 1.0)
-	{ 
-		//added = scene->chunk[currentBlock->dx][currentBlock->dy + 1][currentBlock->dz];
 		p[1]++;
-		/*  i = scene->getIndex(p);
-		added = i.current->chunk[i.x][i.y][i.z];*/
-
-	}
 	if (currentNormal.Y() == -1.0)
-	{ 
-		//added = scene->chunk[currentBlock->dx][currentBlock->dy + 1][currentBlock->dz];
 		p[1]--;
-		/*  i = scene->getIndex(p);
-		added = i.current->chunk[i.x][i.y][i.z];*/
-
-	}
 	else if (currentNormal.X() == 1.0)
-	{
-		//added = scene->chunk[currentBlock->dx + 1][currentBlock->dy][currentBlock->dz];
 		p[0]++;
-		/*	  i = scene->getIndex(p);
-		added = i.current->chunk[i.x][i.y][i.z];*/
-	}
 	else if (currentNormal.X() == -1.0)
-	{
-		//added = scene->chunk[currentBlock->dx - 1][currentBlock->dy][currentBlock->dz];
 		p[0]--;
-		/*  i = scene->getIndex(p);
-		added = i.current->chunk[i.x][i.y][i.z];*/
-	}
 	else if (currentNormal.Z() == 1.0)
-	{
-		//added = scene->chunk[currentBlock->dx][currentBlock->dy][currentBlock->dz + 1];
 		p[2]++;
-		/*	  i = scene->getIndex(p);
-		added = i.current->chunk[i.x][i.y][i.z];*/
-	}
 	else if (currentNormal.Z() == -1.0)
-	{
-		//added = scene->chunk[currentBlock->dx][currentBlock->dy][currentBlock->dz - 1];
 		p[2]--;
-		/*  i = scene->getIndex(p);
-		added = i.current->chunk[i.x][i.y][i.z];*/
-	}
-	else if (currentNormal.Z() == 1.0)
-	{
-		//added = scene->chunk[currentBlock->dx][currentBlock->dy][currentBlock->dz - 1];
-		p[2]++;
-		/*  i = scene->getIndex(p);
-		added = i.current->chunk[i.x][i.y][i.z];*/
-	}
 
-	R3Point bottom = currentBlock->box.Centroid();
-	bottom[0] = p[0];
-	bottom[1] = p[1];
-	bottom[2] = p[2];
+	R3Point bottom = p;
 	bottom[1]--;
+
 	R3Index j = scene->getIndex(bottom);
 	R3Node *bottomNode = j.current->chunk[j.x][j.y][j.z];
 
-	if (block == DIRT_BLOCK || block == SAND_BLOCK) {
-		while (bottomNode->shape->block->getBlockType() == AIR_BLOCK) {
-			//	printf("while %f\n", p[1]);
+	if (block == DIRT_BLOCK || block == SAND_BLOCK) 
+  {
+		while (bottomNode->shape->block->getBlockType() == AIR_BLOCK) 
+    {
 			p[1]--;
 			bottom[1]--;
 			j = scene->getIndex(bottom);
 			bottomNode = j.current->chunk[j.x][j.y][j.z];
-			/*	i = scene->getIndex(p);
-			added = i.current->chunk[i.x][i.y][i.z];*/
 		}
 	}
 
@@ -440,50 +434,47 @@ void AddBlock(int block)
 	if (added) 
 	{
 		// Add new block only if new block is an air block
-		if (added->shape->block->blockType == AIR_BLOCK) {
-			//	  printf("change");
+		if (added->shape->block->blockType == AIR_BLOCK) 
 			added->shape->block->changeBlock(block);
-		}
 	}
 }
 
 void RemoveBlock() 
 {
-	//if bedrock, don't destroy
-	if (currentSelection->shape->block->getBlockType() == DIRT_BLOCK) {
-		if (currentSelection->shape->block->dy == 0) {
+	// Don't destroy bedrock
+	if (currentSelection->shape->block->getBlockType() == DIRT_BLOCK && 
+		  currentSelection->shape->block->dy == 0) 
 			return;
-		}
-	}
 
 	R3Node *lower = currentSelection;
 	R3Block *lowerBlock = lower->shape->block;
-	//black magic
+
+	// Get block information for block above this one
 	R3Point p = lowerBlock->box.Centroid();
-	R3Index i;
 	p[1]++;
+	R3Index i;
 	i = scene->getIndex(p);
-	//black magic over
+  
 	R3Node *upper = i.current->chunk[i.x][i.y][i.z];
-	//R3Node *upper = scene->chunk[lowerBlock->dx][lowerBlock->dy + 1][lowerBlock->dz];
 	R3Block *upperBlock = upper->shape->block;
 
 	if (!upper->shape->block->gravity) 
 		lowerBlock->changeBlock(AIR_BLOCK);
 	else 
 	{
+    // Update all blocks above this one
 		while (upperBlock->gravity) 
 		{
 			lowerBlock->changeBlock(upperBlock->blockType);
 			lower = upper;
 			lowerBlock = lower->shape->block;
-			//black magic
+
+      // Get block information for block above this one
 			R3Point p = upperBlock->box.Centroid();
 			R3Index i;
 			p[1]++;
 			i = scene->getIndex(p);
-			//black magic over
-			//upper = scene->chunk[upperBlock->dx][upperBlock->dy + 1][upperBlock->dz];
+
 			upper = i.current->chunk[i.x][i.y][i.z];
 			upperBlock = upper->shape->block;
 		}
@@ -499,21 +490,19 @@ void RemoveCreature()
 
 void RemoveCreature(R3Creature *died) 
 {
-	R3Creature *iteration;
-	for(unsigned int i = 0; i < creatures.size(); i++) {
-		iteration = creatures[i];
-		if(iteration == died) {
-			creatures.erase(creatures.begin() + i);
-			break;
-		}
-	}
+  vector<R3Creature *>::iterator it;
+
+  if ((it = find(creatures.begin(), creatures.end(), died)) != creatures.end())
+    creatures.erase(it);
 }
 
 void MoveCharacter(R3Vector translated, double d) 
 {
-	printf("TRANSLATED: (%f, %f, %f)", translated.X(), translated.Y(), translated.Z());
+	printf("TRANSLATED: ");
+  PRINT_VECTOR(translated);
+
 	translated.Normalize();
-	camera.eye = camera.eye + translated*d;
+  InterpolateMotion(&(camera.eye), translated * d, true);
 	GLUTRedraw();
 }
 
@@ -522,8 +511,9 @@ void DrawHUD()
 	glLineWidth(3);
 	glColor3d(.1, .1, .1);
 
-	if(!dead) {
-		// Make "+" ticker on the middle of the screen 
+	if (!dead) 
+  {
+		// Draw reticle
 		glBegin(GL_LINES);
 		glVertex2f((GLUTwindow_width / 2) - picker_width, GLUTwindow_height / 2); 
 		glVertex2f((GLUTwindow_width / 2) + picker_width, GLUTwindow_height / 2); 
@@ -533,10 +523,11 @@ void DrawHUD()
 		glVertex2f(GLUTwindow_width / 2, (GLUTwindow_height / 2) + picker_height); 
 		glEnd();
 	}
+
 	glLineWidth(1);
 
 	// Draw text
-	GLUTDrawText(R3Point(5, 13, 0), "Minecraft v0.0.0.0.0.1/2");
+	GLUTDrawText(R3Point(5, 13, 0), "MINECRAFT v.0.0.1");
 	GLUTDrawText(R3Point(5, 30, 0), "C - display controls");
 	GLUTDrawText(R3Point(400, 13, 0), "FPS: " );
 	stringstream ss;
@@ -546,29 +537,24 @@ void DrawHUD()
 	// Draw bottom pane
 	glColor3d(.7, .7, .7);
 
-	// Load default material
-	// LoadMaterial(default_material);
-
 	//Draw Hearts
 	DrawHUD_Hearts();
 
 	//Draw Inventory
 	DrawHUD_Inventory();
 
-	// This is just temporary text
-	glColor3d(.1, .1, .1);
-
-	if(dead) {
-
+	if (dead) 
+  {
 		glLineWidth(10);
 		glColor3d(1, 0, 0);
-		GLUTDrawText(R3Point(GLUTwindow_width / 2, GLUTwindow_height/2, 0), "You have died.");
+		GLUTDrawText(R3Point(GLUTwindow_width / 2 - 20, 
+                         GLUTwindow_height/2, 0), 
+                         "You have died.");
 	}
 }
 
 void DrawHUD_Hearts() 
 {
-
 	int x = GLUTwindow_width;
 	int y = GLUTwindow_height;
 
@@ -597,87 +583,97 @@ void DrawHUD_Hearts()
 
 void DrawHUD_Inventory() 
 {
-
 	int x = GLUTwindow_width;
 	int y = GLUTwindow_height;
 	int boxWidth = .0525 * x;
 	int boxHeight = .0625 * y;
 	int itemWidth = .2* x;
 	int itemHeight = .1875 * y;
-
+	int materialsStart = DIRT_ICON;
+	int i;
 
 	glPushMatrix();
-
 	glTranslatef(.1 * x, .99 * y, 0.);
-	int materialsStart = DIRT_ICON;
 
-	int i;
 	for (i = 0; i <= 4; i++) 
 	{	
-		if (Main_Character->number_items[i] > 0) {
+		if (Main_Character->number_items[i] > 0)
 			LoadMaterial(materials[materialsStart]);
-		}
-		else {
+		else 
 			LoadMaterial(materials[DEFAULT]);
-		}
+
 		glTranslatef(x / 17, 0, 0.);
 		glBegin(GL_QUADS);
-		glNormal3d(0.0, 0.0, 1.0);
-		glTexCoord2d(0, 1);
-		glVertex2f(0, 0); 
-		glTexCoord2d(0, 0);
-		glVertex2f(0, -boxHeight); 
-		glTexCoord2d(1, 0);
-		glVertex2f(boxWidth, -boxHeight); 
-		glTexCoord2d(1, 1);
-		glVertex2f(boxWidth, 0); 
+      glNormal3d(0.0, 0.0, 1.0);
+      glTexCoord2d(0, 1);
+      glVertex2f(0, 0); 
+      glTexCoord2d(0, 0);
+      glVertex2f(0, -boxHeight); 
+      glTexCoord2d(1, 0);
+      glVertex2f(boxWidth, -boxHeight); 
+      glTexCoord2d(1, 1);
+      glVertex2f(boxWidth, 0); 
 		glEnd();
 
-		//Drawing the line
-		if(Main_Character->item == i) {
+		// Drawing the line
+		if (Main_Character->item == i)
 			glColor3f(1,1,1);
-		}
-		else {
+		else
 			glColor3f(.4, .4, .4);
-		}
-		glLineWidth(4);
-		glBegin(GL_LINES);
-		glVertex2f(0, 0); 
-		glVertex2f(0, -boxHeight - 2); 
-		glEnd();
-		glBegin(GL_LINES);
-		glVertex2f(0, -boxHeight); 
-		glVertex2f(boxWidth+3, -boxHeight); 
-		glEnd();
-		glBegin(GL_LINES);
-		glVertex2f(boxWidth, -boxHeight); 
-		glVertex2f(boxWidth, 2); 
-		glEnd();
-		glBegin(GL_LINES);
-		glVertex2f(boxWidth, 0); 
-		glVertex2f(-2, 0); 
-		glEnd();
-		glColor3f(.7, .7, .7);
 
+		glLineWidth(4);
+    glBegin(GL_LINES);
+      glVertex2f(0, 0); 
+      glVertex2f(0, -boxHeight - 2); 
+    glEnd();
+    glBegin(GL_LINES);
+      glVertex2f(0, -boxHeight); 
+      glVertex2f(boxWidth+3, -boxHeight); 
+    glEnd();
+    glBegin(GL_LINES);
+      glVertex2f(boxWidth, -boxHeight); 
+      glVertex2f(boxWidth, 2); 
+    glEnd();
+    glBegin(GL_LINES);
+      glVertex2f(boxWidth, 0); 
+      glVertex2f(-2, 0); 
+    glEnd();
+
+		glColor3f(.7, .7, .7);
 		materialsStart++;
 	}
 
 	glPopMatrix(); 
 
-	//Draw currently Held item
+	//Draw currently held item
 	glPushMatrix();
 	glTranslatef(.75 * x, .9 * y, 0.);
 
-	////find correct material to load
-	if(Main_Character->item != R3BLOCK_AIR) {
-		if(Main_Character->item == R3BLOCK_DIRT) LoadMaterial(materials[GRASS]);
-		else if(Main_Character->item == R3BLOCK_STONE) LoadMaterial(materials[STONE]);
-		else if(Main_Character->item == R3BLOCK_WOOD) LoadMaterial(materials[WOOD]);
-		else if(Main_Character->item == R3BLOCK_SAND) LoadMaterial(materials[SAND]);
-		else if(Main_Character->item == R3BLOCK_OBSIDIAN) LoadMaterial(materials[OBSIDIAN]);
+	// Find correct material to load
+  if (Main_Character->item != R3BLOCK_AIR) 
+  {
+    switch (Main_Character->item)
+    {
+      case R3BLOCK_DIRT:
+        LoadMaterial(materials[GRASS]);
+        break;
+      case R3BLOCK_STONE:
+        LoadMaterial(materials[STONE]);
+        break;
+      case R3BLOCK_WOOD:
+        LoadMaterial(materials[WOOD]);
+        break;
+      case R3BLOCK_SAND:
+        LoadMaterial(materials[SAND]);
+        break;
+      case R3BLOCK_OBSIDIAN:
+        LoadMaterial(materials[OBSIDIAN]);
+        break;
+    }
+		
+    if (Main_Character->item == R3BLOCK_DIRT) 
+      LoadMaterial(materials[GRASS]);
 
-
-		if(Main_Character->item == R3BLOCK_DIRT) LoadMaterial(materials[GRASS]);
 		glBegin(GL_QUADS);
 		glNormal3d(0.0, 0.0, 1.0);
 		glTexCoord2d(0, 1);
@@ -690,8 +686,9 @@ void DrawHUD_Inventory()
 		glVertex2f(itemWidth, itemHeight*.08); 
 		glEnd();
 
+		if (Main_Character->item == R3BLOCK_DIRT) 
+      LoadMaterial(materials[DIRT]);
 
-		if(Main_Character->item == R3BLOCK_DIRT) LoadMaterial(materials[DIRT]);
 		glBegin(GL_QUADS);
 		glNormal3d(0.0, 0.0, 1.0);
 		glTexCoord2d(1, 1);
@@ -704,7 +701,6 @@ void DrawHUD_Inventory()
 		glVertex2f(itemWidth*.75, itemHeight*.50); 
 		glEnd();
 
-		if(Main_Character->item == R3BLOCK_DIRT) LoadMaterial(materials[DIRT]);
 		glBegin(GL_QUADS);
 		glNormal3d(0.0, 0.0, 1.0);
 		glTexCoord2d(1, 1);
@@ -720,7 +716,6 @@ void DrawHUD_Inventory()
 	}
 
 	glPopMatrix();
-
 }
 
 void ChangeHealth(R3Character *character, int delta)
@@ -735,10 +730,10 @@ void ChangeHealth(R3Creature *creature, int delta)
 {
 	creature->Health += delta;
 
-	if (creature->Health <= 0) {
-		Main_Character->Health += creature->MaxHealth;
-		if (Main_Character->Health > Main_Character->MaxHealth) Main_Character->Health = Main_Character->MaxHealth;
-
+	if (creature->Health <= 0) 
+  {
+    Main_Character->Health = MIN(Main_Character->Health + creature->MaxHealth,
+                                 Main_Character->MaxHealth);
 		RemoveCreature();
 	}
 }
@@ -748,9 +743,9 @@ void ChangeHealth(R3Block *block, int delta)
 	block->health += delta;
 }
 
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // SCENE DRAWING CODE
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 void DrawShape(R3Shape *shape)
 {
@@ -761,45 +756,7 @@ void DrawShape(R3Shape *shape)
 	else if (shape->type == R3_CONE_SHAPE) shape->cone->Draw();
 	else if (shape->type == R3_MESH_SHAPE) shape->mesh->Draw();
 	else if (shape->type == R3_SEGMENT_SHAPE) shape->segment->Draw();
-	else if (shape->type == R3_BLOCK_SHAPE)
-	{
-		//LoadMaterial(branch_material);
-		shape->block->Draw();
-		//if (shape->block->getBlockType() != AIR_BLOCK)
-		//    shape->block->Draw();
-		/*     if (shape->block->getBlockType() == LEAF_BLOCK) 
-		{
-		LoadMaterial(leaf_material);
-		shape->block->getBox().Draw();
-		}
-		else if (shape->block->getBlockType() == DIRT_BLOCK && shape->block->getUpper() != NULL) 
-		{
-		if (shape->block->getUpper()->getBlockType() == AIR_BLOCK) {
-		LoadMaterial(dirt_material);
-		shape->block->getBox().DrawFace(0);
-		shape->block->getBox().DrawFace(1);
-		shape->block->getBox().DrawFace(2);
-		LoadMaterial(grass_material);
-		shape->block->getBox().DrawFace(3);
-		LoadMaterial(dirt_material);
-		shape->block->getBox().DrawFace(4);
-		shape->block->getBox().DrawFace(5);
-		}
-		else {
-		LoadMaterial(alldirt_material);
-		shape->block->getBox().Draw();
-		}
-		}
-		else if (shape->block->getBlockType() == BRANCH_BLOCK) 
-		{
-		LoadMaterial(branch_material);
-		shape->block->getBox().Draw();
-		}
-		else if (shape->block->getBlockType() == STONE_BLOCK) {
-		LoadMaterial(stone_material);
-		shape->block->getBox().Draw();
-		}*/
-	}
+	else if (shape->type == R3_BLOCK_SHAPE) shape->block->Draw();
 
 	else fprintf(stderr, "Unrecognized shape type: %d\n", shape->type);
 }
@@ -1226,7 +1183,7 @@ void DrawScene(R3Scene *scene)
 							maxhealth = OBSIDIAN_HEALTH;
 							break;
 						}
-						double ratio = block->health;
+						//double ratio = block->health;
 
 						// ATTEMPTING HEALTH COUNTERS
 						// Face 0
