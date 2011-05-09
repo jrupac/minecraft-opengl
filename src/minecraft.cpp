@@ -41,6 +41,7 @@ static bool controlsMenu = false;
 static bool regularGameplay = false;
 static bool CAPTURE_MOUSE = false;
 static bool dead;
+static bool DeathMenu;
 static int show_faces = 1;
 static int show_edges = 0;
 static int show_bboxes = 0;
@@ -542,15 +543,6 @@ void DrawHUD()
 
 	//Draw Inventory
 	DrawHUD_Inventory();
-
-	if (dead) 
-  {
-		glLineWidth(10);
-		glColor3d(1, 0, 0);
-		GLUTDrawText(R3Point(GLUTwindow_width / 2 - 20, 
-                         GLUTwindow_height/2, 0), 
-                         "You have died.");
-	}
 }
 
 void DrawHUD_Hearts() 
@@ -1308,8 +1300,14 @@ void UpdateCharacter()
 	R3Index loc = getChunkCoordinates(Main_Character->position);
 	//printf("Character coords: %d, %d, %d\n", loc);
 
-	if (Main_Character->Health <= 0) 
+	if (Main_Character->Health <= 0)
+  {
 		dead = true;
+    DeathMenu = true;
+    show_camera = !show_camera;
+    regularGameplay = false;
+    startMenu = false;
+  }
 }
 
 void ModulateLighting()
@@ -1369,15 +1367,13 @@ void GLUTMainLoop(void)
 void GLUTIdleFunction(void) 
 {
 	//printf("Current Time: %f\n", GetTime());
-	if (regularGameplay == false) 
+	if (regularGameplay == false || dead) 
 	{
 		glutPostRedisplay();
 		return;
 	}
 
-
-
-	if(GetTime() >= previousLevelTime + 5) {
+	if (worldbuilder == 0 && GetTime() >= previousLevelTime + 5) {
 		currentLevel++;
 		previousLevelTime = GetTime();
 		GenerateCreatures();
@@ -1389,23 +1385,23 @@ void GLUTIdleFunction(void)
 	UpdateCharacter();
 	R3Vector direction;
 
-	for (unsigned int i = 0; i < creatures.size(); i++)
-	{
-		if (!dead) 
-		{
+  if (worldbuilder == 0) 
+  {
+    for (unsigned int i = 0; i < creatures.size(); i++)
+    {
+      if (!dead) 
+      {
+        direction = creatures[i]->UpdateCreature(Main_Character);
+        double creaturedist = R3Distance(Main_Character->position, creatures[i]->position);
 
-			direction = creatures[i]->UpdateCreature(Main_Character);
-			double creaturedist = R3Distance(Main_Character->position, creatures[i]->position);
-			//printf("Distance to creature: %f\n", creaturedist);
-			if(creaturedist < distanceToRenderCreature) {
-				creatures[i]->UpdateCreatureFall(Main_Character);
-				//direction = InterpolateMotion(&(creatures[i]->position), direction, false);
-				//printf("Passed interpolate motion. \n");
-			}
-
-			creatures[i]->position.Translate(direction);
-		}
-	}
+        if (creaturedist < distanceToRenderCreature) 
+        {
+          creatures[i]->UpdateCreatureFall(Main_Character);
+        }
+        creatures[i]->position.Translate(direction);
+      }
+    }
+  }
 
 	glutPostRedisplay();
 }
@@ -1522,6 +1518,38 @@ void DisplayStartMenu()
 	glEnable(GL_TEXTURE_2D);
 	//	glEnable(GL_LIGHTING);
 
+}
+
+void DisplayDeathMenu() 
+{
+  int x = GLUTwindow_width;
+  int y = GLUTwindow_height;
+
+  glColor3d(1,1,1);
+
+  LoadMaterial(materials[LOGO]);
+
+  glBegin(GL_QUADS);
+  glNormal3d(0.0, 0.0, 1.0);
+  glTexCoord2d(0, 0);
+  glVertex2f(0, 0); 
+  glTexCoord2d(0, 1);
+  glVertex2f(0, y); 
+  glTexCoord2d(1, 1);
+  glVertex2f(x, y); 
+  glTexCoord2d(1, 0);
+  glVertex2f(x, 0); 
+  glEnd();
+
+  glDisable(GL_TEXTURE_2D);
+  glColor3d(.6, .6, .6);
+  GLUTDrawText(R3Point(GLUTwindow_width / 10, GLUTwindow_height / 4.5, 0), "A Tribute by Rohan Bansal, Dmitry Drutskoy, Ajay Roopakalu, Sarah Tang");
+
+  glColor3f(1, 0,0);
+  GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.8, 0), "You have died.");
+  // GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.5, 0), "Right click - Create Your Own Level");
+
+  glEnable(GL_TEXTURE_2D);
 }
 
 void DisplayControls() 
@@ -1690,13 +1718,12 @@ void GLUTRedraw(void)
 
 	if (regularGameplay)
 		DrawHUD();
-	else if (startMenu) {
+	else if (startMenu)
 		DisplayStartMenu();
-	}
-	else if (controlsMenu) {
+	else if (controlsMenu)
 		DisplayControls();
-	}
-
+  else if (dead)
+    DisplayDeathMenu();
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING); 
@@ -1827,8 +1854,10 @@ void GLUTMouse(int button, int state, int x, int y)
 			}
 			else if (currentSelection != NULL) 
 			{
-				ChangeHealth(currentSelection->shape->block, -1);
-				//	printf("out of health\n");
+        if (worldbuilder == 1) 
+          ChangeHealth(currentSelection->shape->block, -20);
+        else 
+          ChangeHealth(currentSelection->shape->block, -1);
 
 				if (currentSelection->shape->block->health <= 0) {
 					int item = 8;
@@ -1944,121 +1973,132 @@ void GLUTKeyboard(unsigned char key, int x, int y)
 	// Invert y coordinate
 	y = GLUTwindow_height - y;
 
-	// Process keyboard button event 
-	switch (key) 
-	{
-	case '1':
-		if (Main_Character->number_items[R3BLOCK_DIRT] >0)
-			Main_Character->item = R3BLOCK_DIRT;
-		break;
+  // Process keyboard button event 
+  switch (key) 
+  {
+    case '1':
+      if (Main_Character->number_items[R3BLOCK_DIRT] >0)
+        Main_Character->item = R3BLOCK_DIRT;
+      break;
 
-	case '2':
-		if (Main_Character->number_items[R3BLOCK_STONE] >0)
-			Main_Character->item = R3BLOCK_STONE;
-		break;
+    case '2':
+      if (Main_Character->number_items[R3BLOCK_STONE] >0)
+        Main_Character->item = R3BLOCK_STONE;
+      break;
 
-	case '3':
-		if (Main_Character->number_items[R3BLOCK_WOOD] >0)
-			Main_Character->item = R3BLOCK_WOOD;
-		break;
-	case '4':
-		if (Main_Character->number_items[R3BLOCK_SAND] >0)
-			Main_Character->item = R3BLOCK_SAND;
-		break;
-	case '5':
-		if (Main_Character->number_items[R3BLOCK_OBSIDIAN] >0) {
+    case '3':
+      if (Main_Character->number_items[R3BLOCK_WOOD] >0)
+        Main_Character->item = R3BLOCK_WOOD;
+      break;
 
-			Main_Character->item = R3BLOCK_OBSIDIAN;
-		}
-		break;
-	case 'C':
-	case 'c':
-		show_camera = !show_camera;
-		controlsMenu = true;
-		regularGameplay = false;
-		startMenu = false;
-		break;
-	case 'b':
-	case 'B':
-		controlsMenu = false;
-		regularGameplay = true;
-		startMenu = false;
-	case 'E':
-	case 'e':
-		show_edges = !show_edges;
-		break;
+    case '4':
+      if (Main_Character->number_items[R3BLOCK_SAND] >0)
+        Main_Character->item = R3BLOCK_SAND;
+      break;
 
-	case 'F':
-	case 'f':
-		show_faces = !show_faces;
-		break;
+    case '5':
+      if (Main_Character->number_items[R3BLOCK_OBSIDIAN] >0)
+        Main_Character->item = R3BLOCK_OBSIDIAN;
+      break;
 
-	case 'L':
-	case 'l':
-		show_lights = !show_lights;
-		break;
+    case 'C':
+    case 'c':
+      show_camera = !show_camera;
+      controlsMenu = true;
+      regularGameplay = false;
+      startMenu = false;
+      break;
 
-	case 'Q':
-		toSave = 1;
-		quit = 1;
-		break;
-	case 'q':
-		quit = 1;
-		break;
-	case 27: // ESCAPE
-		CAPTURE_MOUSE = false;
-		// Restore cursor
-		glutSetCursor(GLUT_CURSOR_INHERIT);
-		break;
+    case 'b':
+    case 'B':
+      controlsMenu = false;
+      regularGameplay = true;
+      startMenu = false;
+      break;
 
-	case 'N':
-	case 'n':
-		if (CAPTURE_MOUSE == false) break;	
-		if (startMenu) {
+    case 'E':
+    case 'e':
+      show_edges = !show_edges;
+      break;
 
-			worldbuilder = 1;
-			startMenu = false;
-			regularGameplay = true;
-			controlsMenu = false;
-		}
-		break;
-	case 'w': 
-		if(dead || !regularGameplay) return;
-		difference = InterpolateMotion(&(camera.eye), 
-			-(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
-		break;
+    case 'F':
+    case 'f':
+      show_faces = !show_faces;
+      break;
 
-	case 's': 
-		if(dead || !regularGameplay) return;
-		difference = InterpolateMotion(&(camera.eye), 
-			(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
-		break;
+    case 'L':
+    case 'l':
+      show_lights = !show_lights;
+      break;
 
-	case 'd': 
-		if(dead || !regularGameplay) return;
-		difference = InterpolateMotion(&(camera.eye), 
-			(sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
-		break;
+    case 'Q':
+      toSave = 1;
+      quit = 1;
+      break;
+    case 'q':
+      quit = 1;
+      break;
 
-	case 'a': 
-		if(dead || !regularGameplay) return;
-		difference = InterpolateMotion(&(camera.eye), 
-			-(sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
-		break;
+    case 27: // ESCAPE
+      CAPTURE_MOUSE = false;
+      // Restore cursor
+      glutSetCursor(GLUT_CURSOR_INHERIT);
+      break;
 
-	case ' ': 
-		InterpolateJump(&(camera.eye),     
-			-(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point));
-		break;
+    case 'N':
+    case 'n':
+      if (CAPTURE_MOUSE == false) 
+        break;	
+      if (startMenu) 
+      {
 
-		// i for info
-	case 'i':
-		printf("camera %g %g %g  %g %g %g  %g  %g %g \n",
-			camera.eye[0], camera.eye[1], camera.eye[2], 
-			rot[0], rot[1], rot[2],
-			camera.xfov, camera.neardist, camera.fardist); 
-		break; 
-	}
+        worldbuilder = 1;
+        startMenu = false;
+        regularGameplay = true;
+        controlsMenu = false;
+      }
+      break;
+
+    case 'w': 
+      if (dead || !regularGameplay) return;
+      difference = InterpolateMotion(&(camera.eye), 
+          -(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
+      break;
+
+    case 's': 
+      if (dead || !regularGameplay) return;
+      difference = InterpolateMotion(&(camera.eye), 
+          (cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
+      break;
+
+    case 'd': 
+      if (dead || !regularGameplay) return;
+      difference = InterpolateMotion(&(camera.eye), 
+          (sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
+      break;
+
+    case 'a': 
+      if (dead || !regularGameplay) return;
+      difference = InterpolateMotion(&(camera.eye), 
+          -(sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
+      break;
+
+    case ' ': 
+      InterpolateJump(&(camera.eye),     
+          -(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point));
+      break;
+
+    case 'i':
+      printf("camera %g %g %g  %g %g %g  %g  %g %g \n",
+          camera.eye[0], camera.eye[1], camera.eye[2], 
+          rot[0], rot[1], rot[2],
+          camera.xfov, camera.neardist, camera.fardist); 
+      break; 
+
+    case 'k':
+      Main_Character->Health--;
+      break;
+  }
 
 	// If you fall too much, you lose health
 	if (difference.Y() < -1.f)
