@@ -53,8 +53,8 @@ static R3Intersection closestintersect;
 static map<int, const jitter_point *> j;
 static bool dead;
 static int LODcutoff = 15;
-static int worldbuilder = 0;
-double distanceToRenderCreature = 20;
+
+static double cosineXFov;
 
 R3Material **materials = new R3Material*[40];
 
@@ -412,7 +412,7 @@ void AddBlock(int block)
 	R3Index j = scene->getIndex(bottom);
 	R3Node *bottomNode = j.current->chunk[j.x][j.y][j.z];
 	
-	if (block == DIRT_BLOCK || block == SAND_BLOCK) {
+	if (block == DIRT_BLOCK) {
 		while (bottomNode->shape->block->getBlockType() == AIR_BLOCK) {
 		//	printf("while %f\n", p[1]);
 			p[1]--;
@@ -602,7 +602,7 @@ void DrawHUD_Inventory()
 	int materialsStart = DIRT_ICON;
 	
 	int i;
-    for (i = 0; i <= 4; i++) 
+    for (i = 0; i <= 3; i++) 
     {	
 		if (Main_Character->number_items[i] > 0) {
 		LoadMaterial(materials[materialsStart]);
@@ -623,7 +623,6 @@ void DrawHUD_Inventory()
         glVertex2f(boxWidth, 0); 
         glEnd();
 
-		//Drawing the line
 		if(Main_Character->item == i) {
 			glColor3f(1,1,1);
 		}
@@ -658,13 +657,13 @@ void DrawHUD_Inventory()
     glPushMatrix();
     glTranslatef(.75 * x, .9 * y, 0.);
 
+	
 	////find correct material to load
-	if(Main_Character->item != R3BLOCK_AIR) {
+	if(Main_Character->item != 8) {
 	if(Main_Character->item == R3BLOCK_DIRT) LoadMaterial(materials[GRASS]);
 	else if(Main_Character->item == R3BLOCK_STONE) LoadMaterial(materials[STONE]);
-	else if(Main_Character->item == R3BLOCK_WOOD) LoadMaterial(materials[WOOD]);
-	else if(Main_Character->item == R3BLOCK_SAND) LoadMaterial(materials[SAND]);
-	else if(Main_Character->item == R3BLOCK_OBSIDIAN) LoadMaterial(materials[OBSIDIAN]);
+
+	//LoadMaterial(materials[STONE]);
 
 	
 	if(Main_Character->item == R3BLOCK_DIRT) LoadMaterial(materials[GRASS]);
@@ -819,10 +818,6 @@ void FindMaterial(R3Block *block, bool isTop)
 		LoadMaterial(materials[WOOD]);
 	else if (block->getBlockType() == STONE_BLOCK)
 		LoadMaterial(materials[STONE]);
-	else if (block->getBlockType() == SAND_BLOCK) 
-		LoadMaterial(materials[SAND]);
-	else if (block->getBlockType() == OBSIDIAN_BLOCK) 
-		LoadMaterial(materials[OBSIDIAN]);
 }
 
 void FindColor(R3Block *block, bool isTop) 
@@ -1138,147 +1133,157 @@ void DrawNode(R3Scene *scene, R3Node *node)
 void DrawScene(R3Scene *scene) 
 {
   bool isSelected = false;
+  
+  // View frustrum culling oh yeah baby
+  R3Index currentPosition = getChunkCoordinates(camera.eye);
+  int charBlockX = currentPosition.x + (CHUNK_X)*(CHUNKS-1)/2; // this is the position in the middle chunk of our character
+  int charBlockZ = currentPosition.z + (CHUNK_Z)*(CHUNKS-1)/2; // this too
+  // :(
+  //double viewX = camera.towards[0];
+  //double viewZ = camera.towards[2];
+  R3Vector whatever = -(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point);
+  double viewX = whatever[0];// + 0.0001;
+  double viewZ = whatever[2];// + 0.0001;
+  
+  int renderCount = 0;
+  
+  
+  //if (currentPosition.current != scene->terrain[1][1])
+  //  fprintf(stderr, "cry");
 
   // It's okay, it's okay, we do culling here.
   for (int dChunkX = 0; dChunkX < CHUNKS; dChunkX++)
   {
+    //int chunkDist = CHUNK_X*(CHUNKS-1)/2
     for (int dChunkZ = 0; dChunkZ < CHUNKS; dChunkZ++)
     {
       for (int dz = 0; dz < CHUNK_Z; dz++)
       {
-        for (int dy = 0; dy < CHUNK_Y; dy++)
+        for (int dx = 0; dx < CHUNK_X; dx++)
         {
-          for (int dx = 0; dx < CHUNK_X; dx++)
+          // distance = currentPos - (absolute position of block to render in memory)
+          int blockDistX = ((CHUNK_X)*dChunkX + dx) - charBlockX;
+          int blockDistZ = ((CHUNK_Z)*dChunkZ + dz) - charBlockZ;
+          //double d = sqrt(blockDistX*blockDistX + blockDistZ*blockDistZ);
+          //blockDistX /= d;
+          //blockDistZ /= d;
+          
+          
+          // dot product > 0 HAHA
+          //if ((blockDistX*viewX + blockDistZ*viewZ) >= cosineXFov)
+          if ((blockDistX >= -2 && blockDistX <= 2) || (blockDistZ >= -2 && blockDistZ <= 2) || (blockDistX*viewX + blockDistZ*viewZ) >= 0)
           {
-            // Terrible black magic is about to happen
-            int curChunkXLeft = dChunkX;
-            int curChunkXRight = dChunkX;
-            int curChunkZLeft = dChunkZ;
-            int curChunkZRight = dChunkZ;
-            int left = dx - 1;
-            int right = dx + 1;
-            int back = dz - 1;
-            int forward = dz + 1;
+            for (int dy = 0; dy < CHUNK_X; dy++)
+            {
+              
+              // Terrible black magic is about to happen
+              int curChunkXLeft = dChunkX;
+              int curChunkXRight = dChunkX;
+              int curChunkZLeft = dChunkZ;
+              int curChunkZRight = dChunkZ;
+              int left = dx - 1;
+              int right = dx + 1;
+              int back = dz - 1;
+              int forward = dz + 1;
 
-            if (dx == 0 && dChunkX > 0)
-            {
-              left = CHUNK_X - 1;
-              curChunkXLeft--;
-            }
-            if (dx == CHUNK_X - 1 && dChunkX < CHUNKS - 1)
-            {
-              right = 0;
-              curChunkXRight++;
-            }
-            if (dz == 0 && dChunkZ > 0)
-            {
-              back = CHUNK_Z - 1;
-              curChunkZLeft--;
-            }
-            if (dz == CHUNK_Z - 1 && dChunkZ < CHUNKS - 1)
-            {
-              forward = 0;
-              curChunkZRight++;
-            }
+              if (dx == 0 && dChunkX > 0)
+              {
+                left = CHUNK_X - 1;
+                curChunkXLeft--;
+              }
+              if (dx == CHUNK_X - 1 && dChunkX < CHUNKS - 1)
+              {
+                right = 0;
+                curChunkXRight++;
+              }
+              if (dz == 0 && dChunkZ > 0)
+              {
+                back = CHUNK_Z - 1;
+                curChunkZLeft--;
+              }
+              if (dz == CHUNK_Z - 1 && dChunkZ < CHUNKS - 1)
+              {
+                forward = 0;
+                curChunkZRight++;
+              }
 
-            R3Node *node = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz];
-            R3Block *block = node->shape->block;
-            isSelected = (currentSelection == node);
-			double distance = R3Distance(camera.eye, block->box.Centroid());
-			bool tooFar = false;
-			if(distance > LODcutoff) tooFar = true;
-			if (tooFar) 
-				{glDisable(GL_TEXTURE_2D);
-			glDisable(GL_LIGHTING);
-			}
-			double maxhealth;
-			switch (block->blockType)
-			{
-			case DIRT_BLOCK:
-				maxhealth = DIRT_HEALTH;
-				break;
-			case AIR_BLOCK:
-				maxhealth = AIR_HEALTH;
-				break;
-			case LEAF_BLOCK:
-				maxhealth = LEAF_HEALTH;
-				break;
-			case WOOD_BLOCK:
-				maxhealth = WOOD_HEALTH;
-				break;
-			case STONE_BLOCK:
-				maxhealth = STONE_HEALTH;
-				break;
-			case SAND_BLOCK:
-				maxhealth = SAND_HEALTH;
-				break;
-			case OBSIDIAN_BLOCK:
-				maxhealth = OBSIDIAN_HEALTH;
-				break;
-			}
-			double ratio = block->health;
-
-			// ATTEMPTING HEALTH COUNTERS
-			// Face 0
-			if (left >= 0 && scene->terrain[curChunkXLeft][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
-			{
-				if(tooFar) FindColor(block, false);
-				
-				else FindMaterial(block, false);
+              R3Node *node = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz];
+              R3Block *block = node->shape->block;
+              isSelected = (currentSelection == node);
+			  double distance = R3Distance(camera.eye, block->box.Centroid());
+			  bool tooFar = false;
+			  if(distance > LODcutoff) tooFar = true;
+			  if (tooFar) 
+				  {glDisable(GL_TEXTURE_2D);
+			  glDisable(GL_LIGHTING);
+			  }
+              // Face 0
+              if (left >= 0 && scene->terrain[curChunkXLeft][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)
+			  {
+				  if(tooFar) FindColor(block, false);
+				  else FindMaterial(block, false);
 				
 			
-				block->Draw(0, isSelected);
-            }
+				  block->Draw(0, isSelected);
+				  renderCount++;
+              }
 
-            // Face 1
-            if (right < CHUNK_X && scene->terrain[curChunkXRight][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
-            {
-				if(tooFar) FindColor(block, false);
-				else FindMaterial(block, false);
+              // Face 1
+              if (right < CHUNK_X && scene->terrain[curChunkXRight][dChunkZ]->chunk[right][dy][dz]->shape->block->transparent)
+              {
+				  if(tooFar) FindColor(block, false);
+				  else FindMaterial(block, false);
 
-              block->Draw(1, isSelected);
-            }
+                block->Draw(1, isSelected);
+                renderCount++;
+              }
 
-            // Face 2
-            if (dy - 1 > 0 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
-            {
-				if(tooFar) FindColor(block, false);
-				else FindMaterial(block, false);
-              block->Draw(2, isSelected);
-            }
+              // Face 2
+              if (dy - 1 > 0 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
+              {
+				  if(tooFar) FindColor(block, false);
+				  else FindMaterial(block, false);
+                block->Draw(2, isSelected);
+                renderCount++;
+              }
 
-            // Face 3; this is the the top face
-            if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
-            {
-				if(tooFar) FindColor(block, true);
-				else FindMaterial(block, true);
-              block->Draw(3, isSelected);
-            }
+              // Face 3; this is the the top face
+              if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
+              {
+				  if(tooFar) FindColor(block, true);
+				  else FindMaterial(block, true);
+                block->Draw(3, isSelected);
+                renderCount++;
+              }
 
-            // Face 4
-            if (back >= 0 && scene->terrain[dChunkX][curChunkZLeft]->chunk[dx][dy][back]->shape->block->transparent)
-            {
-				if(tooFar) FindColor(block, false);
-				else FindMaterial(block, false);
-              block->Draw(4, isSelected);
-            }
+              // Face 4
+              if (back >= 0 && scene->terrain[dChunkX][curChunkZLeft]->chunk[dx][dy][back]->shape->block->transparent)
+              {
+				  if(tooFar) FindColor(block, false);
+				  else FindMaterial(block, false);
+                block->Draw(4, isSelected);
+                renderCount++;
+              }
 
-            // Face 5
-            if (forward < CHUNK_Z && scene->terrain[dChunkX][curChunkZRight]->chunk[dx][dy][forward]->shape->block->transparent)
-            {
-				if(tooFar) FindColor(block, false);
-				else FindMaterial(block, false);
-              block->Draw(5, isSelected);
-            }
+              // Face 5
+              if (forward < CHUNK_Z && scene->terrain[dChunkX][curChunkZRight]->chunk[dx][dy][forward]->shape->block->transparent)
+              {
+				  if(tooFar) FindColor(block, false);
+				  else FindMaterial(block, false);
+                block->Draw(5, isSelected);
+                renderCount++;
+              }
 			
-			glEnable(GL_TEXTURE_2D);
+			  glEnable(GL_TEXTURE_2D);
 			
-			glEnable(GL_LIGHTING);
+			  glEnable(GL_LIGHTING);
+            }
           }
         }
       }
     }
   }
+  fprintf(stderr, "Rendered %d faces.\n", renderCount);
 }
 
 void DrawCreatures() 
@@ -1287,7 +1292,6 @@ void DrawCreatures()
 
   for (it = creatures.begin(); it < creatures.end(); it++)
   {
-	  if(R3Distance((*it)->position, Main_Character->position) > distanceToRenderCreature) continue;
     if ((*it)->creaturetype == R3COW_CREATURE) 
       LoadMaterial(materials[COW]);
     else if ((*it)->creaturetype == R3DEER_CREATURE) 
@@ -1312,15 +1316,6 @@ void DrawCreatures()
 void UpdateCharacter() 
 {
 	Main_Character->position.Reset(camera.eye.X(), camera.eye.Y(), camera.eye.Z());
-	if(worldbuilder) {
-		for(int i = 0; i < 5; i++) {
-			Main_Character->number_items[i] = INT_MAX;
-		}
-	}
-
-	R3Index loc = getChunkCoordinates(Main_Character->position);
-	printf("Character coords: %d, %d, %d\n", loc);
-
 	if (Main_Character->Health <= 0) 
 		dead = true;
 }
@@ -1381,7 +1376,6 @@ void GLUTMainLoop(void)
 
 void GLUTIdleFunction(void) 
 {
-	//printf("Current Time: %f\n", GetTime());
   if (regularGameplay == false) 
   {
     glutPostRedisplay();
@@ -1398,12 +1392,8 @@ void GLUTIdleFunction(void)
     if (!dead) 
     {
       direction = creatures[i]->UpdateCreature(Main_Character);
-	  double creaturedist = R3Distance(Main_Character->position, creatures[i]->position);
-	  printf("Distance to creature: %f\n", creaturedist);
-	  if(creaturedist < distanceToRenderCreature) {
-		  direction = InterpolateMotion(&(creatures[i]->position), direction, false);
-		 creatures[i]->box.Translate(direction);
-	  }
+      direction = InterpolateMotion(&(creatures[i]->position), direction, false);
+      creatures[i]->box.Translate(direction);
     }
   }
 
@@ -1516,7 +1506,6 @@ void DisplayStartMenu()
 	glColor3d(.6, .6, .6);
 	GLUTDrawText(R3Point(GLUTwindow_width / 10, GLUTwindow_height / 4.5, 0), "A Tribute by Rohan Bansal, Dmitry Drutskoy, Ajay Roopakalu, Sarah Tang");
 	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 2, 0), "Left click - Play");
-	GLUTDrawTitle(R3Point(GLUTwindow_width / 5, GLUTwindow_height / 1.5, 0), "Press N to enter WorldBuilder Mode");
 //	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.5, 0), "Right click - Create Your Own Level");
 	
 	glEnable(GL_TEXTURE_2D);
@@ -1565,7 +1554,6 @@ void DisplayControls()
 		GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 4*GLUTwindow_height /30, 0), "left click - destroy item/attack");
 	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 5*GLUTwindow_height /30, 0), "b - back");
 	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 6*GLUTwindow_height /30, 0), "q - quit");
-		GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 7*GLUTwindow_height /30, 0), "shft-q - quit and save world");
 		//GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1, 0), "Left click - Play");
 	//	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.5, 0), "Right click - Create Your Own Level");
 	
@@ -1745,13 +1733,17 @@ void GLUTRedraw(void)
     }
 
     GLUTStop();
+
   }
 
   previous_time = current_time;
+  //glutWarpPointer(GLUTwindow_width / 2, GLUTwindow_height / 2);
 }    
 
 void GLUTPassiveMotion(int x, int y)
 {
+  //glutWarpPointer(GLUTwindow_width / 2, GLUTwindow_height / 2);
+  //fprintf(stderr, "MOUSE MOVED");
   if (!CAPTURE_MOUSE) 
   {
     GLUTmouse[0] = x;
@@ -1765,11 +1757,16 @@ void GLUTPassiveMotion(int x, int y)
   // Compute mouse movement
   int dx = x - GLUTmouse[0];
   int dy = y - GLUTmouse[1];
+  
+  //if (dx != 0 || dy != 0)
+    //glutWarpPointer(GLUTmouse[0], GLUTmouse[1]);
 
   if (x < 60 || x > GLUTwindow_width - 60 || 
       y < 60 || y > GLUTwindow_height - 60)
   {
     glutWarpPointer(GLUTwindow_width / 2, GLUTwindow_height / 2);
+    //glutWarpPointer(200, 200);
+    //fprintf(stderr, "warping to %d, %d\n", GLUTwindow_width / 2, GLUTwindow_height / 2);
     GLUTmouse[0] = x;
     GLUTmouse[1] = y;
     glutPostRedisplay();
@@ -1795,6 +1792,7 @@ void GLUTPassiveMotion(int x, int y)
   GLUTmouse[0] = x;
   GLUTmouse[1] = y;
   glutPostRedisplay();
+  //glutWarpPointer(GLUTwindow_width / 2, GLUTwindow_height / 2);
 }
 
 void GLUTMouse(int button, int state, int x, int y)
@@ -1837,8 +1835,6 @@ void GLUTMouse(int button, int state, int x, int y)
 			  if (block == DIRT_BLOCK) item = R3BLOCK_DIRT;
 			  if (block == WOOD_BLOCK) item = R3BLOCK_WOOD;
 			  if (block == STONE_BLOCK) item = R3BLOCK_STONE;
-			  if (block == SAND_BLOCK) item = R3BLOCK_SAND;
-			  if (block == OBSIDIAN_BLOCK) item = R3BLOCK_OBSIDIAN;
 
 			  if (item < 8) 
 			  {
@@ -1868,22 +1864,19 @@ void GLUTMouse(int button, int state, int x, int y)
       printf("%d\n", item);
       //block = STONE_BLOCK;
       if (item < 8) 
-	  {
-		  if (Main_Character->number_items[item] > 0) 
-		  {
-			  if (item == R3BLOCK_DIRT) block = DIRT_BLOCK;
-			  if (item == R3BLOCK_WOOD) block = WOOD_BLOCK;
-			  if (item == R3BLOCK_STONE) { block = STONE_BLOCK; }
-			  if (item == R3BLOCK_SAND) block = SAND_BLOCK;
-			  if (item == R3BLOCK_OBSIDIAN) block = OBSIDIAN_BLOCK;
-
-			  Main_Character->number_items[item]--;
-			  if (Main_Character->number_items[item] == 0) {
-				  Main_Character->item = R3BLOCK_AIR;
-			  }
-			  AddBlock(block);
-		  }
-	  }
+      {
+        if (Main_Character->number_items[item] > 0) 
+        {
+				if (item == R3BLOCK_DIRT) block = DIRT_BLOCK;
+				if (item == R3BLOCK_WOOD) block = WOOD_BLOCK;
+				if (item == R3BLOCK_STONE) { block = STONE_BLOCK; }
+				Main_Character->number_items[item]--;
+				if (Main_Character->number_items[item] == 0) {
+					Main_Character->item = R3BLOCK_AIR;
+				}
+				AddBlock(block);
+			}
+		}
     }
   }
 
@@ -1961,16 +1954,6 @@ void GLUTKeyboard(unsigned char key, int x, int y)
       if (Main_Character->number_items[R3BLOCK_WOOD] >0)
         Main_Character->item = R3BLOCK_WOOD;
       break;
-	  case '4':
-		  if (Main_Character->number_items[R3BLOCK_SAND] >0)
-			  Main_Character->item = R3BLOCK_SAND;
-		  break;
-	  case '5':
-		  if (Main_Character->number_items[R3BLOCK_OBSIDIAN] >0) {
-
-			  Main_Character->item = R3BLOCK_OBSIDIAN;
-		  }
-		  break;
 	  case 'C':
     case 'c':
       show_camera = !show_camera;
@@ -2011,17 +1994,7 @@ void GLUTKeyboard(unsigned char key, int x, int y)
       glutSetCursor(GLUT_CURSOR_INHERIT);
       break;
 	  
-	case 'N':
-	case 'n':
-	if (CAPTURE_MOUSE == false) break;	
-	if (startMenu) {
-		
-			worldbuilder = 1;
-			startMenu = false;
-			regularGameplay = true;
-			controlsMenu = false;
-		}
-		break;
+
     case 'w': 
 		if(dead || !regularGameplay) return;
       difference = InterpolateMotion(&(camera.eye), 
@@ -2113,6 +2086,11 @@ void GLUTInit(int *argc, char **argv)
     glutPassiveMotionFunc(GLUTPassiveMotion);
     glutEntryFunc(GLUTMouseEntry);
     glutIdleFunc(GLUTIdleFunction);
+    
+    // FUCK YOU YOU FUCKING FUCK
+    //glutWarpPointer(GLUTwindow_width / 2, GLUTwindow_height / 2);
+    // maybe not
+    
 
     // Initialize graphics modes 
     glEnable(GL_NORMALIZE);
@@ -2164,6 +2142,8 @@ R3Scene *ReadScene(const char *filename)
     camera.up = R3posy_vector;
     camera.right = R3posx_vector;
     camera.xfov = .5;
+
+    cosineXFov = cos(camera.xfov);
 
     // Return scene
     return scene;
