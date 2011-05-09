@@ -14,7 +14,9 @@ typedef enum {
 	LEAF,
 	STONE,
 	WOOD,
+	SAND,
 	BEDROCK,
+	OBSIDIAN,
 	COW,
 	DEER,
 	SUICIDE,
@@ -22,6 +24,7 @@ typedef enum {
 	STONE_ICON,
 	WOOD_ICON,
 	SAND_ICON,
+	OBSIDIAN_ICON,
 	LOGO
 } R3Texture;
 

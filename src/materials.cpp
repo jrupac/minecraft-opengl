@@ -164,6 +164,41 @@ void MakeMaterials(R3Material **materials)
 	materials[BEDROCK] = bedrock_material;
 	 //Icon materials
 
+	R3Material *sand_material = new R3Material();
+	sand_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	sand_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	sand_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	sand_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	sand_material->emission = R3Rgb(0, 0, 0, 0);
+	sand_material->shininess = 10;
+	sand_material->indexofrefraction = 1;
+	
+	// Read texture image
+	sand_material->texture = new R2Image();
+	if (!sand_material->texture->Read(s_TexSand)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	sand_material->id = 5;
+	materials[SAND] = sand_material;
+	
+	R3Material *obdisidan_material = new R3Material();
+	obdisidan_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	obdisidan_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	obdisidan_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	obdisidan_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	obdisidan_material->emission = R3Rgb(0, 0, 0, 0);
+	obdisidan_material->shininess = 10;
+	obdisidan_material->indexofrefraction = 1;
+	
+	// Read texture image
+	obdisidan_material->texture = new R2Image();
+	if (!obdisidan_material->texture->Read(s_TexObsidian)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	obdisidan_material->id = 5;
+	materials[OBSIDIAN] = obdisidan_material;
 
 
 	R3Material *dirt_icon = new R3Material();
@@ -220,7 +255,6 @@ void MakeMaterials(R3Material **materials)
 	wood_icon->id = 5;
 	materials[WOOD_ICON] = wood_icon;
 
-	
 	R3Material *sand_icon = new R3Material();
 	sand_icon->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
 	sand_icon->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
@@ -238,12 +272,25 @@ void MakeMaterials(R3Material **materials)
 	}	
 	sand_icon->id = 5;
 	materials[SAND_ICON] = sand_icon;
-
 	
-
-
-
-
+	R3Material *obsidian_icon = new R3Material();
+	obsidian_icon->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	obsidian_icon->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	obsidian_icon->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	obsidian_icon->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	obsidian_icon->emission = R3Rgb(0, 0, 0, 0);
+	obsidian_icon->shininess = 10;
+	obsidian_icon->indexofrefraction = 1;
+	
+	// Read texture image
+	obsidian_icon->texture = new R2Image();
+	if (!obsidian_icon->texture->Read(s_TexObsidianIcon)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	obsidian_icon->id = 5;
+	materials[OBSIDIAN_ICON] = obsidian_icon;
+	
 
 	// Creature Materials
 

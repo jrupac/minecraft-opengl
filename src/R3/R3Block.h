@@ -7,7 +7,8 @@ typedef enum {
   LEAF_BLOCK, //2
   WOOD_BLOCK, //3
   STONE_BLOCK, //4
-  WATER_BLOCK, //5
+  SAND_BLOCK, //5
+	OBSIDIAN_BLOCK //6
 } R3BlockType;
 
 class R3Block {

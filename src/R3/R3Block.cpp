@@ -6,6 +6,8 @@
 #define LEAF_HEALTH 1
 #define WOOD_HEALTH 2
 #define STONE_HEALTH 5
+#define SAND_HEALTH 1
+#define OBSIDIAN_HEALTH 10
 
 R3Block::
 R3Block(const R3Box& box, int type)
@@ -44,6 +46,18 @@ R3Block(const R3Box& box, int type)
       transparent = false;
       gravity = false;
       break;
+	case SAND_BLOCK:
+		  health = SAND_HEALTH;
+		  walkable = false;
+		  transparent = false;
+		  gravity = true;
+		  break;
+	  case OBSIDIAN_BLOCK:
+		  health = OBSIDIAN_HEALTH;
+		  walkable = false;
+		  transparent = false;
+		  gravity = false;
+		  break;
   }
 }
 
@@ -113,6 +127,19 @@ changeBlock(int newType)
       transparent = false;
       gravity = false;
       break;
+	  case SAND_BLOCK:
+		  health = SAND_HEALTH;
+		  walkable = false;
+		  transparent = false;
+		  gravity = true;
+		  break;
+	  case OBSIDIAN_BLOCK:
+		  health = OBSIDIAN_HEALTH;
+		  walkable = false;
+		  transparent = false;
+		  gravity = false;
+		  break;
+		  
   }
 }
 

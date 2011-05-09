@@ -411,7 +411,7 @@ void AddBlock(int block)
 	R3Index j = scene->getIndex(bottom);
 	R3Node *bottomNode = j.current->chunk[j.x][j.y][j.z];
 	
-	if (block == DIRT_BLOCK) {
+	if (block == DIRT_BLOCK || block == SAND_BLOCK) {
 		while (bottomNode->shape->block->getBlockType() == AIR_BLOCK) {
 		//	printf("while %f\n", p[1]);
 			p[1]--;
@@ -601,7 +601,7 @@ void DrawHUD_Inventory()
 	int materialsStart = DIRT_ICON;
 	
 	int i;
-    for (i = 0; i <= 3; i++) 
+    for (i = 0; i <= 4; i++) 
     {	
 		if (Main_Character->number_items[i] > 0) {
 		LoadMaterial(materials[materialsStart]);
@@ -818,6 +818,10 @@ void FindMaterial(R3Block *block, bool isTop)
 		LoadMaterial(materials[WOOD]);
 	else if (block->getBlockType() == STONE_BLOCK)
 		LoadMaterial(materials[STONE]);
+	else if (block->getBlockType() == SAND_BLOCK) 
+		LoadMaterial(materials[SAND]);
+	else if (block->getBlockType() == OBSIDIAN_BLOCK) 
+		LoadMaterial(materials[OBSIDIAN]);
 }
 
 void FindColor(R3Block *block, bool isTop) 
@@ -1521,6 +1525,7 @@ void DisplayControls()
 		GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 4*GLUTwindow_height /30, 0), "left click - destroy item/attack");
 	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 5*GLUTwindow_height /30, 0), "b - back");
 	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 6*GLUTwindow_height /30, 0), "q - quit");
+		GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 7*GLUTwindow_height /30, 0), "shft-q - quit and save world");
 		//GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1, 0), "Left click - Play");
 	//	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.5, 0), "Right click - Create Your Own Level");
 	
@@ -1792,6 +1797,8 @@ void GLUTMouse(int button, int state, int x, int y)
 			  if (block == DIRT_BLOCK) item = R3BLOCK_DIRT;
 			  if (block == WOOD_BLOCK) item = R3BLOCK_WOOD;
 			  if (block == STONE_BLOCK) item = R3BLOCK_STONE;
+			  if (block == SAND_BLOCK) item = R3BLOCK_SAND;
+			  if (block == OBSIDIAN_BLOCK) item = R3BLOCK_OBSIDIAN;
 
 			  if (item < 8) 
 			  {
@@ -1827,6 +1834,9 @@ void GLUTMouse(int button, int state, int x, int y)
 				if (item == R3BLOCK_DIRT) block = DIRT_BLOCK;
 				if (item == R3BLOCK_WOOD) block = WOOD_BLOCK;
 				if (item == R3BLOCK_STONE) { block = STONE_BLOCK; }
+			if (item == R3BLOCK_SAND) block = SAND_BLOCK;
+			if (item == R3BLOCK_OBSIDIAN) block = OBSIDIAN_BLOCK;
+			
 				Main_Character->number_items[item]--;
 				if (Main_Character->number_items[item] == 0) {
 					Main_Character->item = R3BLOCK_AIR;
@@ -1911,6 +1921,14 @@ void GLUTKeyboard(unsigned char key, int x, int y)
       if (Main_Character->number_items[R3BLOCK_WOOD] >0)
         Main_Character->item = R3BLOCK_WOOD;
       break;
+	  case '4':
+		  if (Main_Character->number_items[R3BLOCK_SAND] >0)
+			  Main_Character->item = R3BLOCK_SAND;
+		  break;
+	  case '5':
+		  if (Main_Character->number_items[R3BLOCK_OBSIDIAN] >0)
+			  Main_Character->item = R3BLOCK_OBSIDIAN;
+		  break;
 	  case 'C':
     case 'c':
       show_camera = !show_camera;
