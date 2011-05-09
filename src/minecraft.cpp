@@ -1269,8 +1269,8 @@ void DrawCreatures()
 	}
 }
 
-void GenerateCreatures() {
-
+void GenerateCreatures() 
+{
 	int num_to_create = 1;
 	double distance_to_gen = 8;
 	for(int rohan_i = 0; rohan_i < num_to_create; rohan_i++) {
