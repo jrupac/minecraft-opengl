@@ -52,7 +52,7 @@ static int save_image = 0;
 static int quit = 0;
 static int toSave = 0;
 static int FPS = 0;
-static int LODcutoff = 15;
+static int LODcutoff = 30;
 static int worldbuilder = 0;
 static int currentLevel = 0;
 static int num_creatures_to_make = 0;
@@ -1548,11 +1548,11 @@ void DisplayStartMenu()
 		GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.40, 0), "No Culling");
 		GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.30, 0), "(Low Performance)");
 		break;
-	case 1:    
+	case 2:    
 		GLUTDrawTitle(R3Point(GLUTwindow_width / 6, GLUTwindow_height / 1.40, 0), "Only Occlusion Culling (Medium Performance)");
 		GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.30, 0), "(Medium Performance)");
 		break;
-	case 2: 
+	case 1: 
 		GLUTDrawTitle(R3Point(GLUTwindow_width / 6, GLUTwindow_height / 1.40, 0), "Only View Frustum Culling (Medium Performance)");
 		GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.30, 0), "(Medium Performance)");
 		break;
