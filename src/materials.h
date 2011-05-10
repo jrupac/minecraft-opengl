@@ -17,6 +17,7 @@ typedef enum {
 	SAND,
 	BEDROCK,
 	OBSIDIAN,
+	GOLD,
 	COW,
 	DEER,
 	SUICIDE,

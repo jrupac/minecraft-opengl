@@ -51,7 +51,14 @@ R3Block(const R3Box& box, int type)
 		  transparent = false;
 		  gravity = false;
 		  break;
+	  case GOLD_BLOCK:
+		  health = GOLD_HEALTH;
+		  walkable = false;
+		  transparent = false;
+		  gravity = false;
+		  break;
   }
+	
 }
 
 void R3Block::
@@ -160,6 +167,12 @@ changeBlock(int newType)
 		  break;
 	  case OBSIDIAN_BLOCK:
 		  health = OBSIDIAN_HEALTH;
+		  walkable = false;
+		  transparent = false;
+		  gravity = false;
+		  break;
+	  case GOLD_BLOCK:
+		  health = GOLD_HEALTH;
 		  walkable = false;
 		  transparent = false;
 		  gravity = false;
