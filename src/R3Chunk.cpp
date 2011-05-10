@@ -291,13 +291,14 @@ GenerateChunk(int c_x, int c_z)
         else if (dy > CHUNK_Y/8 && dy <= (CHUNK_Y/4 + 1)) // 3 to 5
         {
           int prob = rand()%(dy - CHUNK_Y/8 + 1);
-			if (prob == 0) {
-				int goldprob = rand()%20;
-				if (goldprob == 0) 
-					types[dx][dy][dz] = GOLD_BLOCK;
-			else 
-				types[dx][dy][dz] = STONE_BLOCK;
-			}
+			    if (prob == 0) {
+			      types[dx][dy][dz] = STONE_BLOCK;
+				//int goldprob = rand()%20;
+				//if (goldprob == 0) 
+					//types[dx][dy][dz] = GOLD_BLOCK;
+			//else 
+				//types[dx][dy][dz] = STONE_BLOCK;
+			    }
           else
             types[dx][dy][dz] = DIRT_BLOCK;
         }
@@ -310,17 +311,36 @@ GenerateChunk(int c_x, int c_z)
   }
   
   // Do things based on chunk type  
-  if (chunkType == 0) // Flat area - make 1-2 trees, 1-2 bushes
+  if (chunkType == 0 || chunkType == 1) // Flat area - make 1-2 trees, 1-2 bushes
   {
     MakeTree(types, trees); 
     
   }
   if (chunkType == 2) // a few hills
   {
-    MakeMountain(types, 4);
+    MakeMountain(types, 3);
   
   }
   
+  // make gold blocks
+  for (int dx = 0; dx < CHUNK_X; dx++)
+  {
+    for (int dy = 0; dy < CHUNK_Y; dy++)
+    {
+      for (int dz = 0; dz < CHUNK_Z; dz++)
+      {
+        if (types[dx][dy][dz] == STONE_BLOCK)
+        {
+          //if (dy == 11)
+          if (rand()%20 == 0)
+          {
+            types[dx][dy][dz] = GOLD_BLOCK;
+            //fprintf(stderr, "made gold");
+          }
+        }
+      }
+    }
+  }
   
 
   // Create all blocks in this chunk
