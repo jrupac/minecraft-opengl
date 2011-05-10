@@ -200,6 +200,24 @@ void MakeMaterials(R3Material **materials)
 	obdisidan_material->id = 5;
 	materials[OBSIDIAN] = obdisidan_material;
 
+	
+	R3Material *gold_material = new R3Material();
+	gold_material->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);
+	gold_material->kd = R3Rgb(0.5, 0.5, 0.5,0.0);
+	gold_material->ks = R3Rgb(0.5, 0.5, 0.5,0.0);
+	gold_material->kt = R3Rgb(0.0, 0.0, 0.0,0.0);
+	gold_material->emission = R3Rgb(0, 0, 0, 0);
+	gold_material->shininess = 10;
+	gold_material->indexofrefraction = 1;
+	
+	// Read texture image
+	gold_material->texture = new R2Image();
+	if (!gold_material->texture->Read(s_TexGold)) {
+		fprintf(stderr, "Unable to read texture from file");
+		//	return 0;
+	}	
+	gold_material->id = 5;
+	materials[GOLD] = gold_material;
 
 	R3Material *dirt_icon = new R3Material();
 	dirt_icon->ka = R3Rgb(0.0, 0.0, 0.0, 0.0);

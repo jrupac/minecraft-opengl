@@ -8,7 +8,8 @@ typedef enum {
   WOOD_BLOCK, //3
   STONE_BLOCK, //4
   SAND_BLOCK, //5
-	OBSIDIAN_BLOCK //6
+	OBSIDIAN_BLOCK, //6
+	GOLD_BLOCK //7
 } R3BlockType;
 
 #define DIRT_HEALTH 3
@@ -18,6 +19,7 @@ typedef enum {
 #define STONE_HEALTH 5
 #define SAND_HEALTH 1
 #define OBSIDIAN_HEALTH 10
+#define GOLD_HEALTH 12
 
 class R3Block {
  public:

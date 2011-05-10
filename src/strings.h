@@ -13,6 +13,7 @@ const char s_TexStone[] = "textures/stone.jpg";
 const char s_TexSand[] = "textures/sand.jpg";
 const char s_TexBedrock[] = "textures/bedrock.jpg";
 const char s_TexObsidian[] = "textures/obsidian.jpg";
+const char s_TexGold[] = "textures/gold.jpg";
 const char s_TexDirtIcon[] = "textures/dirt_icon.jpg";
 const char s_TexStoneIcon[] = "textures/stone_icon.jpg";
 const char s_TexWoodIcon[] = "textures/wood_icon.jpg";

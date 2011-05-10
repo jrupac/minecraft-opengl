@@ -8,6 +8,7 @@ R3Character(void)
 	velocity = R3Vector(0, 0, 0);
 	position = R3Point(0, 0, 0);
 	item = R3BLOCK_AIR;
+	number_gold = 0;
 
 /*	
 	//NOTE: NOT UPDATED!

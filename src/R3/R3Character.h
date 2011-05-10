@@ -14,6 +14,7 @@ class R3Character {
     R3Point position;
     int number_items[8];
     R3ItemType belt[8];
+	int number_gold;
 
 };
 

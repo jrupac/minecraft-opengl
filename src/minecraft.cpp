@@ -463,8 +463,7 @@ void AddBlock(int block)
 void RemoveBlock() 
 {
 	// Don't destroy bedrock
-	if (currentSelection->shape->block->getBlockType() == DIRT_BLOCK && 
-		  currentSelection->shape->block->dy == 0) 
+	if (currentSelection->shape->block->dy == 0) 
 			return;
 
 	R3Node *lower = currentSelection;
@@ -815,6 +814,8 @@ void FindMaterial(R3Block *block, bool isTop)
 		LoadMaterial(materials[SAND]);
 	else if (block->getBlockType() == OBSIDIAN_BLOCK) 
 		LoadMaterial(materials[OBSIDIAN]);
+	else if (block->getBlockType() == GOLD_BLOCK)
+		LoadMaterial(materials[GOLD]);
 }
 
 void FindColor(R3Block *block, bool isTop) 
@@ -1915,6 +1916,7 @@ void GLUTMouse(int button, int state, int x, int y)
 					if (block == STONE_BLOCK) item = R3BLOCK_STONE;
 					if (block == SAND_BLOCK) item = R3BLOCK_SAND;
 					if (block == OBSIDIAN_BLOCK) item = R3BLOCK_OBSIDIAN;
+					if (block == GOLD_BLOCK) Main_Character->number_gold ++;
 
 					if (item < 8) 
 					{
@@ -2083,7 +2085,11 @@ void GLUTKeyboard(unsigned char key, int x, int y)
     case 'l':
       show_lights = !show_lights;
       break;
-
+//delete when done debugging - test gold blocks
+	  case 'g':
+	  case 'G':
+		  AddBlock(GOLD_BLOCK);
+		  break;
     case 'Q':
       toSave = 1;
       quit = 1;
