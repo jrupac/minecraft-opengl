@@ -721,7 +721,7 @@ void DrawHUD_Inventory()
 		glTexCoord2d(1, 1);
 		glVertex2f(itemWidth*.75, itemHeight*.50); 
 		glTexCoord2d(1, 0);
-		glVertex2f(itemWidth*.75, itemHeight); s
+		glVertex2f(itemWidth*.75, itemHeight);
 		glTexCoord2d(0, 0);
 		glVertex2f(itemWidth, itemHeight*.50); 
 		glTexCoord2d(0, 1);
