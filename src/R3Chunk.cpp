@@ -20,7 +20,7 @@ void R3Chunk::MakeMountain(int types[CHUNK_X][CHUNK_Y][CHUNK_Z], int height)
   }
   if (locY - 1 < 0)
     return; // just in case
-  fprintf(stderr, "new mountain @ %d %d\n", locX, locZ);
+  //fprintf(stderr, "new mountain @ %d %d\n", locX, locZ);
   
   // initialize visited array
   int final[CHUNK_X][CHUNK_Z];
@@ -137,9 +137,9 @@ void R3Chunk::GrowTree(int types[CHUNK_X][CHUNK_Y][CHUNK_Z], int x, int z, int y
 
 void R3Chunk::MakeTree(int types[CHUNK_X][CHUNK_Y][CHUNK_Z], int count)
 {
-    int locX[count];
-    int locZ[count];
-    int locY[count];
+    int *locX = new int[count];
+    int *locZ = new int[count];
+    int *locY = new int[count];
     
     // pick unique locations
     for (int c = 0; c < count; c++)
@@ -161,7 +161,7 @@ void R3Chunk::MakeTree(int types[CHUNK_X][CHUNK_Y][CHUNK_Z], int count)
           created = true;
         
       }
-      fprintf(stderr, "new tree @ %d, %d\n", locX[c], locZ[c]);
+   //   fprintf(stderr, "new tree @ %d, %d\n", locX[c], locZ[c]);
       // find top Y value
       for (int yCheck = 0; yCheck < CHUNK_Y; yCheck++)
       {
@@ -236,7 +236,7 @@ GenerateChunk(int c_x, int c_z)
 {
   chunk_x = c_x;
   chunk_z = c_z;
-  fprintf(stderr, "No chunk found: generating new chunk at chunk pos (%d, %d)\n", c_x, c_z);
+  //fprintf(stderr, "No chunk found: generating new chunk at chunk pos (%d, %d)\n", c_x, c_z);
 
   start_point = R3Point((double)c_x * CHUNK_X - (double)CHUNK_X/2, -CHUNK_Y / 2, 
                         (double)c_z * CHUNK_Z - (double)CHUNK_Z/2);
@@ -291,8 +291,13 @@ GenerateChunk(int c_x, int c_z)
         else if (dy > CHUNK_Y/8 && dy <= (CHUNK_Y/4 + 1)) // 3 to 5
         {
           int prob = rand()%(dy - CHUNK_Y/8 + 1);
-          if (prob == 0)
-            types[dx][dy][dz] = STONE_BLOCK;
+			if (prob == 0) {
+				int goldprob = rand()%20;
+				if (goldprob == 0) 
+					types[dx][dy][dz] = GOLD_BLOCK;
+			else 
+				types[dx][dy][dz] = STONE_BLOCK;
+			}
           else
             types[dx][dy][dz] = DIRT_BLOCK;
         }

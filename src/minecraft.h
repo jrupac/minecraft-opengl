@@ -76,7 +76,6 @@ void InterpolateJump(R3Point *start, R3Vector direction);
 // GAME LOGIC CODE
 ////////////////////////////////////////////////////////////
 
-void EndGame();
 void AlignReticle();
 void AddBlock(int block);
 void DrawHUD(); 
@@ -114,6 +113,7 @@ void RemoveCreature(R3Creature *died);
 void MoveCharacter(R3Vector translated, double d);
 void DrawCreatures();
 void DisplayDeathMenu();
+void DisplayWonMenu();
 
 ////////////////////////////////////////////////////////////
 // GLUT USER INTERFACE CODE

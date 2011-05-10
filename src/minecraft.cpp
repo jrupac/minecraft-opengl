@@ -41,6 +41,7 @@ static bool controlsMenu = false;
 static bool regularGameplay = false;
 static bool CAPTURE_MOUSE = false;
 static bool dead;
+static bool won = 0;
 static bool DeathMenu;
 static int culling = 3; //0 - none, 1 - view frustrum only, 2 - occlusion only, 3 - full culling
 static int show_faces = 1;
@@ -335,13 +336,6 @@ void InterpolateJump(R3Point *start, R3Vector direction)
 // GAME LOGIC CODE
 ///////////////////////////////////////////////////////////////////////////////
 
-void EndGame()
-{
-	// Be a little nicer than this in the future
-	fprintf(stderr, "You lose!\n");
-	exit(0);
-}
-
 void AlignReticle()
 {
 	currentSelection = NULL;
@@ -513,9 +507,9 @@ void RemoveCreature(R3Creature *died)
 	//return;
 
   for(unsigned int i = 0; i < creatures.size(); i++) {
-	  printf("Current i: %d\n", i);
+	//  printf("Current i: %d\n", i);
 	  if(creatures[i] == died) {
-		  printf("I to be killed: %d\n", i);
+		//  printf("I to be killed: %d\n", i);
 		  creatures.erase(creatures.begin() + i);
 		  break;
 	  }
@@ -524,7 +518,7 @@ void RemoveCreature(R3Creature *died)
 
 void MoveCharacter(R3Vector translated, double d) 
 {
-	printf("TRANSLATED: ");
+//	printf("TRANSLATED: ");
   PRINT_VECTOR(translated);
 
 	translated.Normalize();
@@ -553,13 +547,17 @@ void DrawHUD()
 	glLineWidth(1);
 
 	// Draw text
+	char points[20];
+	sprintf(points, "Gold: %d", Main_Character->number_gold);
 	GLUTDrawText(R3Point(5, 13, 0), "MINECRAFT v.0.0.1");
 	GLUTDrawText(R3Point(5, 30, 0), "C - display controls");
+	
 	GLUTDrawText(R3Point(400, 13, 0), "FPS: " );
 	stringstream ss;
 	ss << FPS;
 	GLUTDrawText(R3Point(450, 13, 0), ss.str().c_str()); 
-
+	
+	GLUTDrawText(R3Point(10, 50, 0), points); 
 	// Draw bottom pane
 	glColor3d(.7, .7, .7);
 
@@ -612,7 +610,7 @@ void DrawHUD_Inventory()
 	int i;
 
 	glPushMatrix();
-	glTranslatef(.1 * x, .99 * y, 0.);
+	glTranslatef(.20 * x, .99 * y, 0.);
 
 	for (i = 0; i <= 4; i++) 
 	{	
@@ -741,8 +739,8 @@ void ChangeHealth(R3Character *character, int delta)
 {
 	character->Health += delta;
 
-	if (character->Health <= 0)
-		EndGame();
+	/*if (character->Health <= 0)
+		EndGame();*/
 }
 
 void ChangeHealth(R3Creature *creature, int delta)
@@ -1415,7 +1413,7 @@ void GLUTIdleFunction(void)
 		  
         double creaturedist = R3Distance(Main_Character->position, creatures[i]->position);
 		if(creaturedist >= distanceToRenderCreature) {
-			printf("Creature %d to be killed. \n", i);
+		//	printf("Creature %d to be killed. \n", i);
 			RemoveCreature(creatures[i]);
 			i--;
 			continue;
@@ -1549,11 +1547,11 @@ void DisplayStartMenu()
 		GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.30, 0), "(Low Performance)");
 		break;
 	case 2:    
-		GLUTDrawTitle(R3Point(GLUTwindow_width / 6, GLUTwindow_height / 1.40, 0), "Only Occlusion Culling (Medium Performance)");
+		GLUTDrawTitle(R3Point(GLUTwindow_width / 6, GLUTwindow_height / 1.40, 0), "Only Occlusion Culling");
 		GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.30, 0), "(Medium Performance)");
 		break;
 	case 1: 
-		GLUTDrawTitle(R3Point(GLUTwindow_width / 6, GLUTwindow_height / 1.40, 0), "Only View Frustum Culling (Medium Performance)");
+		GLUTDrawTitle(R3Point(GLUTwindow_width / 6, GLUTwindow_height / 1.40, 0), "Only View Frustum Culling");
 		GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.30, 0), "(Medium Performance)");
 		break;
 	case 3:    
@@ -1598,6 +1596,37 @@ void DisplayDeathMenu()
   // GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.5, 0), "Right click - Create Your Own Level");
 
   glEnable(GL_TEXTURE_2D);
+}
+
+void DisplayWonMenu() {
+	int x = GLUTwindow_width;
+	int y = GLUTwindow_height;
+	
+	glColor3d(1,1,1);
+	
+	LoadMaterial(materials[LOGO]);
+	
+	glBegin(GL_QUADS);
+	glNormal3d(0.0, 0.0, 1.0);
+	glTexCoord2d(0, 0);
+	glVertex2f(0, 0); 
+	glTexCoord2d(0, 1);
+	glVertex2f(0, y); 
+	glTexCoord2d(1, 1);
+	glVertex2f(x, y); 
+	glTexCoord2d(1, 0);
+	glVertex2f(x, 0); 
+	glEnd();
+	
+	glDisable(GL_TEXTURE_2D);
+	glColor3d(.6, .6, .6);
+	GLUTDrawText(R3Point(GLUTwindow_width / 10, GLUTwindow_height / 4.5, 0), "A Tribute by Rohan Bansal, Dmitry Drutskoy, Ajay Roopakalu, Sarah Tang");
+	
+	glColor3f(1, 0,0);
+	GLUTDrawTitle(R3Point(GLUTwindow_width / 4, GLUTwindow_height / 1.8, 0), "Congratulations! You have won!");
+	// GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.5, 0), "Right click - Create Your Own Level");
+	
+	glEnable(GL_TEXTURE_2D);
 }
 
 void DisplayControls() 
@@ -1772,6 +1801,8 @@ void GLUTRedraw(void)
 		DisplayControls();
   else if (dead)
     DisplayDeathMenu();
+		else if (won) 
+			DisplayWonMenu();
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING); 
@@ -1925,6 +1956,13 @@ void GLUTMouse(int button, int state, int x, int y)
 						Main_Character->item = item;
 					}
 					RemoveBlock();
+
+					if ((Main_Character->number_gold == 10) && (!worldbuilder)) {
+						won = true;
+						startMenu = false;
+						regularGameplay = false;
+						controlsMenu = false;
+					}
 				}
 			}
 		}

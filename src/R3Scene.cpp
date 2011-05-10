@@ -160,7 +160,7 @@ UpdateScene(R3Point loc)
     // memory before the update
     int xChunkLoc = terrain[0][0]->chunk_x - 1;
 
-    fprintf(stderr, "MOVING LEFT IN X\n");
+   // fprintf(stderr, "MOVING LEFT IN X\n");
 
     for (int zChunks = 0; zChunks < CHUNKS; zChunks++)
     {
@@ -189,7 +189,7 @@ UpdateScene(R3Point loc)
     // memory before the update
     int xChunkLoc = terrain[CHUNKS - 1][0]->chunk_x + 1;
 
-    fprintf(stderr, "MOVING RIGHT IN X\n");
+   // fprintf(stderr, "MOVING RIGHT IN X\n");
 
     for (int zChunks = 0; zChunks < CHUNKS; zChunks++)
     {
@@ -219,7 +219,7 @@ UpdateScene(R3Point loc)
     // memory before the update
     int zChunkLoc = terrain[0][0]->chunk_z - 1;
 
-    fprintf(stderr, "MOVING CLOSER IN Z\n");
+    //fprintf(stderr, "MOVING CLOSER IN Z\n");
 
     for (int xChunks = 0; xChunks < CHUNKS; xChunks++)
     {
@@ -248,7 +248,7 @@ UpdateScene(R3Point loc)
     // memory before the update
     int zChunkLoc = terrain[0][CHUNKS-1]->chunk_z + 1;
 
-    fprintf(stderr, "MOVING FURTHER IN Z\n");
+   // fprintf(stderr, "MOVING FURTHER IN Z\n");
 
     for (int xChunks = 0; xChunks < CHUNKS; xChunks++)
     {

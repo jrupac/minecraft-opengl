@@ -77,7 +77,7 @@ I. GOALS: <br/><br/>
     The user becomes the main character in the game.<br/>
     In our version, the main goal of this game is to mine the gold blocks that are hidden in the terrain. <br/>
     Secondary goals include building your own world and staying alive.<br/>
-    The game is won when ten gold blocks are mined, and lost when you are killed by monsters. </br><br/><br/>
+    The game is won when ten gold blocks are mined, and lost when your health depletes. </br><br/><br/>
 II. GAME MODES:<br/><br/>
     The game has two modes: <br/>
             Normal gameplay includes all features - items, monsters, inventory, gold blocks. <br/>
@@ -107,7 +107,8 @@ V. CREATURES: <br/><br/>
         Cows move away from you slowly and do not damage your health. "Killing" a cow will allow you to regain health. <br/>
         Deer move towards you and will damage your health. Killing deer also returns you health.<br/>
         Bombs also move towards you. If you collide with them, they will do more damage than a deer, but will destroy themselves as well.
-        They do not give you health.<br/><br/><br/>
+        They do not give you health.<br/>
+        Falling from too high will also cause you to lose health. <br/><br/><br/>
     
 IMPLEMENTATION: <br/><br/><br/>
 <!--describe chunk implementation here-->
@@ -127,9 +128,6 @@ IMPLEMENTATION: <br/><br/><br/>
   <TR>
     <TD vAlign=top align=middle>
        <A href="screenshots/3Dperspective1.gif"><IMG  width=256 src="screenshots/3Dperspective1.gif"></A><BR>       
-    </TD>
-    <TD vAlign=top align=middle>
-       <A href="screenshots/3Dperspective2.gif"><IMG  width=256 src="screenshots/3Dperspective2.gif"></A><BR>       
     </TD>
     <TD vAlign=top align=middle>
        <A href="screenshots/3Dperspective3.gif"><IMG  width=256 src="screenshots/3Dperspective3.gif"></A><BR>       
@@ -241,6 +239,13 @@ Creatures are simple AI - they will move based on your position and attack.<br/>
 
 Texture mapping is used to generate the different types of blocks, terrain, creatures. 
 
+Textures for the game were taken from texture packs and icons found at:
+<a href="http://www.minecraftforum.net/viewtopic.php?f=1021&t=275745">AlternaCraft by Andeh6</a>
+and 
+<a href="http://www.minecraftforum.net/viewtopic.php?f=1018&t=172873">Minecraft Isometric Blocks by nex4k</a>
+
+
+
 <!------------------------------------------------------------------------> 
 <H3><A name="panel"> On-Screen Control Panel  </A></H3>
 <!------------------------------------------------------------------------> 
@@ -250,9 +255,6 @@ Texture mapping is used to generate the different types of blocks, terrain, crea
   <TR>
     <TD vAlign=top align=middle>
        <A href="screenshots/UI1.gif"><IMG  width=256 src="screenshots/UI1.gif"></A><BR>       
-    </TD>
-    <TD vAlign=top align=middle>
-       <A href="screenshots/3Dperspective2.gif"><IMG  width=256 src="screenshots/3Dperspective2.gif"></A><BR>       
     </TD>
     <TD vAlign=top align=middle>
        <A href="screenshots/UI2.gif"><IMG  width=256 src="screenshots/UI2.gif"></A><BR>       
