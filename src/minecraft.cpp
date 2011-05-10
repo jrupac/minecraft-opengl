@@ -56,6 +56,7 @@ static int LODcutoff = 15;
 static int worldbuilder = 0;
 static int currentLevel = 0;
 static int num_creatures_to_make = 0;
+static unsigned int MAX_num_creatures = 250;
 static float picker_height = 10;
 static float picker_width = 10;
 static double previous_time = 0;
@@ -64,6 +65,7 @@ static double previousLevelTime = 0;
 static double distanceToRenderCreature = 30;
 static double distanceToUpdateCreature = 20;
 static double AlignReticleDistance = 10;
+static double timeBetweenLevels = 20;
 static R3Rgb background = R3Rgb(0.529, 0.807, 0.980, 1.);
 static R3Scene *scene = NULL;
 static R3Camera camera;
@@ -1188,6 +1190,8 @@ void DrawCreatures()
 
 void GenerateCreatures(int num_to_create) 
 {
+
+	if(creatures.size() > MAX_num_creatures) return;
 	//int num_to_create = 10;
 	double distance_to_gen = 8;
 
@@ -1386,14 +1390,14 @@ void GLUTIdleFunction(void)
 		return;
 	}
 
-	if (worldbuilder == 0 && GetTime() >= previousLevelTime + 10) 
+	if (worldbuilder == 0 && GetTime() >= previousLevelTime + timeBetweenLevels) 
   {
 		currentLevel++;
 		previousLevelTime = GetTime();
 
 		GenerateCreatures(num_creatures_to_make);
-		num_creatures_to_make += 10;
-		printf("Now on Level %d! with %d Creatures.\n", currentLevel, creatures.size());
+		num_creatures_to_make += 3;
+		//printf("Now on Level %d! with %d Creatures.\n", currentLevel, creatures.size());
 	}
 
 	ModulateLighting();
@@ -1508,7 +1512,7 @@ void GLUTResize(int w, int h)
 
 void DisplayStartMenu() 
 {
-	//printf(":(");
+	printf("Culling: %d\n", culling);
 	int x = GLUTwindow_width;
 	int y = GLUTwindow_height;
 
@@ -1533,9 +1537,29 @@ void DisplayStartMenu()
 	glDisable(GL_TEXTURE_2D);
 	glColor3d(.6, .6, .6);
 	GLUTDrawText(R3Point(GLUTwindow_width / 10, GLUTwindow_height / 4.5, 0), "A Tribute by Rohan Bansal, Dmitry Drutskoy, Ajay Roopakalu, Sarah Tang");
-	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 2, 0), "Left click - Play");
-	GLUTDrawTitle(R3Point(GLUTwindow_width / 5, GLUTwindow_height / 1.5, 0), "Press N to enter WorldBuilder Mode");
-	//	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.5, 0), "Right click - Create Your Own Level");
+	GLUTDrawTitle(R3Point(GLUTwindow_width / 2.5, GLUTwindow_height / 2, 0), "Left click - Play");
+	GLUTDrawTitle(R3Point(GLUTwindow_width / 5, GLUTwindow_height / 1.8, 0), "Press N to enter WorldBuilder Mode");
+	GLUTDrawTitle(R3Point(GLUTwindow_width / 4, GLUTwindow_height / 1.53, 0), "Press C to change Culling type:");
+	switch (culling)
+	{
+	case 0: 
+		GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.40, 0), "No Culling");
+		GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.30, 0), "(Low Performance)");
+		break;
+	case 1:    
+		GLUTDrawTitle(R3Point(GLUTwindow_width / 6, GLUTwindow_height / 1.40, 0), "Only Occlusion Culling (Medium Performance)");
+		GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.30, 0), "(Medium Performance)");
+		break;
+	case 2: 
+		GLUTDrawTitle(R3Point(GLUTwindow_width / 6, GLUTwindow_height / 1.40, 0), "Only View Frustum Culling (Medium Performance)");
+		GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.30, 0), "(Medium Performance)");
+		break;
+	case 3:    
+		GLUTDrawTitle(R3Point(GLUTwindow_width / 7, GLUTwindow_height / 1.40, 0), "Both Occlusion and View Frustum Culling");
+		GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.30, 0), "(Maximum Performance)");
+		break;
+	}
+
 
 	glEnable(GL_TEXTURE_2D);
 	//	glEnable(GL_LIGHTING);
@@ -1897,12 +1921,6 @@ void GLUTMouse(int button, int state, int x, int y)
 						Main_Character->number_items[item]++;
 						Main_Character->item = item;
 					}
-
-					printf("inventory: ");
-					for (int i = 0; i < 8; i++)
-						printf("%d, ", Main_Character->number_items[i]);
-					printf("\n");
-
 					RemoveBlock();
 				}
 			}
@@ -2001,32 +2019,41 @@ void GLUTKeyboard(unsigned char key, int x, int y)
   switch (key) 
   {
     case '1':
+		if(startMenu) break;
       if (Main_Character->number_items[R3BLOCK_DIRT] >0)
         Main_Character->item = R3BLOCK_DIRT;
       break;
 
     case '2':
+		if(startMenu) break;
       if (Main_Character->number_items[R3BLOCK_STONE] >0)
         Main_Character->item = R3BLOCK_STONE;
       break;
 
     case '3':
+		if(startMenu) break;
       if (Main_Character->number_items[R3BLOCK_WOOD] >0)
         Main_Character->item = R3BLOCK_WOOD;
       break;
 
     case '4':
+		if(startMenu) break;
       if (Main_Character->number_items[R3BLOCK_SAND] >0)
         Main_Character->item = R3BLOCK_SAND;
       break;
 
     case '5':
+		if(startMenu) break;
       if (Main_Character->number_items[R3BLOCK_OBSIDIAN] >0)
         Main_Character->item = R3BLOCK_OBSIDIAN;
       break;
 
     case 'C':
     case 'c':
+		if(startMenu) {
+			culling = (culling + 1)%4;
+			break;
+		}
       show_camera = !show_camera;
       controlsMenu = true;
       regularGameplay = false;
@@ -2035,6 +2062,7 @@ void GLUTKeyboard(unsigned char key, int x, int y)
 
     case 'b':
     case 'B':
+		if(startMenu) break;
       controlsMenu = false;
       regularGameplay = true;
       startMenu = false;
@@ -2084,43 +2112,45 @@ void GLUTKeyboard(unsigned char key, int x, int y)
       break;
 
     case 'w': 
+		if(startMenu) break;
       if (dead || !regularGameplay) return;
       difference = InterpolateMotion(&(camera.eye), 
           -(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
       break;
 
     case 's': 
+		if(startMenu) break;
       if (dead || !regularGameplay) return;
       difference = InterpolateMotion(&(camera.eye), 
           (cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
       break;
 
     case 'd': 
+		if(startMenu) break;
       if (dead || !regularGameplay) return;
       difference = InterpolateMotion(&(camera.eye), 
           (sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
       break;
 
     case 'a': 
+		if(startMenu) break;
       if (dead || !regularGameplay) return;
       difference = InterpolateMotion(&(camera.eye), 
           -(sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
       break;
 
     case ' ': 
+		if(startMenu) break;
       InterpolateJump(&(camera.eye),     
           -(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point));
       break;
 
     case 'i':
+		if(startMenu) break;
       printf("camera %g %g %g  %g %g %g  %g  %g %g \n",
           camera.eye[0], camera.eye[1], camera.eye[2], 
           rot[0], rot[1], rot[2],
           camera.xfov, camera.neardist, camera.fardist); 
-      break; 
-
-    case 'k':
-      Main_Character->Health--;
       break;
   }
 
@@ -2193,13 +2223,6 @@ void GLUTInit(int *argc, char **argv)
 
 	//Initialize Character    
 	Main_Character = new R3Character();
-
-	//GenerateCreatures();
-	//R3Creature *newcreature1 = new R3Creature(R3Point(-2, .5, -3), R3COW_CREATURE);
-	//R3Creature *newcreature2 = new R3Creature(R3Point(30, .5, -2), R3DEER_CREATURE);
-	//creatures.push_back(newcreature1);
-	//creatures.push_back(newcreature2);
-
 
 
 }
@@ -2542,36 +2565,6 @@ void DrawSceneFullOptimization(R3Scene *scene)
                 glDisable(GL_LIGHTING);
               }
 
-              //double maxhealth;
-
-              //switch (block->blockType)
-              //{
-                //case DIRT_BLOCK:
-                  //maxhealth = DIRT_HEALTH;
-                  //break;
-                //case AIR_BLOCK:
-                  //maxhealth = AIR_HEALTH;
-                  //break;
-                //case LEAF_BLOCK:
-                  //maxhealth = LEAF_HEALTH;
-                  //break;
-                //case WOOD_BLOCK:
-                  //maxhealth = WOOD_HEALTH;
-                  //break;
-                //case STONE_BLOCK:
-                  //maxhealth = STONE_HEALTH;
-                  //break;
-                //case SAND_BLOCK:
-                  //maxhealth = SAND_HEALTH;
-                  //break;
-                //case OBSIDIAN_BLOCK:
-                  //maxhealth = OBSIDIAN_HEALTH;
-                  //break;
-              //}
-
-              //double ratio = block->health;
-              // ATTEMPTING HEALTH COUNTERS
-              
               // Face 3; this is the the top face, set the material every time
               if (dy == CHUNK_Y - 1 || (dy + 1 < CHUNK_Y && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent))
               {
@@ -2726,36 +2719,6 @@ void DrawSceneViewFrustrumOnly(R3Scene *scene)
                 glDisable(GL_TEXTURE_2D);
                 glDisable(GL_LIGHTING);
               }
-
-              //double maxhealth;
-
-              //switch (block->blockType)
-              //{
-                //case DIRT_BLOCK:
-                  //maxhealth = DIRT_HEALTH;
-                  //break;
-                //case AIR_BLOCK:
-                  //maxhealth = AIR_HEALTH;
-                  //break;
-                //case LEAF_BLOCK:
-                  //maxhealth = LEAF_HEALTH;
-                  //break;
-                //case WOOD_BLOCK:
-                  //maxhealth = WOOD_HEALTH;
-                  //break;
-                //case STONE_BLOCK:
-                  //maxhealth = STONE_HEALTH;
-                  //break;
-                //case SAND_BLOCK:
-                  //maxhealth = SAND_HEALTH;
-                  //break;
-                //case OBSIDIAN_BLOCK:
-                  //maxhealth = OBSIDIAN_HEALTH;
-                  //break;
-              //}
-
-              //double ratio = block->health;
-              // ATTEMPTING HEALTH COUNTERS
               
               // Face 3; this is the the top face, set the material every time
               if (dy + 1 < CHUNK_Y && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
@@ -2912,36 +2875,6 @@ void DrawSceneOcclusionOnly(R3Scene *scene)
                 glDisable(GL_LIGHTING);
               }
 
-              //double maxhealth;
-
-              //switch (block->blockType)
-              //{
-                //case DIRT_BLOCK:
-                  //maxhealth = DIRT_HEALTH;
-                  //break;
-                //case AIR_BLOCK:
-                  //maxhealth = AIR_HEALTH;
-                  //break;
-                //case LEAF_BLOCK:
-                  //maxhealth = LEAF_HEALTH;
-                  //break;
-                //case WOOD_BLOCK:
-                  //maxhealth = WOOD_HEALTH;
-                  //break;
-                //case STONE_BLOCK:
-                  //maxhealth = STONE_HEALTH;
-                  //break;
-                //case SAND_BLOCK:
-                  //maxhealth = SAND_HEALTH;
-                  //break;
-                //case OBSIDIAN_BLOCK:
-                  //maxhealth = OBSIDIAN_HEALTH;
-                  //break;
-              //}
-
-              //double ratio = block->health;
-              // ATTEMPTING HEALTH COUNTERS
-              
               // Face 3; this is the the top face, set the material every time
               if (dy + 1 < CHUNK_Y && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
 
@@ -2955,8 +2888,7 @@ void DrawSceneOcclusionOnly(R3Scene *scene)
               }
 
 			  //ADDED to fix materials
-			  
-                    FindMaterial(block, false);
+				//FindMaterial(block, false);
 
               // Face 0; first face decides if others get material or solid color
               if (left >= 0 && scene->terrain[curChunkXLeft][dChunkZ]->chunk[left][dy][dz]->shape->block->transparent)

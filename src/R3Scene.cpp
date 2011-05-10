@@ -91,7 +91,7 @@ getIndex(R3Point p)
 R3Chunk* R3Scene::
 LoadChunk(int x_chunk, int z_chunk)
 {
-  fprintf(stderr, "Loading chunk: %d, %d.\n", x_chunk, z_chunk);
+ // fprintf(stderr, "Loading chunk: %d, %d.\n", x_chunk, z_chunk);
   /*fprintf(stderr, "Current generated chunks are: ");
   set< pair<int, int> >:: iterator it;
   for ( it=generatedChunks.begin() ; it != generatedChunks.end(); it++ )

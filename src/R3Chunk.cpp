@@ -109,7 +109,7 @@ DeleteChunk()
 int R3Chunk::
 ReadChunk(int xChunkCoord, int zChunkCoord)
 {
-  fprintf(stderr, "Chunk found: reading old chunk at chunk pos (%d, %d)\n", xChunkCoord, zChunkCoord);
+  //fprintf(stderr, "Chunk found: reading old chunk at chunk pos (%d, %d)\n", xChunkCoord, zChunkCoord);
 
   //std:: string name;
   //std:: stringstream nameS;
