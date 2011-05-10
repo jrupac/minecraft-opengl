@@ -1,5 +1,119 @@
 #include "R3Chunk.h"
 
+void R3Chunk::MakeMountain(int types[CHUNK_X][CHUNK_Y][CHUNK_Z], int height)
+{
+  int cutoffX = 2*CHUNK_X/8;
+  int cutoffZ = 2*CHUNK_Z/8;
+  // pick something in middle
+  int locX = rand()%(cutoffX) + 3*CHUNK_X/8;
+  int locZ = rand()%(cutoffZ) + 3*CHUNK_Z/8;
+  int locY;
+  
+  // find top Y value
+  for (int yCheck = 0; yCheck < CHUNK_Y; yCheck++)
+  {
+    if (types[locX][yCheck][locZ] == AIR_BLOCK)
+    {
+      locY = yCheck;
+      break;
+    }
+  }
+  if (locY - 1 < 0)
+    return; // just in case
+  fprintf(stderr, "new mountain @ %d %d\n", locX, locZ);
+  
+  // initialize visited array
+  int final[CHUNK_X][CHUNK_Z];
+  for (int i = 0; i < CHUNK_X; i++)
+    for (int j = 0; j < CHUNK_Z; j++)
+      final[i][j] = locY - 1;
+   
+  final[locX][locZ] = locY - 1 + height;
+  
+  // make things stone under mountain
+  for (int yCheck = 1; yCheck < CHUNK_Y && yCheck < locY + height - 1; yCheck++)
+  {
+    types[locX][yCheck][locZ] = STONE_BLOCK;
+  }
+  
+  // top off with dirt
+  if (locY + height - 1 <= CHUNK_Y)
+    types[locX][locY + height - 1][locZ] = DIRT_BLOCK;
+    
+  // recurse
+  if (height > 0)
+  {
+    GrowMountain(types, locX, locZ, 1);
+  
+  }
+  
+}
+
+void R3Chunk::GrowMountain(int types[CHUNK_X][CHUNK_Y][CHUNK_Z], int x, int z, int d)
+{
+  for (int dx = -1*d; dx <= d; dx++)
+  {
+    for (int dz = -1*d; dz <= d; dz++)
+    {
+      if ((abs(dx) < d && abs(dz) < d) || (x + dx) < 0 || (x + dx) >= CHUNK_X || (z + dz) < 0 || (z + dz) >= CHUNK_Z)
+        continue;
+        
+      int maxY = 0;
+      int curX = x + dx;
+      int curZ = z + dz;
+      for (int xAround = -1; xAround <= 1; xAround++)
+      {
+        for (int zAround = -1; zAround <= 1; zAround++)
+        {
+          if ((xAround + zAround) != 0 || curX + xAround < 0 || curX + xAround >= CHUNK_X || curZ + zAround < 0 || curZ + zAround >= CHUNK_Z)
+            continue;
+            
+          for (int yCheck = 0; yCheck < CHUNK_Y; yCheck++)
+          {
+            if (types[curX + xAround][yCheck][curZ + zAround] == AIR_BLOCK)
+            {
+              if (maxY < yCheck - 1)
+                maxY = yCheck - 1;
+              break;
+            }  // air block
+          } // y check
+        } // around z
+      } // around x
+      maxY -= rand()%2; // decrease with 50% prob
+      /*int y;
+      // find top Y value
+      for (int yCheck = 0; yCheck < CHUNK_Y; yCheck++)
+      {
+        if (types[curX][yCheck][curZ] == AIR_BLOCK)
+        {
+          y = yCheck;
+          break;
+        }
+      }*/
+      
+      // make things stone under mountain
+      for (int yCheck = 1; yCheck < CHUNK_Y && yCheck < maxY; yCheck++)
+      {
+        types[curX][yCheck][curZ] = STONE_BLOCK;
+      }
+      
+      // top off with dirt
+      if (maxY <= CHUNK_Y)
+        types[curX][maxY][curZ] = DIRT_BLOCK;
+       
+      
+      
+    } // dz
+  } // dx
+  
+  // recurse
+  if (d < CHUNK_X && d < CHUNK_Z)
+  {
+    GrowMountain(types, x, z, d + 1);
+  }
+
+}
+
 void R3Chunk::GrowTree(int types[CHUNK_X][CHUNK_Y][CHUNK_Z], int x, int z, int y, int recDepth)
 {
   // recursive method: base case - check for valid location and put leaf
@@ -105,7 +219,7 @@ void R3Chunk::MakeTree(int types[CHUNK_X][CHUNK_Y][CHUNK_Z], int count)
       }
       if (locY[c] + 5 < CHUNK_Y)
       {
-        types[locX[c]][locY[c] + 5][locZ[c]] = LEAF_BLOCK
+        types[locX[c]][locY[c] + 5][locZ[c]] = LEAF_BLOCK;
       }
     }
      
@@ -196,9 +310,9 @@ GenerateChunk(int c_x, int c_z)
     MakeTree(types, trees); 
     
   }
-  if (chunkType == 1) // a few hills
+  if (chunkType == 2) // a few hills
   {
-    
+    MakeMountain(types, 1);
   
   }
   
