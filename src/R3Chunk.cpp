@@ -65,7 +65,7 @@ void R3Chunk::GrowMountain(int types[CHUNK_X][CHUNK_Y][CHUNK_Z], int x, int z, i
       {
         for (int zAround = -1; zAround <= 1; zAround++)
         {
-          if ((xAround + zAround) != 0 || curX + xAround < 0 || curX + xAround >= CHUNK_X || curZ + zAround < 0 || curZ + zAround >= CHUNK_Z)
+          if (abs(xAround + zAround) != 1 || curX + xAround < 0 || curX + xAround >= CHUNK_X || curZ + zAround < 0 || curZ + zAround >= CHUNK_Z)
             continue;
             
           for (int yCheck = 0; yCheck < CHUNK_Y; yCheck++)
@@ -312,7 +312,7 @@ GenerateChunk(int c_x, int c_z)
   }
   if (chunkType == 2) // a few hills
   {
-    MakeMountain(types, 1);
+    MakeMountain(types, 4);
   
   }
   
