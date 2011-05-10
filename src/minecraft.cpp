@@ -2522,7 +2522,7 @@ void DrawSceneFullOptimization(R3Scene *scene)
 					for (int dx = 0; dx < CHUNK_X; dx++)
 					{
 						int blockDistX = ((CHUNK_X)*dChunkX + dx) - charBlockX;
-						double totDist = sqrt((double)(blockDistZ*blockDistZ + blockDistY*blockDistY + blockDistX*blockDistX)) - 1;
+						double totDist = sqrt((double)(blockDistZ*blockDistZ + blockDistY*blockDistY + blockDistX*blockDistX)) - 2;
 						//fprintf(stderr, "%f\n", totDist);
 						if (!scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz]->shape->block->transparent && blockDistX*viewX + blockDistY*viewY + blockDistZ*viewZ >= dotProductCutOff*totDist)
 						{
@@ -2694,7 +2694,7 @@ void DrawSceneViewFrustrumOnly(R3Scene *scene)
 					{
 						int blockDistX = ((CHUNK_X)*dChunkX + dx) - charBlockX;
 
-						double totDist = sqrt((double)(blockDistZ*blockDistZ + blockDistY*blockDistY + blockDistX*blockDistX)) - 1;
+						double totDist = sqrt((double)(blockDistZ*blockDistZ + blockDistY*blockDistY + blockDistX*blockDistX)) - 2;
 						if (!scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz]->shape->block->transparent && blockDistX*viewX + blockDistY*viewY + blockDistZ*viewZ >= dotProductCutOff*totDist)
 						{
 							R3Node *node = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz];

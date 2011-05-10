@@ -1,20 +1,208 @@
 #include "R3Chunk.h"
 
+void R3Chunk::GrowTree(int types[CHUNK_X][CHUNK_Y][CHUNK_Z], int x, int z, int y, int recDepth)
+{
+  // recursive method: base case - check for valid location and put leaf
+  if (x > 0 && x < CHUNK_X && y > 0 && y < CHUNK_Y && z > 0 && z < CHUNK_Z && types[x][y][z] == AIR_BLOCK)
+    types[x][y][z] = LEAF_BLOCK;
+  else
+    return;
+  // recursive - if depth is > 1 recurse
+  if (recDepth > 0)
+  {
+    GrowTree(types, x - 1, z - 1, y, recDepth - 1);
+    GrowTree(types, x    , z - 1, y, recDepth - 1);
+    GrowTree(types, x + 1, z - 1, y, recDepth - 1);
+    GrowTree(types, x - 1, z    , y, recDepth - 1);
+    GrowTree(types, x + 1, z    , y, recDepth - 1);
+    GrowTree(types, x - 1, z + 1, y, recDepth - 1);
+    GrowTree(types, x    , z + 1, y, recDepth - 1);
+    GrowTree(types, x + 1, z + 1, y, recDepth - 1);
+  }
+}
+
+void R3Chunk::MakeTree(int types[CHUNK_X][CHUNK_Y][CHUNK_Z], int count)
+{
+    int locX[count];
+    int locZ[count];
+    int locY[count];
+    
+    // pick unique locations
+    for (int c = 0; c < count; c++)
+    {
+      // check for uniqueness
+      bool created = false;
+      while (!created)
+      {
+        locX[c] = rand()%CHUNK_X;
+        locZ[c] = rand()%CHUNK_Z;
+        for (int prev = 0; prev < c; prev++)
+        {
+          if (abs(locX[prev] - locX[c]) < 2 || abs(locZ[prev] - locZ[c]) < 2)
+            created = false;
+          else
+            created = true;
+        }
+        if (c == 0)
+          created = true;
+        
+      }
+      fprintf(stderr, "new tree @ %d, %d\n", locX[c], locZ[c]);
+      // find top Y value
+      for (int yCheck = 0; yCheck < CHUNK_Y; yCheck++)
+      {
+        if (types[locX[c]][yCheck][locZ[c]] == AIR_BLOCK)
+        {
+          locY[c] = yCheck;
+          break;
+        }
+      }
+      //now make the tree     
+      types[locX[c]][locY[c]][locZ[c]] = WOOD_BLOCK;
+      if (locY[c] + 1 < CHUNK_Y)
+        types[locX[c]][locY[c] + 1][locZ[c]] = WOOD_BLOCK;
+      else continue;
+      if (locY[c] + 2 < CHUNK_Y)
+      {
+        types[locX[c]][locY[c] + 2][locZ[c]] = WOOD_BLOCK;
+        GrowTree(types, locX[c] - 1, locZ[c] - 1, locY[c] +2, 2);
+        GrowTree(types, locX[c]    , locZ[c] - 1, locY[c] +2, 2);
+        GrowTree(types, locX[c] + 1, locZ[c] - 1, locY[c] +2, 2);
+        GrowTree(types, locX[c] - 1, locZ[c]    , locY[c] +2, 2);
+        GrowTree(types, locX[c] + 1, locZ[c]    , locY[c] +2, 2);
+        GrowTree(types, locX[c] - 1, locZ[c] + 1, locY[c] +2, 2);
+        GrowTree(types, locX[c]    , locZ[c] + 1, locY[c] +2, 2);
+        GrowTree(types, locX[c] + 1, locZ[c] + 1, locY[c] +2, 2);
+        
+      }
+      else continue; 
+      if (locY[c] + 3 < CHUNK_Y)
+      {
+        types[locX[c]][locY[c] + 3][locZ[c]] = WOOD_BLOCK;
+        GrowTree(types, locX[c] - 1, locZ[c] - 1, locY[c] +3, 1);
+        GrowTree(types, locX[c]    , locZ[c] - 1, locY[c] +3, 1);
+        GrowTree(types, locX[c] + 1, locZ[c] - 1, locY[c] +3, 1);
+        GrowTree(types, locX[c] - 1, locZ[c]    , locY[c] +3, 1);
+        GrowTree(types, locX[c] + 1, locZ[c]    , locY[c] +3, 1);
+        GrowTree(types, locX[c] - 1, locZ[c] + 1, locY[c] +3, 1);
+        GrowTree(types, locX[c]    , locZ[c] + 1, locY[c] +3, 1);
+        GrowTree(types, locX[c] + 1, locZ[c] + 1, locY[c] +3, 1);
+        
+      }
+      else continue;
+      if (locY[c] + 4 < CHUNK_Y)
+      {
+        types[locX[c]][locY[c] + 4][locZ[c]] = WOOD_BLOCK;
+        GrowTree(types, locX[c] - 1, locZ[c] - 1, locY[c] +4, 0);
+        GrowTree(types, locX[c]    , locZ[c] - 1, locY[c] +4, 0);
+        GrowTree(types, locX[c] + 1, locZ[c] - 1, locY[c] +4, 0);
+        GrowTree(types, locX[c] - 1, locZ[c]    , locY[c] +4, 0);
+        GrowTree(types, locX[c] + 1, locZ[c]    , locY[c] +4, 0);
+        GrowTree(types, locX[c] - 1, locZ[c] + 1, locY[c] +4, 0);
+        GrowTree(types, locX[c]    , locZ[c] + 1, locY[c] +4, 0);
+        GrowTree(types, locX[c] + 1, locZ[c] + 1, locY[c] +4, 0);
+        
+      }
+      if (locY[c] + 5 < CHUNK_Y)
+      {
+        types[locX[c]][locY[c] + 5][locZ[c]] = LEAF_BLOCK
+      }
+    }
+     
+}
+
 R3Chunk::R3Chunk(void)
 {
 }
+
+
 
 int R3Chunk::
 GenerateChunk(int c_x, int c_z)
 {
   chunk_x = c_x;
   chunk_z = c_z;
-  //fprintf(stderr, "No chunk found: generating new chunk at chunk pos (%d, %d)\n", c_x, c_z);
+  fprintf(stderr, "No chunk found: generating new chunk at chunk pos (%d, %d)\n", c_x, c_z);
 
   start_point = R3Point((double)c_x * CHUNK_X - (double)CHUNK_X/2, -CHUNK_Y / 2, 
                         (double)c_z * CHUNK_Z - (double)CHUNK_Z/2);
   end_point = start_point + R3Point(CHUNK_X, CHUNK_Y, CHUNK_Z);
   block_side = 1.0;
+  
+  /* Chunk types:
+  0 - flat 1d2 trees, 1d2 bushes
+  1 - 1d4 little mounds 1d2 - 1 trees, 1d2 - 1 bushes 
+  2 - hill - 1d2 - 1 trees, 1d2 - 1 bushes
+  3 - sand pit - 0 trees, 0 bushes
+  */
+  int chunkType = rand()%4;
+  int trees, bushes;
+  //start block always the same!!!
+  if (c_x == 0 && c_z == 0)
+  {
+    chunkType = 0;
+    trees = 0;
+    bushes = 0;
+  } 
+  else if (chunkType == 0)
+  {
+    trees = rand()%4 + 1;
+    //bushes = rand()%2 + 1;
+    bushes = 0;
+  }
+  else if (chunkType == 1 || chunkType == 2)
+  {
+    trees = rand()%4;
+    //bushes = rand()%2;
+    bushes = 0;
+  }
+  else
+  {
+    trees = 0;
+    bushes = 0;
+  }
+  
+  int types[CHUNK_X][CHUNK_Y][CHUNK_Z];
+
+  for (int dx = 0; dx < CHUNK_X; dx++)
+  {
+    for (int dy = 0; dy < CHUNK_Y; dy++)
+    {
+      for (int dz = 0; dz < CHUNK_Z; dz++)
+      {
+        if (dy == 0) // 0
+          types[dx][dy][dz] = OBSIDIAN_BLOCK;
+        else if (dy > 0 && dy <= CHUNK_Y/8) // 1 to 2
+          types[dx][dy][dz] = STONE_BLOCK;
+        else if (dy > CHUNK_Y/8 && dy <= (CHUNK_Y/4 + 1)) // 3 to 5
+        {
+          int prob = rand()%(dy - CHUNK_Y/8 + 1);
+          if (prob == 0)
+            types[dx][dy][dz] = STONE_BLOCK;
+          else
+            types[dx][dy][dz] = DIRT_BLOCK;
+        }
+        else if (dy > (CHUNK_Y/4 + 1) && dy < CHUNK_Y/2) //5 to 7
+          types[dx][dy][dz] = DIRT_BLOCK;
+        else // 9 to 15
+         types[dx][dy][dz] = AIR_BLOCK;
+      }
+    }
+  }
+  
+  // Do things based on chunk type  
+  if (chunkType == 0) // Flat area - make 1-2 trees, 1-2 bushes
+  {
+    MakeTree(types, trees); 
+    
+  }
+  if (chunkType == 1) // a few hills
+  {
+    
+  
+  }
+  
+  
 
   // Create all blocks in this chunk
   for (int dy = 0; dy < CHUNK_Y; dy++)
@@ -23,13 +211,7 @@ GenerateChunk(int c_x, int c_z)
     {
       for (int dx = 0; dx < CHUNK_X; dx++)
       {
-        int block_type;
-        if (dy == 0)
-          block_type = OBSIDIAN_BLOCK;
-        else if (dy < CHUNK_Y / 2)
-          block_type = DIRT_BLOCK;
-        else 
-          block_type = AIR_BLOCK;
+        int block_type = types[dx][dy][dz];
 
         R3Point block_start = start_point + block_side * R3Point(dx, dy, dz);
         R3Point block_end = block_start + block_side * R3ones_point;

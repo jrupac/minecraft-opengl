@@ -18,7 +18,7 @@ RAYVIEW_OBJS=$(RAYVIEW_SRCS:.cpp=.o)
 #
 
 CXX=g++
-CXXFLAGS=-Wall -I. -g -DUSE_JPEG -O3
+CXXFLAGS=-Wall -I. -g -DUSE_JPEG -O2
 
 #
 # OpenGL libraries

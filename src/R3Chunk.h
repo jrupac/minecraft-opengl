@@ -97,6 +97,8 @@ struct R3Node {
 
 struct R3Chunk {
   public:
+    void MakeTree(int types[CHUNK_X][CHUNK_Y][CHUNK_Z], int count);
+    void GrowTree(int types[CHUNK_X][CHUNK_Y][CHUNK_Z], int x, int z, int y, int recDepth);
     R3Chunk(void);
     void DeleteChunk();
     int ReadChunk(int xChunkCoord, int zChunkCoord);
