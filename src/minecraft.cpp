@@ -2453,13 +2453,13 @@ _______  _       _________ _______  _______
 */
 void DrawScene(R3Scene *scene)
 {
-	//if (culling == 0)
-	//	DrawSceneNone(scene);
-	//else if (culling == 1)
-	//	DrawSceneViewFrustrumOnly(scene);
-	//else if (culling == 2)
-	//	DrawSceneOcclusionOnly(scene);
-	//else
+	if (culling == 0)
+		DrawSceneNone(scene);
+	else if (culling == 1)
+		DrawSceneViewFrustrumOnly(scene);
+	else if (culling == 2)
+		DrawSceneOcclusionOnly(scene);
+	else
 		DrawSceneFullOptimization(scene);
 }
 
@@ -2573,7 +2573,7 @@ void DrawSceneFullOptimization(R3Scene *scene)
               // ATTEMPTING HEALTH COUNTERS
               
               // Face 3; this is the the top face, set the material every time
-              if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
+              if (dy == CHUNK_Y - 1 || (dy + 1 < CHUNK_Y && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent))
               {
                 if (tooFar) 
                   FindColor(block, true);
@@ -2758,7 +2758,7 @@ void DrawSceneViewFrustrumOnly(R3Scene *scene)
               // ATTEMPTING HEALTH COUNTERS
               
               // Face 3; this is the the top face, set the material every time
-              if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
+              if (dy + 1 < CHUNK_Y && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
 
               {
                 if (tooFar) 
@@ -2795,7 +2795,7 @@ void DrawSceneViewFrustrumOnly(R3Scene *scene)
               }
 
               // Face 2
-              if (dy - 1 > 0 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
+              if (dy - 1 >= 0 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
               {
                 block->Draw(2, isSelected);
                 faceCount++;
@@ -2943,7 +2943,7 @@ void DrawSceneOcclusionOnly(R3Scene *scene)
               // ATTEMPTING HEALTH COUNTERS
               
               // Face 3; this is the the top face, set the material every time
-              if (dy + 1 < CHUNK_Y - 1 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
+              if (dy + 1 < CHUNK_Y && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy + 1][dz]->shape->block->transparent)
 
               {
                 if (tooFar) 
@@ -2982,7 +2982,7 @@ void DrawSceneOcclusionOnly(R3Scene *scene)
               }
 
               // Face 2
-              if (dy - 1 > 0 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
+              if (dy - 1 >= 0 && scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy - 1][dz]->shape->block->transparent)
               {
                 block->Draw(2, isSelected);
                 faceCount++;
