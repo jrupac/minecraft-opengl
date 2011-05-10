@@ -721,7 +721,7 @@ void DrawHUD_Inventory()
 		glTexCoord2d(1, 1);
 		glVertex2f(itemWidth*.75, itemHeight*.50); 
 		glTexCoord2d(1, 0);
-		glVertex2f(itemWidth*.75, itemHeight); 
+		glVertex2f(itemWidth*.75, itemHeight); s
 		glTexCoord2d(0, 0);
 		glVertex2f(itemWidth, itemHeight*.50); 
 		glTexCoord2d(0, 1);
@@ -1812,7 +1812,7 @@ void GLUTMouse(int button, int state, int x, int y)
 				regularGameplay = true;
 				controlsMenu = false;
 			}
-			else if (currentSelectedCreatureIt != creatures.end()) 
+			else if (currentSelectedCreatureIt != creatures.end() && *currentSelectedCreatureIt != NULL) 
 			{
 				ChangeHealth((*currentSelectedCreatureIt), -1);
 			}
