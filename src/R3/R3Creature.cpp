@@ -40,8 +40,11 @@ Creature_Attack(R3Character *character, R3Vector translated)
       character->Health--;
       MoveCharacter(translated, 4);
       RemoveCreature(this);
+	  return;
 	  case R3COW_CREATURE:
-		  MoveCharacter(translated, 2);
+		  translated = character->position - position;
+		  translated.SetY(0);
+		  MoveCharacter(translated, 3);
 		  return;
     default:
       break;

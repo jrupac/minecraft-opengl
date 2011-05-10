@@ -12,9 +12,6 @@ R3Character(void)
 
   // Clear all items
 	for(int i = 0; i < 8; i++) number_items[i] = 0;
-  
-	//again, memset doesn't work for me
-	//memset(number_items, 0x0, 8);
 }
 
 

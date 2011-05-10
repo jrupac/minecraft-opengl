@@ -504,12 +504,10 @@ void RemoveCreature()
 
 void RemoveCreature(R3Creature *died) 
 {
-	//return;
 
   for(unsigned int i = 0; i < creatures.size(); i++) {
-	//  printf("Current i: %d\n", i);
+
 	  if(creatures[i] == died) {
-		//  printf("I to be killed: %d\n", i);
 		  creatures.erase(creatures.begin() + i);
 		  break;
 	  }
@@ -518,7 +516,7 @@ void RemoveCreature(R3Creature *died)
 
 void MoveCharacter(R3Vector translated, double d) 
 {
-//	printf("TRANSLATED: ");
+
   PRINT_VECTOR(translated);
 
 	translated.Normalize();
@@ -738,9 +736,6 @@ void DrawHUD_Inventory()
 void ChangeHealth(R3Character *character, int delta)
 {
 	character->Health += delta;
-
-	/*if (character->Health <= 0)
-		EndGame();*/
 }
 
 void ChangeHealth(R3Creature *creature, int delta)
@@ -1084,31 +1079,6 @@ void DrawCreatures()
 
 	for (it = creatures.begin(); it < creatures.end(); it++)
 	{
-	/*	if (R3Distance((*it)->position, Main_Character->position) > distanceToRenderCreature) 
-      continue;
-	  
-		if ((*it)->creaturetype == R3COW_CREATURE) 
-			LoadMaterial(materials[COW]);
-		else if ((*it)->creaturetype == R3DEER_CREATURE) 
-			LoadMaterial(materials[DEER]);
-		else if ((*it)->creaturetype == R3SUICIDE_CREATURE) 
-			LoadMaterial(materials[SUICIDE]);
-
-		(*it)->box.Draw();
-
-		if (currentSelectedCreatureIt == it) 
-		{
-			glDisable(GL_LIGHTING);
-			glColor3d(0., 0., 0.);
-			glLineWidth(15);
-			glPolygonMode(GL_FRONT, GL_LINE);
-			(*it)->box.Draw();
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			glLineWidth(1);
-			glEnable(GL_LIGHTING);
-		}
-	}*/
-
 		double d = R3Distance(camera.eye, (*it)->box.centroid);
 		if(d > distanceToRenderCreature) continue;
 	float view[16];
@@ -1137,18 +1107,10 @@ void DrawCreatures()
 								  boardRight.Y(), boardUp.Y(), boardLook.Y(), (*it)->position.Y(),
 								  boardRight.Z(), boardUp.Z(), boardLook.Z(), (*it)->position.Z(),
 								  0, 0, 0, 1);
-	/*	R3Matrix billboard = R3Matrix(boardRight.X(), boardUp.X(), boardLook.X(), 0,
-	 boardRight.Y(), boardUp.Y(), boardLook.Y(), 0.5,
-	 boardRight.Z(), boardUp.Z(), boardLook.Z(), -8,
-	 0, 0, 0, 1);*/
+
 	
 	glPushMatrix();
 	LoadMatrix(&billboard);
-	//glTranslatef(.25 * x, .9 * y, 0);
-	//	glEnable(GL_BLEND);
-	//	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	
-	//glColor3f(1, 1, 1);
 	
 		if ((*it)->creaturetype == R3COW_CREATURE) 
 			LoadMaterial(materials[COW]);
@@ -1211,14 +1173,12 @@ void GenerateCreatures(int num_to_create)
 				{
 					for (int dx = 0; dx < CHUNK_X; dx++)
 					{
-						//printf("InterBlock.\n");
 						R3Block *currentblock = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy][dz]->shape->block;
 						if(!currentblock->transparent) {
 							R3Block *aboveblock = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy+1][dz]->shape->block;
 							if(aboveblock->transparent) {
 								R3Block *secondaboveblock = scene->terrain[dChunkX][dChunkZ]->chunk[dx][dy+2][dz]->shape->block;
 								if(secondaboveblock->transparent) {
-									//printf("We have a valid block at (%d, %d) and (%d, %d, %d)\n", dChunkX, dChunkZ, dx, dy, dz);
 									int randomnum = (int)(RandomNumber() / probability);
 
 									//CREATE A MONSTER!!
@@ -1246,7 +1206,6 @@ void GenerateCreatures(int num_to_create)
 										}
 										creatures.push_back(newcreature1);
 									}
-									//THIS IS A VALID BLOCK TO PUT A CREATURE ON!!!!
 								}
 							}
 						}
@@ -1255,61 +1214,13 @@ void GenerateCreatures(int num_to_create)
 			}
 		}
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-	for (int rohan_i = 0; rohan_i < num_to_create; rohan_i++) 
-  {
-		double x = RandomNumber()*2 - 1;
-		double z = RandomNumber()*2 - 1;
-		int rand_creature = (int)(RandomNumber() * 3);
-		
-		R3Vector CreatureLocation(x,0,z);
-		CreatureLocation.Normalize();
-		CreatureLocation *= distance_to_gen;
-		R3Point newpoint = Main_Character->position + CreatureLocation;
-		newpoint.SetY(0.5);
-		R3Creature *newcreature1;
-		switch (rand_creature)
-		{
-		case 0: 
-			
-		newcreature1 = new R3Creature(newpoint, R3COW_CREATURE);
-			break;
-		case 1:    
-			
-		newcreature1 = new R3Creature(newpoint, R3DEER_CREATURE);
-			break;
-		case 2:
-			
-		newcreature1 = new R3Creature(newpoint, R3SUICIDE_CREATURE);
-			break;
-		}
-		creatures.push_back(newcreature1);
-	}*/
 }
 
 void UpdateCharacter() 
 {
 	Main_Character->position.Reset(camera.eye.X(), camera.eye.Y(), camera.eye.Z());
-	/*printf("inventory: ");
-					for (int i = 0; i < 8; i++)
-						printf("%d, ", Main_Character->number_items[i]);
-					printf("\n");*/
 	if (worldbuilder) 
   {
-	  //memset doesn't work for me......
-    //memset(Main_Character->number_items, INT_MAX, 5);
 		for(int i = 0; i < 5; i++) {
 			Main_Character->number_items[i] = INT_MAX;
 		}
@@ -1395,8 +1306,8 @@ void GLUTIdleFunction(void)
 		previousLevelTime = GetTime();
 
 		GenerateCreatures(num_creatures_to_make);
-		num_creatures_to_make += 3;
-		//printf("Now on Level %d! with %d Creatures.\n", currentLevel, creatures.size());
+		num_creatures_to_make += 1;
+
 	}
 
 	ModulateLighting();
@@ -1413,7 +1324,6 @@ void GLUTIdleFunction(void)
 		  
         double creaturedist = R3Distance(Main_Character->position, creatures[i]->position);
 		if(creaturedist >= distanceToRenderCreature) {
-		//	printf("Creature %d to be killed. \n", i);
 			RemoveCreature(creatures[i]);
 			i--;
 			continue;
@@ -1501,7 +1411,6 @@ void GLUTResize(int w, int h)
 	
 	
 	dotProductCutOff = cos(atan(sqrt(tan(camera.xfov)*tan(camera.xfov) + tan(camera.yfov)*tan(camera.yfov))));
-  //fprintf(stderr, "cutoff is %f\n", dotProductCutOff);
 
 	// Remember window size 
 	GLUTwindow_width = w;
@@ -1516,7 +1425,6 @@ void DisplayStartMenu()
 	int x = GLUTwindow_width;
 	int y = GLUTwindow_height;
 
-	//glDisable(GL_LIGHTING);
 
 	glColor3d(1,1,1);
 
@@ -1562,7 +1470,6 @@ void DisplayStartMenu()
 
 
 	glEnable(GL_TEXTURE_2D);
-	//	glEnable(GL_LIGHTING);
 
 }
 
@@ -1593,7 +1500,6 @@ void DisplayDeathMenu()
 
   glColor3f(1, 0,0);
   GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.8, 0), "You have died.");
-  // GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.5, 0), "Right click - Create Your Own Level");
 
   glEnable(GL_TEXTURE_2D);
 }
@@ -1624,34 +1530,17 @@ void DisplayWonMenu() {
 	
 	glColor3f(1, 0,0);
 	GLUTDrawTitle(R3Point(GLUTwindow_width / 4, GLUTwindow_height / 1.8, 0), "Congratulations! You have won!");
-	// GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.5, 0), "Right click - Create Your Own Level");
-	
+
 	glEnable(GL_TEXTURE_2D);
 }
 
 void DisplayControls() 
 {
-	//printf(":(");
+
 	int x = GLUTwindow_width;
 	int y = GLUTwindow_height;
 
-	//glDisable(GL_LIGHTING);
-
 	glColor3d(0, 0, 0);
-
-	/*LoadMaterial(materials[LOGO]);
-
-	glBegin(GL_QUADS);
-	glNormal3d(0.0, 0.0, 1.0);
-	glTexCoord2d(0, 0);
-	glVertex2f(0, 0); 
-	glTexCoord2d(0, 1);
-	glVertex2f(0, y); 
-	glTexCoord2d(1, 1);
-	glVertex2f(x, y); 
-	glTexCoord2d(1, 0);
-	glVertex2f(x, 0); 
-	glEnd();*/
 
 	glBegin(GL_QUADS);
     glVertex2f(0, 0); 
@@ -1660,7 +1549,6 @@ void DisplayControls()
     glVertex2f(x, 0); 
 	glEnd();
 
-	//glDisable(GL_TEXTURE_2D);
 	glColor3d(.6, .6, .6);
 	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 5, 0), "controls");
 	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5, 0), "wasd - move");
@@ -1671,11 +1559,8 @@ void DisplayControls()
 	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 5*GLUTwindow_height /30, 0), "b - back");
 	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 6*GLUTwindow_height /30, 0), "q - quit");
 	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 7*GLUTwindow_height /30, 0), "shft-q - quit and save world");
-	//GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1, 0), "Left click - Play");
-	//GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.5, 0), "Right click - Create Your Own Level");
+	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 8*GLUTwindow_height /30, 0), "Escape - release mouse.");
 
-	//glEnable(GL_TEXTURE_2D);
-	//glEnable(GL_LIGHTING);
 }
 
 void JitterPerspective(GLdouble fovy, GLdouble aspect, GLdouble near_p, 
@@ -1975,7 +1860,6 @@ void GLUTMouse(int button, int state, int x, int y)
 			if(dead || !regularGameplay) return;
 			int block;
 			int item = Main_Character->item;
-			//printf("%d\n", item);
 
 			if (currentSelection) {
 				if (item < 8) 
