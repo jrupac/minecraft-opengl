@@ -53,7 +53,7 @@ static int save_image = 0;
 static int quit = 0;
 static int toSave = 0;
 static int FPS = 0;
-static int LODcutoff = 30;
+static int LODcutoff = 40;
 static int worldbuilder = 0;
 static int currentLevel = 0;
 static int num_creatures_to_make = 0;
@@ -1336,10 +1336,10 @@ void ModulateLighting()
 	static R3Rgb backgroundDayColor = R3Rgb(0.529, 0.807, 0.980, 1.);
 	static R3Rgb backgroundNightColor = R3Rgb(0., 0., 0.400, 1);
 	static R3Rgb nightColor = R3Rgb(.2, .2, .2, 1);
-	int nightLength = 1e2;
+	int nightLength = 2e2;
 	static int nightIndex;
 	static bool isNight = false;
-	double FACTOR = 500e2;
+	double FACTOR = 100e2;
 	R3Rgb diff;
 
 	for (unsigned int i = 0; i < 2; i++)

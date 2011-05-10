@@ -130,7 +130,7 @@ LoadChunk(int x_chunk, int z_chunk)
     }
     if (failure == 1)
     {
-      fprintf(stderr, "Fuck it - making new chunk. \n");
+      fprintf(stderr, "Making new chunk. \n");
       newCh->GenerateChunk(x_chunk, z_chunk);
     }
   }
@@ -471,12 +471,6 @@ Read(const char *filename, R3Node *node)
         terrain[xChunks][zChunks] = LoadChunk(xChunkCoord, zChunkCoord);
       }
     }
-  //}
-  /*if (!UpdateScene(R3Point(0, 0, 0)))
-  {
-    fprintf(stderr, "Fucked up.\n");
-    return 0;
-  }*/
 
   // Close file
   fclose(fp);

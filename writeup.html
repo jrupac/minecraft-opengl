@@ -148,7 +148,7 @@ IMPLEMENTATION: <br/><br/><br/>
        <A href="screenshots/UI1.gif"><IMG  width=256 src="screenshots/UI1.gif"></A><BR>       
     </TD>
     <TD vAlign=top align=middle>
-       <A href="screenshots/3Dperspective3.gif"><IMG  width=256 src="screenshots/3Dperspective3.gif"></A><BR>       
+       <A href="screenshots/Lighting.gif"><IMG  width=256 src="screenshots/Lighting.gif"></A><BR>       
     </TD>
     <TD vAlign=top align=middle>
        <A href="screenshots/lod3.gif"><IMG  width=256 src="screenshots/lod3.gif"></A><BR>       
@@ -391,27 +391,14 @@ In this game, you have the ability to save the scene that you have created.
 </TBODY>
 </TABLE>
 
-
+    To cut down on loading textures, a cube was rendered with a solid color if it was further than a specific distance away from the user.  This distance is hardcoded, and can be changed by the programmer at line 56 in minecraft.cpp (LODcontrol).  It is currently set to a high value so that all textures will render.
 
 <!------------------------------------------------------------------------> 
 <H3><A name="aliasing"> Multi-Pass Rendering Effects (Anti-aliasing)  </A></H3>
 <!------------------------------------------------------------------------> 
 
-<TABLE>
-<TBODY>
-  <TR>
-    <TD vAlign=top align=middle>
-       <A href="screenshots/aliasing1.gif"><IMG  width=256 src="screenshots/aliasing1.gif"></A><BR>       
-    </TD>
-    <TD vAlign=top align=middle>
-       <A href="screenshots/aliasing2.gif"><IMG  width=256 src="screenshots/aliasing2.gif"></A><BR>       
-    </TD>
-    <TD vAlign=top align=middle>
-       <A href="screenshots/aliasing3.gif"><IMG  width=256 src="screenshots/aliasing3.gif"></A><BR>       
-    </TD>
-</TR>
-</TBODY>
-</TABLE>
+Automatically put to none (to improve performance).  Can be changed in code in
+minecraft.h at line 19 to become medium, or high.
 
 
 

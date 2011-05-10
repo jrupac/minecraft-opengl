@@ -137,9 +137,9 @@ void R3Chunk::GrowTree(int types[CHUNK_X][CHUNK_Y][CHUNK_Z], int x, int z, int y
 
 void R3Chunk::MakeTree(int types[CHUNK_X][CHUNK_Y][CHUNK_Z], int count)
 {
-    int *locX = new int[count];
-    int *locZ = new int[count];
-    int *locY = new int[count];
+    int * locX = new int[count];
+    int *  locZ = new int[count];
+    int *  locY= new int[count];
     
     // pick unique locations
     for (int c = 0; c < count; c++)
@@ -563,12 +563,7 @@ WriteChunk(const char *filename)
         fprintf(fp, "%i ", chunk[dx][dy][dz]->shape->block->getBlockType());
       }
       fprintf(fp, "\n");
-      //tempOut << "\n";
 
-      //while (!fputs(tempOut.str().c_str(), fp))
-      //{
-      //  fprintf(stderr, "What the fuck %d %d %d\n", dz, dy, dz);
-      //}
     }
 
     //fputs("\n", fp);
