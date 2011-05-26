@@ -1,8 +1,8 @@
 #ifndef __R3CREATURE_H__
 #define __R3CREATURE_H__
+
 #include "R3.h"
 #include "R3Character.h"
-
 
 typedef enum {
   R3COW_CREATURE,

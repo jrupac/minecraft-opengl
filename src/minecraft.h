@@ -3,11 +3,15 @@
 
 #include <sstream>
 #include <map>
+#include <algorithm>
 
 #include "R3/R3.h"
 #include "R3Scene.h"
 #include "raytrace.h"
+#include "materials.h"
+#include "strings.h"
 #include "utils.h"
+#include "ui.h"
 #include "cos426_opengl.h"
 
 #define M_2PI (2. * M_PI)
@@ -19,6 +23,8 @@
 // Amount of anti-aliasing (either 0 = none, 2 = medium, 4 = high
 #define ACSIZE 0
 
+// Return square of x
+#define SQ(x) ((x) * (x))
 // Return sign of x, with 0 as even
 #define SIGN(x) ((x) >= 0 ? 1 : -1)
 // Return the absolute value of the given number
@@ -77,9 +83,6 @@ void InterpolateJump(R3Point *start, R3Vector direction);
 
 void AlignReticle();
 void AddBlock(int block);
-void DrawHUD(); 
-void DrawHUD_Hearts();
-void DrawHUD_Inventory();
 void LoadMaterial(R3Material *material);
 void ChangeHealth(R3Character *character, int delta);
 void ChangeHealth(R3Creature *creature, int delta);
@@ -91,21 +94,19 @@ void ChangeHealth(R3Block *block, int delta);
 
 void DrawShape(R3Shape *shape);
 void FindMaterial(R3Block *block, bool isTop);
-void LoadMatrix(R3Matrix *matrix);
+void FindColor(R3Block *block, bool isTop);
 void LoadCamera(R3Camera *camera);
 void LoadLights(R3Scene *scene);
 void DrawScene(R3Scene *scene);
-void DrawSceneNone(R3Scene *scene); // 0
-void DrawSceneViewFrustrumOnly(R3Scene *scene); // 1
-void DrawSceneOcclusionOnly(R3Scene *scene); // 2
-void DrawSceneFullOptimization(R3Scene *scene); // 3
+void DrawSceneNone(R3Scene *scene);
+void DrawSceneViewFrustrumOnly(R3Scene *scene);
+void DrawSceneOcclusionOnly(R3Scene *scene);
+void DrawSceneFullOptimization(R3Scene *scene);
 void DrawCreatures();
 void GenerateCreatures();
 void UpdateCharacter();
 
 // Creature Functions
-
-void RemoveCreature();
 
 void RemoveCreature(R3Creature *died);
 void MoveCharacter(R3Vector translated, double d);
@@ -119,7 +120,6 @@ void DisplayWonMenu();
 
 void GLUTMainLoop(void);
 void GLUTIdleFunction(void);
-void GLUTDrawText(const R3Point& p, const char *s);
 void GLUTSaveImage(const char *filename);
 void GLUTStop(void);
 void GLUTResize(int w, int h);

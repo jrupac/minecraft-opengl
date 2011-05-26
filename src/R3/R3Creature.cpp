@@ -1,8 +1,6 @@
 #include "R3Creature.h"
 #include "minecraft.h"
 
-
-
 R3Creature::
 	R3Creature(void)
 {
@@ -34,10 +32,7 @@ Creature_Attack(R3Character *character, R3Vector translated)
       MoveCharacter(translated, 3);
       return;
     case R3SUICIDE_CREATURE:
-      character->Health--;
-      character->Health--;
-      character->Health--;
-      character->Health--;
+      character->Health -= 4;
       MoveCharacter(translated, 4);
       RemoveCreature(this);
 	  return;
@@ -52,7 +47,8 @@ Creature_Attack(R3Character *character, R3Vector translated)
 }
 
 void R3Creature::
-	UpdateCreatureFall(R3Character *character) {
+	UpdateCreatureFall(R3Character *character) 
+{
 		
 	//printf("Enter Update Fall.\n");
 		//printf("Animal Pos: (%f, %f, %f)\n", position.X(), position.Y(), position.Z());
@@ -80,6 +76,7 @@ void R3Creature::
 	//printf("Exit Update Fall..\n");
 
 }
+
 R3Vector R3Creature::
 	UpdateCreature(R3Character *character)
 {

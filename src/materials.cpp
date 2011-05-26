@@ -5,6 +5,8 @@
 
 #include "materials.h"
 
+R3Material **materials = new R3Material*[40];
+
 void MakeMaterials(R3Material **materials) 
 {
 	//printf("make materials\n");

@@ -28,8 +28,10 @@ typedef enum
 #include "strings.h"
 #include "R3Chunk.h"
 
+extern R3Material **materials;
+
 void MakeMaterials(R3Material **materials);
 
-void LoadMaterial(R3Material material);
+void LoadMaterial(R3Material *material);
 
 #endif

@@ -1,5 +1,9 @@
 #include "utils.h"
 
+int GLUTwindow = 0;
+int GLUTwindow_height = 512;
+int GLUTwindow_width = 512;
+
 double RandomNumber(void)
 {
 // Windows
@@ -91,5 +95,36 @@ double GetTime(void)
 		return (double) (secs + 1.0E-6F * usecs);
 	}
 
+#endif
+}
+
+void LoadMatrix(R3Matrix *matrix)
+{
+	// Multiply matrix by top of stack
+	// Take transpose of matrix because OpenGL represents vectors with 
+	// column-vectors and R3 represents them with row-vectors
+	R3Matrix m = matrix->Transpose();
+	glMultMatrixd((double *) &m);
+}
+
+void GLUTDrawText(const R3Point& p, const char *s)
+{
+	// Draw text string s and position p
+	glRasterPos3d(p[0], p[1], p[2]);
+#ifndef __CYGWIN__
+	while (*s) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *(s++));
+#else
+	while (*s) glutBitmapCharacter((void*)7, *(s++));
+#endif
+}
+
+void GLUTDrawTitle(const R3Point& p, const char *s)
+{
+	// Draw text string s and position p
+	glRasterPos3d(p[0], p[1], p[2]);
+#ifndef __CYGWIN__
+	while (*s) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *(s++));
+#else
+	while (*s) glutBitmapCharacter((void*)7, *(s++));
 #endif
 }
