@@ -59,6 +59,7 @@ const jitter_point j4[] =
 enum CULLING { NONE, VIEW, OCCLUSION, FULL };
 enum GAMESTATE { STARTMENU, REGULAR, WORLDBUILDER, CONTROLS, WON, LOST };
 
+extern enum CULLING culling;
 extern R3Node *currentSelection;
 extern R3Camera camera;
 extern double dotProductCutOff;
@@ -91,7 +92,6 @@ void FindMaterial(R3Block *block, bool isTop);
 void FindColor(R3Block *block, bool isTop);
 void LoadCamera(R3Camera *camera);
 void LoadLights(R3Scene *scene);
-void DrawScene(R3Scene *scene);
 void DrawCreatures();
 void GenerateCreatures();
 void UpdateCharacter();
@@ -101,8 +101,6 @@ void UpdateCharacter();
 void RemoveCreature(R3Creature *died);
 void MoveCharacter(R3Vector translated, double d);
 void DrawCreatures();
-void DisplayDeathMenu();
-void DisplayWonMenu();
 
 ////////////////////////////////////////////////////////////
 // GLUT USER INTERFACE CODE

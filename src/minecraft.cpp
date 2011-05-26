@@ -22,20 +22,15 @@
 #include "minecraft.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-// GLOBAL VARIABLES
-///////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////
 // Program arguments 
 ///////////////////////////////////////////////////////////////////////////////
 
 static char *input_scene_name = NULL;
 
 ///////////////////////////////////////////////////////////////////////////////
-// Display variables
+// Display Variables
 ///////////////////////////////////////////////////////////////////////////////
 
-static enum CULLING culling = FULL; 
 static enum GAMESTATE state = STARTMENU;
 static bool CAPTURE_MOUSE = false;
 static bool show_faces = true;
@@ -62,6 +57,11 @@ static VecCreature::iterator currentSelectedCreatureIt;
 static R3Character *mainCharacter;
 static map<int, const jitter_point *> j;
 
+///////////////////////////////////////////////////////////////////////////////
+// Extern Variables
+///////////////////////////////////////////////////////////////////////////////
+
+enum CULLING culling = FULL; 
 R3Node *currentSelection = NULL;
 R3Camera camera = R3Camera();
 double dotProductCutOff = 0.0;
@@ -448,7 +448,7 @@ void inline ChangeHealth(R3Block *block, int delta)
 // SCENE DRAWING CODE
 ///////////////////////////////////////////////////////////////////////////////
 
-void inline DrawScene(R3Scene *scene)
+static void inline DrawScene(R3Scene *scene)
 {
   switch (culling)
   {
@@ -891,10 +891,7 @@ void GLUTMainLoop(void)
 void GLUTIdleFunction(void) 
 {
 	if ((state != REGULAR) || (state == LOST)) 
-	{
-		glutPostRedisplay();
 		return;
-	}
 
 	if (state != WORLDBUILDER && GetTime() >= previousLevelTime + timeBetweenLevels) 
   {
@@ -917,10 +914,10 @@ void GLUTIdleFunction(void)
 
       if (creaturedist >= distanceToRenderCreature) 
       {
-        RemoveCreature(creatures[i]);
-        i--;
+        RemoveCreature(creatures[i--]);
         continue;
       }
+
       direction = creatures[i]->UpdateCreature(mainCharacter);
 
       if (direction == R3zero_vector) 
@@ -989,148 +986,6 @@ void GLUTResize(int w, int h)
 
 	// Redraw
 	glutPostRedisplay();
-}
-
-void DisplayStartMenu() 
-{
-	int x = GLUTwindow_width;
-	int y = GLUTwindow_height;
-
-
-	glColor3d(1,1,1);
-
-	LoadMaterial(materials[LOGO]);
-
-	glBegin(GL_QUADS);
-	glNormal3d(0.0, 0.0, 1.0);
-	glTexCoord2d(0, 0);
-	glVertex2f(0, 0); 
-	glTexCoord2d(0, 1);
-	glVertex2f(0, y); 
-	glTexCoord2d(1, 1);
-	glVertex2f(x, y); 
-	glTexCoord2d(1, 0);
-	glVertex2f(x, 0); 
-	glEnd();
-
-	glDisable(GL_TEXTURE_2D);
-	glColor3d(.6, .6, .6);
-	GLUTDrawText(R3Point(GLUTwindow_width / 10, GLUTwindow_height / 4.5, 0), "A Tribute by Rohan Bansal, Dmitry Drutskoy, Ajay Roopakalu, Sarah Tang");
-	GLUTDrawTitle(R3Point(GLUTwindow_width / 2.5, GLUTwindow_height / 2, 0), "Left click - Play");
-	GLUTDrawTitle(R3Point(GLUTwindow_width / 5, GLUTwindow_height / 1.8, 0), "Press N to enter WorldBuilder Mode");
-	GLUTDrawTitle(R3Point(GLUTwindow_width / 4, GLUTwindow_height / 1.53, 0), "Press C to change Culling type:");
-	switch (culling)
-	{
-	case 0: 
-		GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.40, 0), "No Culling");
-		GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.30, 0), "(Low Performance)");
-		break;
-	case 2:    
-		GLUTDrawTitle(R3Point(GLUTwindow_width / 6, GLUTwindow_height / 1.40, 0), "Only Occlusion Culling");
-		GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.30, 0), "(Medium Performance)");
-		break;
-	case 1: 
-		GLUTDrawTitle(R3Point(GLUTwindow_width / 6, GLUTwindow_height / 1.40, 0), "Only View Frustum Culling");
-		GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.30, 0), "(Medium Performance)");
-		break;
-	case 3:    
-		GLUTDrawTitle(R3Point(GLUTwindow_width / 7, GLUTwindow_height / 1.40, 0), "Both Occlusion and View Frustum Culling");
-		GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.30, 0), "(Maximum Performance)");
-		break;
-	}
-
-
-	glEnable(GL_TEXTURE_2D);
-
-}
-
-void DisplayDeathMenu() 
-{
-  int x = GLUTwindow_width;
-  int y = GLUTwindow_height;
-
-	glColor3f(1,1,1);
-  LoadMaterial(materials[LOGO]);
-
-  glBegin(GL_QUADS);
-  glNormal3d(0.0, 0.0, 1.0);
-  glTexCoord2d(0, 0);
-  glVertex2f(0, 0); 
-  glTexCoord2d(0, 1);
-  glVertex2f(0, y); 
-  glTexCoord2d(1, 1);
-  glVertex2f(x, y); 
-  glTexCoord2d(1, 0);
-  glVertex2f(x, 0); 
-  glEnd();
-
-  glDisable(GL_TEXTURE_2D);
-  glColor3d(.6, .6, .6);
-  GLUTDrawText(R3Point(GLUTwindow_width / 10, GLUTwindow_height / 4.5, 0), "A Tribute by Rohan Bansal, Dmitry Drutskoy, Ajay Roopakalu, Sarah Tang");
-
-  glColor3f(1, 0,0);
-  GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 1.8, 0), "You have died.");
-
-  glEnable(GL_TEXTURE_2D);
-}
-
-void DisplayWonMenu() 
-{
-	int x = GLUTwindow_width;
-	int y = GLUTwindow_height;
-	
-	glColor3f(1,1,1);
-	LoadMaterial(materials[LOGO]);
-	
-	glBegin(GL_QUADS);
-	glNormal3d(0.0, 0.0, 1.0);
-	glTexCoord2d(0, 0);
-	glVertex2f(0, 0); 
-	glTexCoord2d(0, 1);
-	glVertex2f(0, y); 
-	glTexCoord2d(1, 1);
-	glVertex2f(x, y); 
-	glTexCoord2d(1, 0);
-	glVertex2f(x, 0); 
-	glEnd();
-	
-	glDisable(GL_TEXTURE_2D);
-	glColor3d(.6, .6, .6);
-	GLUTDrawText(R3Point(GLUTwindow_width / 10, GLUTwindow_height / 4.5, 0), "A Tribute by Rohan Bansal, Dmitry Drutskoy, Ajay Roopakalu, Sarah Tang");
-	
-	glColor3f(1, 0,0);
-	GLUTDrawTitle(R3Point(GLUTwindow_width / 4, GLUTwindow_height / 1.8, 0), "Congratulations! You have won!");
-
-	glEnable(GL_TEXTURE_2D);
-}
-
-void DisplayControls() 
-{
-
-	int x = GLUTwindow_width;
-	int y = GLUTwindow_height;
-
-	glColor3d(0, 0, 0);
-
-	glBegin(GL_QUADS);
-    glVertex2f(0, 0); 
-    glVertex2f(0, y); 
-    glVertex2f(x, y); 
-    glVertex2f(x, 0); 
-	glEnd();
-
-	glColor3d(.6, .6, .6);
-	GLUTDrawTitle(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 5, 0), "controls");
-	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5, 0), "wasd - move");
-	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + GLUTwindow_height /30, 0), "space - jump");
-	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 2*GLUTwindow_height /30, 0), "1-9 - select current item");
-	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 3*GLUTwindow_height /30, 0), "right click - place current item");
-	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 4*GLUTwindow_height /30, 0), "left click - destroy item/attack");
-	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 5*GLUTwindow_height /30, 0), "b - back");
-	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 6*GLUTwindow_height /30, 0), "q - quit");
-	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 7*GLUTwindow_height /30, 0), "shft-q - quit and save world");
-	GLUTDrawText(R3Point(GLUTwindow_width / 3, GLUTwindow_height / 4.5 + 8*GLUTwindow_height /30, 0), "Escape - release mouse.");
-
 }
 
 void JitterPerspective(GLdouble fovy, GLdouble aspect, GLdouble near_p, 
