@@ -92,7 +92,6 @@ void ChangeHealth(R3Block *block, int delta);
 // SCENE DRAWING CODE
 ////////////////////////////////////////////////////////////
 
-void DrawShape(R3Shape *shape);
 void FindMaterial(R3Block *block, bool isTop);
 void FindColor(R3Block *block, bool isTop);
 void LoadCamera(R3Camera *camera);

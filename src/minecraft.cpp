@@ -38,16 +38,11 @@ static char *input_scene_name = NULL;
 typedef vector<R3Creature *> VecCreature;
 
 enum CULLING { NONE, VIEW, OCCLUSION, FULL };
+enum GAMESTATE { STARTMENU, REGULAR, WORLDBUILDER, CONTROLS, WON, LOST };
 
 static enum CULLING culling = FULL; 
-static bool startMenu = true;
-static bool controlsMenu = false;
-static bool regularGameplay = false;
-static bool worldbuilder = false;
+static enum GAMESTATE state = STARTMENU;
 static bool CAPTURE_MOUSE = false;
-static bool dead;
-static bool won = false;
-static bool DeathMenu;
 static bool show_faces = true;
 static bool show_edges = false;
 static bool quit = false;
@@ -74,7 +69,7 @@ static R3Vector rot;
 static R3Vector towards;
 static VecCreature creatures;
 static VecCreature::iterator currentSelectedCreatureIt;
-static R3Character *Main_Character;
+static R3Character *mainCharacter;
 static map<int, const jitter_point *> j;
 
 
@@ -436,12 +431,12 @@ void ChangeHealth(R3Creature *creature, int delta)
     switch (creature->creaturetype)
     {
       case R3COW_CREATURE:
-        Main_Character->Health = MIN(Main_Character->Health + 2,
-                                     Main_Character->MaxHealth);
+        mainCharacter->Health = MIN(mainCharacter->Health + 2,
+                                     mainCharacter->MaxHealth);
         break;
       case R3DEER_CREATURE:
-        Main_Character->Health = MIN(Main_Character->Health + 1,
-                                     Main_Character->MaxHealth);
+        mainCharacter->Health = MIN(mainCharacter->Health + 1,
+                                     mainCharacter->MaxHealth);
         break;
       default: 
         break;
@@ -1004,19 +999,6 @@ void DrawSceneNone(R3Scene *scene)
 	//fprintf(stderr, "No culling: Rendered %d faces.\n", faceCount);
 }
 
-void DrawShape(R3Shape *shape)
-{
-	// Check shape type
-	if (shape->type == R3_BOX_SHAPE) { }
-	else if (shape->type == R3_SPHERE_SHAPE) shape->sphere->Draw();
-	else if (shape->type == R3_CYLINDER_SHAPE) shape->cylinder->Draw();
-	else if (shape->type == R3_CONE_SHAPE) shape->cone->Draw();
-	else if (shape->type == R3_MESH_SHAPE) shape->mesh->Draw();
-	else if (shape->type == R3_SEGMENT_SHAPE) shape->segment->Draw();
-	else if (shape->type == R3_BLOCK_SHAPE) shape->block->Draw();
-	else fprintf(stderr, "Unrecognized shape type: %d\n", shape->type);
-}
-
 void FindMaterial(R3Block *block, bool isTop) 
 {
 	// Second argument specifies if top face is currently being drawn
@@ -1374,23 +1356,14 @@ void GenerateCreatures(int num_to_create)
 
 void UpdateCharacter() 
 {
-	Main_Character->position.Reset(camera.eye.X(), camera.eye.Y(), camera.eye.Z());
-	if (worldbuilder) 
-  {
-		for(int i = 0; i < 5; i++) {
-			Main_Character->number_items[i] = INT_MAX;
-		}
-	}
+	mainCharacter->position.Reset(camera.eye.X(), camera.eye.Y(), camera.eye.Z());
 
-	R3Index loc = getChunkCoordinates(Main_Character->position);
+	if (state == WORLDBUILDER) 
+		for (int i = 0; i < 5; i++) 
+			mainCharacter->number_items[i] = INT_MAX;
 
-	if (Main_Character->Health <= 0)
-  {
-		dead = true;
-    DeathMenu = true;
-    regularGameplay = false;
-    startMenu = false;
-  }
+	if (mainCharacter->Health <= 0)
+    state = LOST;
 }
 
 void ModulateLighting()
@@ -1449,13 +1422,13 @@ void GLUTMainLoop(void)
 
 void GLUTIdleFunction(void) 
 {
-	if (regularGameplay == false || dead) 
+	if ((state != REGULAR) || (state == LOST)) 
 	{
 		glutPostRedisplay();
 		return;
 	}
 
-	if (!worldbuilder && GetTime() >= previousLevelTime + timeBetweenLevels) 
+	if (state != WORLDBUILDER && GetTime() >= previousLevelTime + timeBetweenLevels) 
   {
 		currentLevel++;
 		previousLevelTime = GetTime();
@@ -1468,11 +1441,11 @@ void GLUTIdleFunction(void)
 	UpdateCharacter();
 	R3Vector direction;
 
-  if (!worldbuilder && !dead) 
+  if (state != WORLDBUILDER && state != LOST) 
   {
     for (unsigned int i = 0; i < creatures.size(); i++)
     {
-      double creaturedist = R3Distance(Main_Character->position, creatures[i]->position);
+      double creaturedist = R3Distance(mainCharacter->position, creatures[i]->position);
 
       if (creaturedist >= distanceToRenderCreature) 
       {
@@ -1480,7 +1453,7 @@ void GLUTIdleFunction(void)
         i--;
         continue;
       }
-      direction = creatures[i]->UpdateCreature(Main_Character);
+      direction = creatures[i]->UpdateCreature(mainCharacter);
 
       if (direction == R3zero_vector) 
         continue;
@@ -1491,7 +1464,6 @@ void GLUTIdleFunction(void)
 
 	glutPostRedisplay();
 }
-
 
 void GLUTSaveImage(const char *filename)
 { 
@@ -1610,8 +1582,7 @@ void DisplayDeathMenu()
   int x = GLUTwindow_width;
   int y = GLUTwindow_height;
 
-  glColor3d(1,1,1);
-
+	glColor3f(1,1,1);
   LoadMaterial(materials[LOGO]);
 
   glBegin(GL_QUADS);
@@ -1636,12 +1607,12 @@ void DisplayDeathMenu()
   glEnable(GL_TEXTURE_2D);
 }
 
-void DisplayWonMenu() {
+void DisplayWonMenu() 
+{
 	int x = GLUTwindow_width;
 	int y = GLUTwindow_height;
 	
-	glColor3d(1,1,1);
-	
+	glColor3f(1,1,1);
 	LoadMaterial(materials[LOGO]);
 	
 	glBegin(GL_QUADS);
@@ -1782,14 +1753,14 @@ void GLUTRedraw(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Draw scene surfaces
-	if (show_faces && regularGameplay) 
+	if (show_faces && (state == REGULAR)) 
 	{
 		glEnable(GL_LIGHTING);
 		DrawScene(scene);
 		DrawCreatures();
 	}
 	// Draw scene edges
-	if (show_edges && regularGameplay) 
+	if (show_edges && (state == REGULAR)) 
 	{
 		glDisable(GL_LIGHTING);
 		glColor3d(0., 0., 0.);
@@ -1810,16 +1781,25 @@ void GLUTRedraw(void)
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING); 
 
-	if (regularGameplay)
-		DrawHUD(Main_Character, dead, FPS);
-  else if (startMenu)
-		DisplayStartMenu();
-	else if (controlsMenu)
-		DisplayControls();
-  else if (dead)
-    DisplayDeathMenu();
-  else if (won) 
-    DisplayWonMenu();
+  switch (state)
+  {
+    case WORLDBUILDER:
+    case REGULAR:
+      DrawHUD(mainCharacter, false, FPS);
+      break;
+    case STARTMENU:
+      DisplayStartMenu();
+      break;
+    case CONTROLS:
+      DisplayControls();
+      break;
+    case LOST:
+      DisplayDeathMenu();
+      break;
+    case WON:
+      DisplayWonMenu();
+      break;
+  }
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING); 
@@ -1900,43 +1880,39 @@ void GLUTPassiveMotion(int x, int y)
 	glutPostRedisplay();
 }
 
-void GLUTMouse(int button, int state, int x, int y)
+void GLUTMouse(int button, int mouseState, int x, int y)
 {
 	// Invert y coordinate
 	y = GLUTwindow_height - y;
 
 	// Process mouse button event
-	if (state == GLUT_DOWN) 
+	if (mouseState == GLUT_DOWN) 
 	{
 		if (button == GLUT_LEFT_BUTTON) 
 		{
-			//printf("left click\n");
 			if (CAPTURE_MOUSE == false) 
 			{
 				glutSetCursor(GLUT_CURSOR_NONE);
 				CAPTURE_MOUSE = true;
 			}
 
-			else if (dead) 
+			else if (state == LOST) 
         return;
-			else if (startMenu) 
-      {
-				startMenu = false;
-				regularGameplay = true;
-				controlsMenu = false;
-			}
+			else if (state == STARTMENU) 
+        state = REGULAR;
 			else if (currentSelectedCreatureIt != creatures.end() && *currentSelectedCreatureIt != NULL) 
 			{
 				ChangeHealth((*currentSelectedCreatureIt), -1);
 			}
 			else if (currentSelection != NULL) 
 			{
-        if (worldbuilder) 
+        if (state == WORLDBUILDER) 
           ChangeHealth(currentSelection->shape->block, -20);
         else 
           ChangeHealth(currentSelection->shape->block, -1);
 
-				if (currentSelection->shape->block->health <= 0) {
+				if (currentSelection->shape->block->health <= 0) 
+        {
 					int item = 8;
 					int block = currentSelection->shape->block->getBlockType();
 
@@ -1958,25 +1934,20 @@ void GLUTMouse(int button, int state, int x, int y)
               item = R3BLOCK_OBSIDIAN;
               break;
             case GOLD_BLOCK:
-              Main_Character->number_gold++;
+              mainCharacter->number_gold++;
               break;
           }
 
 					if (item < 8) 
 					{
-						Main_Character->number_items[item]++;
-						Main_Character->item = item;
+						mainCharacter->number_items[item]++;
+						mainCharacter->item = item;
 					}
 
 					RemoveBlock();
 
-					if ((Main_Character->number_gold == 10) && (!worldbuilder)) 
-          {
-						won = true;
-						startMenu = false;
-						regularGameplay = false;
-						controlsMenu = false;
-					}
+					if ((mainCharacter->number_gold == 10) && (state != WORLDBUILDER)) 
+            state = WON;
 				}
 			}
 		}
@@ -1985,17 +1956,17 @@ void GLUTMouse(int button, int state, int x, int y)
 		}
 		else if (button == GLUT_RIGHT_BUTTON) 
 		{
-			if (dead || !regularGameplay) 
+			if ((state == LOST) || (state != REGULAR)) 
         return;
 
 			int block;
-			int item = Main_Character->item;
+			int item = mainCharacter->item;
 
 			if (currentSelection) 
       {
 				if (item < 8) 
 				{
-					if (Main_Character->number_items[item] > 0) 
+					if (mainCharacter->number_items[item] > 0) 
 					{
             switch (item)
             {
@@ -2019,8 +1990,8 @@ void GLUTMouse(int button, int state, int x, int y)
                 break;
             }
 
-						if (--Main_Character->number_items[item] == 0)
-							Main_Character->item = R3BLOCK_AIR;
+						if (--mainCharacter->number_items[item] == 0)
+							mainCharacter->item = R3BLOCK_AIR;
 						AddBlock(block);
 					}
 				}
@@ -2032,7 +2003,7 @@ void GLUTMouse(int button, int state, int x, int y)
 	int b = (button == GLUT_LEFT_BUTTON) ? 
           0 : 
           ((button == GLUT_MIDDLE_BUTTON) ? 1 : 2);
-	GLUTbutton[b] = (state == GLUT_DOWN) ? 1 : 0;
+	GLUTbutton[b] = (mouseState == GLUT_DOWN) ? 1 : 0;
 
 	// Remember modifiers 
 	GLUTmodifiers = glutGetModifiers();
@@ -2090,38 +2061,38 @@ void GLUTKeyboard(unsigned char key, int x, int y)
   switch (key) 
   {
     case '1':
-      if (startMenu) 
+      if (state == STARTMENU) 
         break;
-      if (Main_Character->number_items[R3BLOCK_DIRT] >0)
-        Main_Character->item = R3BLOCK_DIRT;
+      if (mainCharacter->number_items[R3BLOCK_DIRT] >0)
+        mainCharacter->item = R3BLOCK_DIRT;
       break;
     case '2':
-      if (startMenu) 
+      if (state == STARTMENU) 
         break;
-      if (Main_Character->number_items[R3BLOCK_STONE] >0)
-        Main_Character->item = R3BLOCK_STONE;
+      if (mainCharacter->number_items[R3BLOCK_STONE] >0)
+        mainCharacter->item = R3BLOCK_STONE;
       break;
     case '3':
-      if (startMenu) 
+      if (state == STARTMENU) 
         break;
-      if (Main_Character->number_items[R3BLOCK_WOOD] >0)
-        Main_Character->item = R3BLOCK_WOOD;
+      if (mainCharacter->number_items[R3BLOCK_WOOD] >0)
+        mainCharacter->item = R3BLOCK_WOOD;
       break;
     case '4':
-      if (startMenu) 
+      if (state == STARTMENU) 
         break;
-      if (Main_Character->number_items[R3BLOCK_SAND] >0)
-        Main_Character->item = R3BLOCK_SAND;
+      if (mainCharacter->number_items[R3BLOCK_SAND] >0)
+        mainCharacter->item = R3BLOCK_SAND;
       break;
     case '5':
-      if (startMenu) 
+      if (state == STARTMENU) 
         break;
-      if (Main_Character->number_items[R3BLOCK_OBSIDIAN] >0)
-        Main_Character->item = R3BLOCK_OBSIDIAN;
+      if (mainCharacter->number_items[R3BLOCK_OBSIDIAN] >0)
+        mainCharacter->item = R3BLOCK_OBSIDIAN;
       break;
     case 'C':
     case 'c':
-      if (startMenu) 
+      if (state == STARTMENU) 
       {
         switch (culling)
         {
@@ -2139,17 +2110,13 @@ void GLUTKeyboard(unsigned char key, int x, int y)
         }
         break;
       }
-      controlsMenu = true;
-      regularGameplay = false;
-      startMenu = false;
+      state = CONTROLS;
       break;
     case 'b':
     case 'B':
-      if (startMenu) 
+      if (state == STARTMENU) 
         break;
-      controlsMenu = false;
-      regularGameplay = true;
-      startMenu = false;
+      state = REGULAR;
       break;
     case 'E':
     case 'e':
@@ -2173,55 +2140,53 @@ void GLUTKeyboard(unsigned char key, int x, int y)
     case 'n':
       if (!CAPTURE_MOUSE) 
         break;	
-      if (startMenu) 
-      {
-        worldbuilder = true;
-        startMenu = false;
-        regularGameplay = true;
-        controlsMenu = false;
-      }
+      if (state == STARTMENU) 
+        state = WORLDBUILDER;
       break;
     case 'w': 
-      if (startMenu) 
+      if (state == STARTMENU) 
         break;
-      if (dead || !regularGameplay) 
+      if ((state == LOST) || (state != REGULAR)) 
         return;
       difference = InterpolateMotion(&(camera.eye), 
           -(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
       break;
 
     case 's': 
-      if (startMenu) 
+      if (state == STARTMENU) 
         break;
-      if (dead || !regularGameplay) 
+      if ((state == LOST) || (state != REGULAR)) 
         return;
       difference = InterpolateMotion(&(camera.eye), 
           (cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
       break;
     case 'd': 
-      if (startMenu) 
+      if (state == STARTMENU) 
         break;
-      if (dead || !regularGameplay) 
+      if ((state == LOST) || (state != REGULAR)) 
         return;
       difference = InterpolateMotion(&(camera.eye), 
           (sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
       break;
     case 'a': 
-      if (startMenu) 
+      if (state == STARTMENU) 
         break;
-      if (dead || !regularGameplay) 
+      if ((state == LOST) || (state != REGULAR)) 
         return;
       difference = InterpolateMotion(&(camera.eye), 
           -(sin(rot[0]) * R3posz_point + cos(rot[0]) * R3posx_point).Vector(), true);
       break;
     case ' ': 
-      if(startMenu) 
+      if (state == STARTMENU) 
         break;
+      if ((state == LOST) || (state != REGULAR)) 
+        return;
       InterpolateJump(&(camera.eye),     
           -(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point));
       break;
     case 'i':
-		if(startMenu) break;
+      if (state == STARTMENU) 
+        break;
       printf("camera %g %g %g  %g %g %g  %g  %g %g \n",
           camera.eye[0], camera.eye[1], camera.eye[2], 
           rot[0], rot[1], rot[2],
@@ -2231,7 +2196,7 @@ void GLUTKeyboard(unsigned char key, int x, int y)
 
 	// If you fall too much, you lose health
 	if (difference.Y() < -1.f)
-		ChangeHealth(Main_Character, -1);
+		ChangeHealth(mainCharacter, -1);
 
 	// Remember mouse position 
 	GLUTmouse[0] = x;
@@ -2275,12 +2240,12 @@ void GLUTInit(int *argc, char **argv)
 
 	// Initialize OpenGL drawing modes
 	glEnable(GL_LIGHTING);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	glDepthMask(true);
 	glClearAccum(0.0, 0.0, 0.0, 0.0);
 
 	//Initialize Character    
-	Main_Character = new R3Character();
+	mainCharacter = new R3Character();
 
 
 }

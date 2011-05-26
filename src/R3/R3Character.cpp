@@ -3,7 +3,8 @@
 R3Character::
 R3Character(void)
 {
-	Health = 8;
+  //TODO: FIX BACK
+	Health = 1;
 	MaxHealth = 8;
 	velocity = R3Vector(0, 0, 0);
 	position = R3Point(0, 0, 0);
