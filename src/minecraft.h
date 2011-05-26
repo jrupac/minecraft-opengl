@@ -10,6 +10,7 @@
 #include "raytrace.h"
 #include "materials.h"
 #include "strings.h"
+#include "draw.h"
 #include "utils.h"
 #include "ui.h"
 #include "cos426_opengl.h"
@@ -37,22 +38,9 @@
 // Debugging function to print any vector
 #define PRINT_VECTOR(x) printf("%lf %lf %lf\n", (x).X(), (x).Y(), (x).Z());
  
-// GLUT command list
+typedef struct { GLfloat x, y; } jitter_point;
 
-enum {
-  DISPLAY_FACE_TOGGLE_COMMAND,
-  DISPLAY_EDGE_TOGGLE_COMMAND,
-  DISPLAY_BBOXES_TOGGLE_COMMAND,
-  DISPLAY_LIGHTS_TOGGLE_COMMAND,
-  DISPLAY_CAMERA_TOGGLE_COMMAND,
-  SAVE_IMAGE_COMMAND,
-  QUIT_COMMAND,
-};
-
-typedef struct 
-{
-  GLfloat x, y;
-} jitter_point;
+typedef vector<R3Creature *> VecCreature;
 
 const jitter_point j2[] =
 {
@@ -67,6 +55,13 @@ const jitter_point j4[] =
   {-0.292626, -0.149945},
   { 0.296924,  0.149994}
 };
+
+enum CULLING { NONE, VIEW, OCCLUSION, FULL };
+enum GAMESTATE { STARTMENU, REGULAR, WORLDBUILDER, CONTROLS, WON, LOST };
+
+extern R3Node *currentSelection;
+extern R3Camera camera;
+extern double dotProductCutOff;
 
 ////////////////////////////////////////////////////////////
 // HELPER METHODS
@@ -97,10 +92,6 @@ void FindColor(R3Block *block, bool isTop);
 void LoadCamera(R3Camera *camera);
 void LoadLights(R3Scene *scene);
 void DrawScene(R3Scene *scene);
-void DrawSceneNone(R3Scene *scene);
-void DrawSceneViewFrustrumOnly(R3Scene *scene);
-void DrawSceneOcclusionOnly(R3Scene *scene);
-void DrawSceneFullOptimization(R3Scene *scene);
 void DrawCreatures();
 void GenerateCreatures();
 void UpdateCharacter();
