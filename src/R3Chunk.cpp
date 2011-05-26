@@ -7,7 +7,7 @@ void R3Chunk::MakeMountain(int types[CHUNK_X][CHUNK_Y][CHUNK_Z], int height)
   // pick something in middle
   int locX = rand()%(cutoffX) + 3*CHUNK_X/8;
   int locZ = rand()%(cutoffZ) + 3*CHUNK_Z/8;
-  int locY;
+  int locY = 0;
   
   // find top Y value
   for (int yCheck = 0; yCheck < CHUNK_Y; yCheck++)

@@ -7,6 +7,7 @@
 #include "R3/R3.h"
 #include "R3Scene.h"
 #include "raytrace.h"
+#include "utils.h"
 #include "cos426_opengl.h"
 
 #define M_2PI (2. * M_PI)
@@ -65,8 +66,6 @@ const jitter_point j4[] =
 // HELPER METHODS
 ////////////////////////////////////////////////////////////
 
-double RandomNumber(void);
-double GetTime(void);
 R3Index getChunkCoordinates(R3Point p);
 bool LegalPositions(R3Point *start, R3Vector direction, R3Index *c, bool isCharacter);
 R3Vector InterpolateMotion(R3Point *start, R3Vector direction, bool isCharacter);
@@ -93,7 +92,6 @@ void ChangeHealth(R3Block *block, int delta);
 void DrawShape(R3Shape *shape);
 void FindMaterial(R3Block *block, bool isTop);
 void LoadMatrix(R3Matrix *matrix);
-void LoadMaterial(R3Material *material);
 void LoadCamera(R3Camera *camera);
 void LoadLights(R3Scene *scene);
 void DrawScene(R3Scene *scene);

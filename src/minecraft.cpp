@@ -6,6 +6,9 @@
 //                            Ajay Roopakalu                                 //
 //                              Sarah Tang                                   //
 //                                                                           //
+//                              Forked by:                                   //
+//                            Ajay Roopakalu                                 //
+//                                                                           //
 // This game is a tribute to famous Minecraft game written by Markus "Notch" // 
 // Persson and Jens Bergensten. That game, written in Java, is still still   //
 // being actively developed, having first launched in May of 2009. Here is   //
@@ -30,36 +33,33 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 static char *input_scene_name = NULL;
-static char *output_image_name = NULL;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Display variables
 ///////////////////////////////////////////////////////////////////////////////
 
+typedef vector<R3Creature *> VecCreature;
+
+enum CULLING { NONE, VIEW, OCCLUSION, FULL };
+
+static enum CULLING culling = FULL; 
 static bool startMenu = true;
 static bool controlsMenu = false;
 static bool regularGameplay = false;
 static bool CAPTURE_MOUSE = false;
 static bool dead;
-static bool won = 0;
+static bool won = false;
 static bool DeathMenu;
-static int culling = 3; //0 - none, 1 - view frustrum only, 2 - occlusion only, 3 - full culling
-static int show_faces = 1;
-static int show_edges = 0;
-static int show_bboxes = 0;
-static int show_lights = 0;
-static int show_camera = 0;
-static int save_image = 0;
-static int quit = 0;
-static int toSave = 0;
-static int FPS = 0;
-static int LODcutoff = 40;
-static int worldbuilder = 0;
-static int currentLevel = 0;
-static int num_creatures_to_make = 0;
+static unsigned int show_faces = 1;
+static unsigned int show_edges = 0;
+static unsigned int quit = 0;
+static unsigned int toSave = 0;
+static unsigned int FPS = 0;
+static unsigned int LODcutoff = 40;
+static unsigned int worldbuilder = 0;
+static unsigned int currentLevel = 0;
+static unsigned int num_creatures_to_make = 0;
 static unsigned int MAX_num_creatures = 250;
-static float picker_height = 10;
-static float picker_width = 10;
 static double previous_time = 0;
 static double current_time = 0;
 static double previousLevelTime = 0;
@@ -74,10 +74,9 @@ static R3Node *currentSelection = NULL;
 static R3Vector currentNormal;
 static R3Vector rot;	
 static R3Vector towards;
-static vector <R3Creature *>creatures;
-static vector<R3Creature *>::iterator currentSelectedCreatureIt;
+static VecCreature creatures;
+static VecCreature::iterator currentSelectedCreatureIt;
 static R3Character *Main_Character;
-static R3Intersection closestintersect;
 static map<int, const jitter_point *> j;
 R3Material **materials = new R3Material*[40];
 
@@ -108,109 +107,16 @@ ALfloat ListenerPos[] = { 0.0, 0.0, 0.0 };
 ALfloat ListenerVel[] = { 0.0, 0.0, 0.0 };
 ALfloat ListenerOri[] = { 0.0, 0.0, -1.0,  
                           0.0, 1.0, 0.0 };
+
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // HELPER METHODS
 ///////////////////////////////////////////////////////////////////////////////
 
-double RandomNumber(void)
-{
-// Windows
-#ifdef _WIN32
-
-	// Seed random number generator
-	static int first = 1;
-
-	if (first) 
-  {
-		srand(GetTickCount());
-		first = 0;
-	}
-
-	// Return random number
-	int r1 = rand();
-	double r2 = ((double) rand()) / ((double) RAND_MAX);
-	return (r1 + r2) / ((double) RAND_MAX);
-
-// Mac OS and Linux
-#else 
-
-	// Seed random number generator
-	static int first = 1;
-
-	if (first) 
-  {
-		struct timeval timevalue;
-		gettimeofday(&timevalue, 0);
-		srand48(timevalue.tv_usec);
-		first = 0;
-	}
-
-	// Return random number
-	return drand48();
-
-#endif
-}
-
-double GetTime(void)
-{
-// Windows
-#ifdef _WIN32
-
-	// Return number of seconds since start of execution
-	static int first = 1;
-	static LARGE_INTEGER timefreq;
-	static LARGE_INTEGER start_timevalue;
-
-	// Check if this is the first time
-	if (first) 
-	{
-		// Initialize first time
-		QueryPerformanceFrequency(&timefreq);
-		QueryPerformanceCounter(&start_timevalue);
-		first = 0;
-		return 0;
-	}
-	else 
-	{
-    // Return time since start
-    LARGE_INTEGER current_timevalue;
-    QueryPerformanceCounter(&current_timevalue);
-    return ((double) current_timevalue.QuadPart - 
-        (double) start_timevalue.QuadPart) / (double) timefreq.QuadPart;
-  }
-
-// Linux or Mac OS 
-#else
-	// Return number of seconds since start of execution
-	static int first = 1;
-	static struct timeval start_timevalue;
-
-	// Check if this is the first time
-	if (first) 
-	{
-		// Initialize first time
-		gettimeofday(&start_timevalue, NULL);
-		first = 0;
-		return 0;
-	}
-	else 
-	{
-		// Return time since start
-		struct timeval current_timevalue;
-		gettimeofday(&current_timevalue, NULL);
-		int secs = current_timevalue.tv_sec - start_timevalue.tv_sec;
-		int usecs = current_timevalue.tv_usec - start_timevalue.tv_usec;
-		return (double) (secs + 1.0E-6F * usecs);
-	}
-
-#endif
-}
-
-R3Index getChunkCoordinates(R3Point p)
-{
-	return scene->getIndex(p);
+R3Index getChunkCoordinates(R3Point p) 
+{ 
+  return scene->getIndex(p);
 }
 
 bool LegalPositions(R3Point *start, R3Vector direction, R3Index *c, bool isCharacter)
@@ -341,14 +247,15 @@ void AlignReticle()
 	currentSelection = NULL;
 	currentSelectedCreatureIt = creatures.end();
 	R3Ray ray = R3Ray(camera.eye, towards);
-	vector<R3Creature *>::iterator it;
+	VecCreature::iterator it;
 	double smallest = DBL_MAX;
 	double dt = 0.0;
-
 	R3Intersection intersect;
-	intersect.hit = false;
-
 	R3Intersection closestIntersect;
+  // Cache previously seen block for improved performance
+  R3Node *cached = NULL;
+
+	intersect.hit = false;
 	closestIntersect.hit = false;
 
   // Loop until you go beyond the boundaries of the currently loaded map
@@ -358,20 +265,28 @@ void AlignReticle()
 		R3Index cur = getChunkCoordinates(ray.Point(dt));
     
     // Break if you reach too far with this ray
-		if (!cur.current)
+		if (!cur.current || dt > AlignReticleDistance)
 			break;
-		if( dt > AlignReticleDistance) break;
 
 		R3Node *curNode = cur.current->chunk[cur.x][cur.y][cur.z];
     
-    // Intersect with the first non-transparent box
-		if (!curNode->shape->block->transparent)
-		{
-			closestIntersect = IntersectBox(ray, curNode->shape->block->getBox());
-			smallest = closestIntersect.t;
-			closestIntersect.node = curNode;
-			break;
-		}
+    // Check if the current node is the same as the previous
+    if (curNode == cached)
+      continue;
+    cached = curNode;
+    
+    // Temporary solution for stale pointers causing segfaults
+    try 
+    {
+      // Intersect with the first non-transparent box
+      if (!curNode->shape->block->transparent)
+      {
+        closestIntersect = IntersectBox(ray, curNode->shape->block->getBox());
+        smallest = closestIntersect.t;
+        closestIntersect.node = curNode;
+        break;
+      }
+    } catch(...) { }
 	}
 
 	// Find if the reticle is on a creature
@@ -516,9 +431,6 @@ void RemoveCreature(R3Creature *died)
 
 void MoveCharacter(R3Vector translated, double d) 
 {
-
-  PRINT_VECTOR(translated);
-
 	translated.Normalize();
   InterpolateMotion(&(camera.eye), translated * d, true);
 	GLUTRedraw();
@@ -531,6 +443,9 @@ void DrawHUD()
 
 	if (!dead) 
   {
+    static float picker_height = 10;
+    static float picker_width = 10;
+
 		// Draw reticle
 		glBegin(GL_LINES);
 		glVertex2f((GLUTwindow_width / 2) - picker_width, GLUTwindow_height / 2); 
@@ -583,10 +498,10 @@ void DrawHUD_Hearts()
 			glColor3d(1.0,1.0,1.0);
 
 		glBegin(GL_QUADS);
-		glVertex2f(0, 0); 
-		glVertex2f(x/64, - y/64); 
-		glVertex2f(x/32, 0); 
-		glVertex2f(x/64, y/64); 
+      glVertex2f(0, 0); 
+      glVertex2f(x/64, - y/64); 
+      glVertex2f(x/32, 0); 
+      glVertex2f(x/64, y/64); 
 		glEnd();
 		glTranslatef(5 * x / 128, 0, 0);
 	}
@@ -602,7 +517,7 @@ void DrawHUD_Inventory()
 	int y = GLUTwindow_height;
 	int boxWidth = .0525 * x;
 	int boxHeight = .0625 * y;
-	int itemWidth = .2* x;
+	int itemWidth = .2 * x;
 	int itemHeight = .1875 * y;
 	int materialsStart = DIRT_ICON;
 	int i;
@@ -692,13 +607,13 @@ void DrawHUD_Inventory()
 		glBegin(GL_QUADS);
 		glNormal3d(0.0, 0.0, 1.0);
 		glTexCoord2d(0, 1);
-		glVertex2f(itemWidth*.05, -itemHeight*.15); 
+		glVertex2f(itemWidth * .05, -itemHeight * .15); 
 		glTexCoord2d(1, 1);
-		glVertex2f(-itemWidth*.25, itemHeight*.25);
+		glVertex2f(-itemWidth * .25, itemHeight * .25);
 		glTexCoord2d(1, 0);
-		glVertex2f(itemWidth*.75, itemHeight*.50); 
+		glVertex2f(itemWidth * .75, itemHeight * .50); 
 		glTexCoord2d(0, 0);
-		glVertex2f(itemWidth, itemHeight*.08); 
+		glVertex2f(itemWidth, itemHeight * .08); 
 		glEnd();
 
 		if (Main_Character->item == R3BLOCK_DIRT) 
@@ -707,25 +622,25 @@ void DrawHUD_Inventory()
 		glBegin(GL_QUADS);
 		glNormal3d(0.0, 0.0, 1.0);
 		glTexCoord2d(1, 1);
-		glVertex2f(-itemWidth*.25, itemHeight*.25);
+		glVertex2f(-itemWidth * .25, itemHeight * .25);
 		glTexCoord2d(1, 0);
-		glVertex2f(-itemWidth*.25, itemHeight);
+		glVertex2f(-itemWidth * .25, itemHeight);
 		glTexCoord2d(0, 0);
-		glVertex2f(itemWidth*.75, itemHeight); 
+		glVertex2f(itemWidth * .75, itemHeight); 
 		glTexCoord2d(0, 1);
-		glVertex2f(itemWidth*.75, itemHeight*.50); 
+		glVertex2f(itemWidth * .75, itemHeight * .50); 
 		glEnd();
 
 		glBegin(GL_QUADS);
 		glNormal3d(0.0, 0.0, 1.0);
 		glTexCoord2d(1, 1);
-		glVertex2f(itemWidth*.75, itemHeight*.50); 
+		glVertex2f(itemWidth * .75, itemHeight * .50); 
 		glTexCoord2d(1, 0);
-		glVertex2f(itemWidth*.75, itemHeight);
+		glVertex2f(itemWidth * .75, itemHeight);
 		glTexCoord2d(0, 0);
-		glVertex2f(itemWidth, itemHeight*.50); 
+		glVertex2f(itemWidth, itemHeight * .50); 
 		glTexCoord2d(0, 1);
-		glVertex2f(itemWidth, itemHeight*.08); 
+		glVertex2f(itemWidth, itemHeight * .08); 
 		glEnd();
 
 	}
@@ -733,7 +648,7 @@ void DrawHUD_Inventory()
 	glPopMatrix();
 }
 
-void ChangeHealth(R3Character *character, int delta)
+void inline ChangeHealth(R3Character *character, int delta)
 {
 	character->Health += delta;
 }
@@ -744,20 +659,25 @@ void ChangeHealth(R3Creature *creature, int delta)
 
 	if (creature->Health <= 0) 
   {
-	  if(creature->creaturetype == R3COW_CREATURE) {
-		  Main_Character->Health = MIN(Main_Character->Health + 2,
-			  Main_Character->MaxHealth);
-	  }
-	  else if (creature->creaturetype == R3DEER_CREATURE) {
+    switch (creature->creaturetype)
+    {
+      case R3COW_CREATURE:
+        Main_Character->Health = MIN(Main_Character->Health + 2,
+                                     Main_Character->MaxHealth);
+        break;
+      case R3DEER_CREATURE:
+        Main_Character->Health = MIN(Main_Character->Health + 1,
+                                     Main_Character->MaxHealth);
+        break;
+      default: 
+        break;
+    }
 
-		  Main_Character->Health = MIN(Main_Character->Health + 1,
-			  Main_Character->MaxHealth);
-	  }
 		RemoveCreature();
 	}
 }
 
-void ChangeHealth(R3Block *block, int delta)
+void inline ChangeHealth(R3Block *block, int delta)
 {
 	block->health += delta;
 }
@@ -782,56 +702,78 @@ void DrawShape(R3Shape *shape)
 void FindMaterial(R3Block *block, bool isTop) 
 {
 	// Second argument specifies if top face is currently being drawn
-    
-	if (block->getBlockType() == LEAF_BLOCK) 
-		LoadMaterial(materials[LEAF]);
-	else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
-	{
-    if (block->dy == 0)
-      LoadMaterial(materials[BEDROCK]);
-    else if (block->getUpper()->getBlockType() == AIR_BLOCK) 
-    {
-      if (isTop)
-        LoadMaterial(materials[GRASS]);
-      else
-        LoadMaterial(materials[DIRT]);
-    }
-    else
-      LoadMaterial(materials[ALLDIRT]);
-	}
-	else if (block->getBlockType() == WOOD_BLOCK) 
-		LoadMaterial(materials[WOOD]);
-	else if (block->getBlockType() == STONE_BLOCK)
-		LoadMaterial(materials[STONE]);
-	else if (block->getBlockType() == SAND_BLOCK) 
-		LoadMaterial(materials[SAND]);
-	else if (block->getBlockType() == OBSIDIAN_BLOCK) 
-		LoadMaterial(materials[OBSIDIAN]);
-	else if (block->getBlockType() == GOLD_BLOCK)
-		LoadMaterial(materials[GOLD]);
+
+  R3Block *upper;
+
+  switch (block->getBlockType())
+  {
+    case LEAF_BLOCK:
+      LoadMaterial(materials[LEAF]);
+      break;
+    case DIRT_BLOCK:
+      if ((upper = block->getUpper()))
+      {
+        if (block->dy == 0)
+          LoadMaterial(materials[BEDROCK]);
+        else if (upper->getBlockType() == AIR_BLOCK) 
+        {
+          if (isTop)
+            LoadMaterial(materials[GRASS]);
+          else
+            LoadMaterial(materials[DIRT]);
+        }
+        else LoadMaterial(materials[ALLDIRT]);
+      }
+      break;
+    case WOOD_BLOCK:
+      LoadMaterial(materials[WOOD]);
+      break;
+	  case STONE_BLOCK:
+      LoadMaterial(materials[STONE]);
+      break;
+	  case SAND_BLOCK: 
+      LoadMaterial(materials[SAND]);
+      break;
+	  case OBSIDIAN_BLOCK: 
+      LoadMaterial(materials[OBSIDIAN]);
+      break;
+	  case GOLD_BLOCK:
+      LoadMaterial(materials[GOLD]);
+      break;
+  }
 }
 
 void FindColor(R3Block *block, bool isTop) 
 {
 	// Second argument specifies if top face is currently being drawn
-	if (block->getBlockType() == LEAF_BLOCK) 
-		glColor3f(0, 1, 0);
-	else if (block->getBlockType() == DIRT_BLOCK && block->getUpper() != NULL) 
-	{
-		if (block->getUpper()->getBlockType() == AIR_BLOCK) 
-		{
-			if (isTop)
-				glColor3f(0., .1, 0.);
-			else
-				glColor3f(.549, .196, 0.);
-		}
-		else
-			glColor3f(.737, .271, 0.075);
-	}
-	else if (block->getBlockType() == WOOD_BLOCK) 
-		glColor3f(.737, .271, 0.075);
-	else if (block->getBlockType() == STONE_BLOCK)
-		glColor3f(.2, .2, .2);
+ 
+  R3Block *upper;
+
+  switch (block->getBlockType())
+  {
+    case LEAF_BLOCK:
+      glColor3f(0, 1, 0);
+      break;
+    case DIRT_BLOCK:
+      if ((upper = block->getUpper()))
+      {
+        if (upper->getBlockType() == AIR_BLOCK) 
+        {
+          if (isTop)
+            glColor3f(0., .1, 0.);
+          else
+            glColor3f(.549, .196, 0.);
+        }
+        else glColor3f(.737, .271, 0.075);
+      }
+      break;
+    case WOOD_BLOCK:
+      glColor3f(.737, .271, 0.075);
+      break;
+    case STONE_BLOCK:
+      glColor3f(.2, .2, .2);
+      break;
+  }
 }
 
 void LoadMatrix(R3Matrix *matrix)
@@ -841,108 +783,6 @@ void LoadMatrix(R3Matrix *matrix)
 	// column-vectors and R3 represents them with row-vectors
 	R3Matrix m = matrix->Transpose();
 	glMultMatrixd((double *) &m);
-}
-
-void LoadMaterial(R3Material *material) 
-{
-	GLfloat c[4];
-	// Check if same as current
-	static R3Material *current_material = NULL;
-
-	if (material == current_material) 
-    return;
-	current_material = material;
-
-	// Compute "opacity"
-	double opacity = 1 - material->kt.Luminance();
-
-	// Load ambient
-	c[0] = material->ka[0];
-	c[1] = material->ka[1];
-	c[2] = material->ka[2];
-	c[3] = opacity;
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
-
-	// Load diffuse
-	c[0] = material->kd[0];
-	c[1] = material->kd[1];
-	c[2] = material->kd[2];
-	c[3] = opacity;
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
-
-	// Load specular
-	c[0] = material->ks[0];
-	c[1] = material->ks[1];
-	c[2] = material->ks[2];
-	c[3] = opacity;
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
-
-	// Load emission
-	c[0] = material->emission.Red();
-	c[1] = material->emission.Green();
-	c[2] = material->emission.Blue();
-	c[3] = opacity;
-	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, c);
-
-	// Load shininess
-	c[0] = material->shininess;
-	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, c[0]);
-
-	// Load texture
-	if (material->texture) 
-	{
-		if (material->texture_index <= 0) 
-		{
-			// Create texture in OpenGL
-			GLuint texture_index;
-			glGenTextures(1, &texture_index);
-			material->texture_index = (int) texture_index;
-			glBindTexture(GL_TEXTURE_2D, material->texture_index); 
-			R2Image *image = material->texture;
-			int npixels = image->NPixels();
-			R2Pixel *pixels = image->Pixels();
-			GLfloat *buffer = new GLfloat [ 4 * npixels ];
-			R2Pixel *pixelsp = pixels;
-			GLfloat *bufferp = buffer;
-			for (int j = 0; j < npixels; j++) 
-			{ 
-				*(bufferp++) = pixelsp->Red();
-				*(bufferp++) = pixelsp->Green();
-				*(bufferp++) = pixelsp->Blue();
-				*(bufferp++) = pixelsp->Alpha();
-				pixelsp++;
-			}
-			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
-			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-			gluBuild2DMipmaps( GL_TEXTURE_2D, 3, image->Width(), image->Height(), GL_RGBA, GL_FLOAT, buffer);
-			delete [] buffer;
-		}
-
-		// Select texture
-		glBindTexture(GL_TEXTURE_2D, material->texture_index); 
-		glEnable(GL_TEXTURE_2D);
-	}
-	else 
-	{
-		glDisable(GL_TEXTURE_2D);
-	}
-
-	// Enable blending for transparent surfaces
-	if (opacity < 1) 
-	{
-		glDepthMask(false);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_BLEND);
-	}
-	else 
-	{
-		glDisable(GL_BLEND);
-		glBlendFunc(GL_ONE, GL_ZERO);
-		glDepthMask(true);
-	}
 }
 
 void LoadCamera(R3Camera *camera)
@@ -987,7 +827,8 @@ void LoadLights(R3Scene *scene)
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
 
 	// Load scene lights
-	for (int i = 0; i < (int) scene->lights.size(); i++) {
+	for (int i = 0; i < (int) scene->lights.size(); i++) 
+  {
 		R3Light *light = scene->lights[i];
 		int index = GL_LIGHT0 + i;
 
@@ -1017,56 +858,57 @@ void LoadLights(R3Scene *scene)
 		glLightf(index, GL_SPOT_EXPONENT, buffer[1]);
 
 		// Load positions/directions
-		if (light->type == R3_DIRECTIONAL_LIGHT) {
-			// Load direction
-			buffer[0] = -(light->direction.X());
-			buffer[1] = -(light->direction.Y());
-			buffer[2] = -(light->direction.Z());
-			buffer[3] = 0.0;
-			glLightfv(index, GL_POSITION, buffer);
-		}
-		else if (light->type == R3_POINT_LIGHT) {
-			// Load position
-			buffer[0] = light->position.X();
-			buffer[1] = light->position.Y();
-			buffer[2] = light->position.Z();
-			buffer[3] = 1.0;
-			glLightfv(index, GL_POSITION, buffer);
-		}
-		else if (light->type == R3_SPOT_LIGHT) {
-			// Load position
-			buffer[0] = light->position.X();
-			buffer[1] = light->position.Y();
-			buffer[2] = light->position.Z();
-			buffer[3] = 1.0;
-			glLightfv(index, GL_POSITION, buffer);
+    switch (light->type)
+    {
+      case R3_DIRECTIONAL_LIGHT:
+        // Load direction
+        buffer[0] = -(light->direction.X());
+        buffer[1] = -(light->direction.Y());
+        buffer[2] = -(light->direction.Z());
+        buffer[3] = 0.0;
+        glLightfv(index, GL_POSITION, buffer);
+        break;
+      case R3_POINT_LIGHT:
+        // Load position
+        buffer[0] = light->position.X();
+        buffer[1] = light->position.Y();
+        buffer[2] = light->position.Z();
+        buffer[3] = 1.0;
+        glLightfv(index, GL_POSITION, buffer);
+        break;
+      case R3_SPOT_LIGHT:
+        // Load position
+        buffer[0] = light->position.X();
+        buffer[1] = light->position.Y();
+        buffer[2] = light->position.Z();
+        buffer[3] = 1.0;
+        glLightfv(index, GL_POSITION, buffer);
 
-			// Load direction
-			buffer[0] = light->direction.X();
-			buffer[1] = light->direction.Y();
-			buffer[2] = light->direction.Z();
-			buffer[3] = 1.0;
-			glLightfv(index, GL_SPOT_DIRECTION, buffer);
-		}
-		else if (light->type == R3_AREA_LIGHT) {
-			// Load position
-			buffer[0] = light->position.X();
-			buffer[1] = light->position.Y();
-			buffer[2] = light->position.Z();
-			buffer[3] = 1.0;
-			glLightfv(index, GL_POSITION, buffer);
+        // Load direction
+        buffer[0] = light->direction.X();
+        buffer[1] = light->direction.Y();
+        buffer[2] = light->direction.Z();
+        buffer[3] = 1.0;
+        glLightfv(index, GL_SPOT_DIRECTION, buffer);
+        break;
+      case R3_AREA_LIGHT:
+        // Load position
+        buffer[0] = light->position.X();
+        buffer[1] = light->position.Y();
+        buffer[2] = light->position.Z();
+        buffer[3] = 1.0;
+        glLightfv(index, GL_POSITION, buffer);
 
-			// Load direction
-			buffer[0] = light->direction.X();
-			buffer[1] = light->direction.Y();
-			buffer[2] = light->direction.Z();
-			buffer[3] = 1.0;
-			glLightfv(index, GL_SPOT_DIRECTION, buffer);
-		}
-		else {
-			fprintf(stderr, "Unrecognized light type: %d\n", light->type);
-			return;
-		}
+        // Load direction
+        buffer[0] = light->direction.X();
+        buffer[1] = light->direction.Y();
+        buffer[2] = light->direction.Z();
+        buffer[3] = 1.0;
+        glLightfv(index, GL_SPOT_DIRECTION, buffer);
+        break;
+      default:
+        break;
+    }
 
 		// Enable light
 		glEnable(index);
@@ -1075,91 +917,97 @@ void LoadLights(R3Scene *scene)
 
 void DrawCreatures() 
 {
-	vector<R3Creature *>::iterator it;
+	VecCreature::iterator it;
 
 	for (it = creatures.begin(); it < creatures.end(); it++)
 	{
 		double d = R3Distance(camera.eye, (*it)->box.centroid);
-		if(d > distanceToRenderCreature) continue;
-	float view[16];
+		if (d > distanceToRenderCreature) 
+      continue;
+    float view[16];
 	
-	glGetFloatv(GL_MODELVIEW_MATRIX, view);
-	
-	R3Vector right = R3Vector(view[0], view[4], view[8]);
-	R3Vector up = R3Vector(view[1], view[5], view[9]);
-	
-	
-	right.Normalize();
-	up.Normalize();
-	
-	R3Vector boardLook = camera.eye - (*it)->position;
-	boardLook.Normalize();
-	//board right vector
-	R3Vector boardRight = R3Vector(boardLook);
-	boardRight.Cross(up);
-	//board up vector
-	R3Vector boardUp = R3Vector(boardRight);
-	boardUp.Cross(boardLook);
-	
-	//boardRight *= -1;
-	
-	R3Matrix billboard = R3Matrix(boardRight.X(), boardUp.X(), boardLook.X(), (*it)->position.X(),
-								  boardRight.Y(), boardUp.Y(), boardLook.Y(), (*it)->position.Y(),
-								  boardRight.Z(), boardUp.Z(), boardLook.Z(), (*it)->position.Z(),
-								  0, 0, 0, 1);
+    glGetFloatv(GL_MODELVIEW_MATRIX, view);
+    
+    R3Vector right = R3Vector(view[0], view[4], view[8]);
+    R3Vector up = R3Vector(view[1], view[5], view[9]);
+    
+    right.Normalize();
+    up.Normalize();
+    
+    R3Vector boardLook = camera.eye - (*it)->position;
+    boardLook.Normalize();
+    R3Vector boardRight = R3Vector(boardLook);
+    boardRight.Cross(up);
+    R3Vector boardUp = R3Vector(boardRight);
+    boardUp.Cross(boardLook);
+    
+    R3Matrix billboard = R3Matrix(boardRight.X(), boardUp.X(), boardLook.X(), (*it)->position.X(),
+                                  boardRight.Y(), boardUp.Y(), boardLook.Y(), (*it)->position.Y(),
+                                  boardRight.Z(), boardUp.Z(), boardLook.Z(), (*it)->position.Z(),
+                                  0, 0, 0, 1);
+    
+    glPushMatrix();
+    LoadMatrix(&billboard);
+      
+    switch ((*it)->creaturetype)
+    {
+      case R3COW_CREATURE:
+        LoadMaterial(materials[COW]);
+        break;
+      case R3DEER_CREATURE:
+        LoadMaterial(materials[DEER]);
+        break;
+      case R3SUICIDE_CREATURE:
+        LoadMaterial(materials[SUICIDE]);
+        break;
+    }
+    
+    glBegin(GL_QUADS);
+      glNormal3d(0.0, 0.0, 1.0);
+      glTexCoord2d(0, 1);
+      glVertex2f(-0.5, -0.5);
+      glTexCoord2d(0, 0);
+      glVertex2f(0.5, -0.5);
+      glTexCoord2d(1, 0);
+      glVertex2f(0.5, 0.5); 
+      glTexCoord2d(1, 1);
+      glVertex2f(-0.5, 0.5); 
+    glEnd();
+    
+    if (currentSelectedCreatureIt == it) 
+    {
+      glDisable(GL_LIGHTING);
+      glColor3d(0., 0., 0.);
 
-	
-	glPushMatrix();
-	LoadMatrix(&billboard);
-	
-		if ((*it)->creaturetype == R3COW_CREATURE) 
-			LoadMaterial(materials[COW]);
-		else if ((*it)->creaturetype == R3DEER_CREATURE) 
-			LoadMaterial(materials[DEER]);
-		else if ((*it)->creaturetype == R3SUICIDE_CREATURE) 
-			LoadMaterial(materials[SUICIDE]);
-	
-	glBegin(GL_QUADS);
-	glNormal3d(boardLook.X(),boardLook.Y(), boardLook.Z());
-	glNormal3d(0.0, 0.0, 1.0);
-	glTexCoord2d(0, 1);
-	glVertex2f(-0.5, -0.5);
-	glTexCoord2d(0, 0);
-	glVertex2f(0.5, -0.5);
-	glTexCoord2d(1, 0);
-	glVertex2f(0.5, 0.5); 
-	glTexCoord2d(1, 1);
-	glVertex2f(-0.5, 0.5); 
-	
-	glEnd();
-	
-	glPopMatrix();
-	
-	if (currentSelectedCreatureIt == it) 
-	{
-		glDisable(GL_LIGHTING);
-		glColor3d(0., 0., 0.);
-		glLineWidth(15);
-		glPolygonMode(GL_FRONT, GL_LINE);
-		(*it)->box.Draw();
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		glLineWidth(1);
-		glEnable(GL_LIGHTING);
-	}
-}
+      glLineWidth(15);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+      glBegin(GL_QUADS);
+        glVertex2f(-0.5, -0.5);
+        glVertex2f(0.5, -0.5);
+        glVertex2f(0.5, 0.5); 
+        glVertex2f(-0.5, 0.5); 
+      glEnd();
+
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glLineWidth(1);
+      glEnable(GL_LIGHTING);
+    }
+
+    glPopMatrix();
+  }
 }
 
 void GenerateCreatures(int num_to_create) 
 {
 
-	if(creatures.size() > MAX_num_creatures) return;
-	//int num_to_create = 10;
-	double distance_to_gen = 8;
+	if (creatures.size() > MAX_num_creatures) 
+        return;
 
 	//total number of horizontal chunks
 	double numspaces = CHUNKS*CHUNKS*CHUNK_X*CHUNK_Z;
 
-	double probability = 1/numspaces;
+	double probability = 1 / numspaces;
 	probability = num_to_create * probability;
 
 	//loop through all chunks around you and find one that has two air above it
@@ -1182,12 +1030,11 @@ void GenerateCreatures(int num_to_create)
 									int randomnum = (int)(RandomNumber() / probability);
 
 									//CREATE A MONSTER!!
-									if(randomnum == 0) {
-										double x = RandomNumber()*2 - 1;
-										double z = RandomNumber()*2 - 1;
+									if (randomnum == 0) 
+                                    {
 										int rand_creature = (int)(RandomNumber() * 3);
 
-										//create a point at the location of the centroid of the box
+										// Create a point at the location of the centroid of the box
 										R3Point newpoint(aboveblock->box.centroid);
 										R3Creature *newcreature1;
 										switch (rand_creature)
@@ -1232,7 +1079,6 @@ void UpdateCharacter()
   {
 		dead = true;
     DeathMenu = true;
-    show_camera = !show_camera;
     regularGameplay = false;
     startMenu = false;
   }
@@ -1705,28 +1551,12 @@ glAccum (GL_RETURN, 1.0);
 // Move back buffer to front and relish the fruits of your labor.
 glutSwapBuffers();
 
-// Save image
-if (save_image) 
-{
-	char image_name[256];
-	static int image_number = 1;
-	for (;;) {
-		sprintf(image_name, "image%d.jpg", image_number++);
-		FILE *fp = fopen(image_name, "r");
-		if (!fp) break; 
-		else fclose(fp);
-	}
-	GLUTSaveImage(image_name);
-	printf("Saved %s\n", image_name);
-	save_image = 0;
-}
 
 // Quit here so that can save image before exit
 if (quit) 
 {
 	if(toSave) 
 	{
-		if (output_image_name) GLUTSaveImage(output_image_name);
 
 		// Write new scene based on changes
 		if (!scene->WriteScene(input_scene_name))
@@ -1917,9 +1747,6 @@ void GLUTSpecial(int key, int x, int y)
 
 	// Process keyboard button event 
 	switch (key) {
-	case GLUT_KEY_F1:
-		save_image = 1;
-		break;
 	}
 
 	// Remember mouse position 
@@ -1975,11 +1802,24 @@ void GLUTKeyboard(unsigned char key, int x, int y)
 
     case 'C':
     case 'c':
-		if(startMenu) {
-			culling = (culling + 1)%4;
+		if (startMenu) 
+        {
+            switch (culling)
+            {
+                case NONE:
+                    culling = VIEW;
+                    break;
+                case VIEW:
+                    culling = OCCLUSION;
+                    break;
+                case OCCLUSION:
+                    culling = FULL;
+                    break;
+                case FULL:
+                    culling = NONE;
+            }
 			break;
 		}
-      show_camera = !show_camera;
       controlsMenu = true;
       regularGameplay = false;
       startMenu = false;
@@ -2003,10 +1843,6 @@ void GLUTKeyboard(unsigned char key, int x, int y)
       show_faces = !show_faces;
       break;
 
-    case 'L':
-    case 'l':
-      show_lights = !show_lights;
-      break;
 //delete when done debugging - test gold blocks
 	  case 'g':
 	  case 'G':
@@ -2098,22 +1934,6 @@ void GLUTKeyboard(unsigned char key, int x, int y)
 	glutPostRedisplay();
 }
 
-void GLUTCommand(int cmd)
-{
-	// Execute command
-	switch (cmd) {
-	case DISPLAY_FACE_TOGGLE_COMMAND: show_faces = !show_faces; break;
-	case DISPLAY_EDGE_TOGGLE_COMMAND: show_edges = !show_edges; break;
-	case DISPLAY_BBOXES_TOGGLE_COMMAND: show_bboxes = !show_bboxes; break;
-	case DISPLAY_LIGHTS_TOGGLE_COMMAND: show_lights = !show_lights; break;
-	case DISPLAY_CAMERA_TOGGLE_COMMAND: show_camera = !show_camera; break;
-	case SAVE_IMAGE_COMMAND: save_image = 1; break;
-	case QUIT_COMMAND: quit = 1; break;
-	}
-
-	// Mark window for redraw
-	glutPostRedisplay();
-}
 
 void GLUTInit(int *argc, char **argv)
 {
@@ -2205,11 +2025,10 @@ int ParseArgs(int argc, char **argv)
 		if ((*argv)[0] == '-') {
 			if (!strcmp(*argv, "-help")) { print_usage = 1; }
 			else if (!strcmp(*argv, "-exit_immediately")) { quit = 1; }
-			else if (!strcmp(*argv, "-output_image")) { argc--; argv++; output_image_name = *argv; }
-			else if (!strcmp(*argv, "-no_culling")) { argc--; argv++; culling = 0;}
-			else if (!strcmp(*argv, "-view_frustrum_culling")) { argc--; argv++; culling = 1;}
-			else if (!strcmp(*argv, "-occlusion_culling")) { argc--; argv++; culling = 2;}
-			else if (!strcmp(*argv, "-full_culling")) { argc--; argv++; culling = 3;}
+			else if (!strcmp(*argv, "-no_culling")) { argc--; argv++; culling = NONE;}
+			else if (!strcmp(*argv, "-view_frustrum_culling")) { argc--; argv++; culling = VIEW;}
+			else if (!strcmp(*argv, "-occlusion_culling")) { argc--; argv++; culling = OCCLUSION;}
+			else if (!strcmp(*argv, "-full_culling")) { argc--; argv++; culling = FULL;}
 			else { fprintf(stderr, "Invalid program argument: %s", *argv); exit(1); }
 			argv++; argc--;
 		}
