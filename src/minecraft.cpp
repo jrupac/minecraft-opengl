@@ -31,7 +31,7 @@ static char *input_scene_name = NULL;
 // Display Variables
 ///////////////////////////////////////////////////////////////////////////////
 
-static enum ANTIALIAS antialias = ZERO;
+static enum ANTIALIAS antialias = HIGH;
 static enum GAMESTATE state = STARTMENU;
 static bool CAPTURE_MOUSE = false;
 static bool show_faces = true;
@@ -840,43 +840,42 @@ void ModulateLighting()
 	// Adjust the color of the first two lights (the global lighting) and the 
 	// glClearColor based on the time of day
 
-	static R3Rgb dayColor = R3Rgb(1, 1, 1, 1);
-	static R3Rgb backgroundDayColor = R3Rgb(0.529, 0.807, 0.980, 1.);
-	static R3Rgb backgroundNightColor = R3Rgb(0., 0., 0.400, 1);
-	static R3Rgb nightColor = R3Rgb(.2, .2, .2, 1);
-	int nightLength = 2e2;
-	static int nightIndex;
+	static const R3Rgb dayColor = R3Rgb(1, 1, 1, 1);
+	static const R3Rgb backgroundDayColor = R3Rgb(0.529, 0.807, 0.980, 1.);
+	static const R3Rgb backgroundNightColor = R3Rgb(0., 0., 0.400, 1);
+	static const R3Rgb nightColor = R3Rgb(.2, .2, .2, 1);
+	static int nightIndex = 0;
 	static bool isNight = false;
-	double FACTOR = 100e2;
+  static bool dontChange = false;
+	const int nightLength = 2e3;
+	const double FACTOR = 1e4;
 	R3Rgb diff;
 
 	for (unsigned int i = 0; i < 2; i++)
 	{
 		R3Light *light = scene->lights[i];
 
-		if (!isNight)
-			diff = nightColor - light->color;
-		else
-			diff = dayColor - light->color;
+    diff = (isNight) ? dayColor - light->color : nightColor - light->color;
 
-		light->color += diff / FACTOR;
-
-		if (nightIndex >= nightLength &&
-			ABS(diff[0]) < EPS && ABS(diff[1]) < EPS && ABS(diff[2]) < EPS)
+		if (nightIndex != 0 && ABS(diff[0]) < EPS && ABS(diff[1]) < EPS && ABS(diff[2]) < EPS)
 		{
 			isNight = !isNight;
 			nightIndex = 0;
+      dontChange = true;
 		}
-		else 
-			nightIndex++;
+  
+    if (nightIndex++ >= nightLength)
+      dontChange = false;
+    
+    if (!dontChange)
+      light->color += diff / FACTOR;
 	}
 
-	if (!isNight)
-		diff = backgroundNightColor - background;
-	else
-		diff = backgroundDayColor - background;
-
-	background += diff / FACTOR;
+  diff = (isNight) ? backgroundDayColor - background :
+                     backgroundNightColor - background;
+  
+  if (!dontChange)
+    background += diff / FACTOR;
 }
 
 ////////////////////////////////////////////////////////////
@@ -891,41 +890,44 @@ void GLUTMainLoop(void)
 
 void GLUTIdleFunction(void) 
 {
-	//if ((state != REGULAR) || (state == LOST)) 
+  if ((state != REGULAR) || (state == LOST)) 
 		return;
 
-	if (state != WORLDBUILDER && GetTime() >= previousLevelTime + timeBetweenLevels) 
+	ModulateLighting();
+	UpdateCharacter();
+
+  if (state == WORLDBUILDER)
+  {
+    glutPostRedisplay();
+    return;
+  }
+
+	if (GetTime() >= previousLevelTime + timeBetweenLevels) 
   {
 		currentLevel++;
 		previousLevelTime = GetTime();
 
 		GenerateCreatures(num_creatures_to_make++);
 	}
+  
+  R3Vector direction;
 
-	ModulateLighting();
-
-	UpdateCharacter();
-	R3Vector direction;
-
-  if (state != WORLDBUILDER && state != LOST) 
+  for (unsigned int i = 0; i < creatures.size(); i++)
   {
-    for (unsigned int i = 0; i < creatures.size(); i++)
+    double creaturedist = R3Distance(mainCharacter->position, creatures[i]->position);
+
+    if (creaturedist >= distanceToRenderCreature) 
     {
-      double creaturedist = R3Distance(mainCharacter->position, creatures[i]->position);
-
-      if (creaturedist >= distanceToRenderCreature) 
-      {
-        RemoveCreature(creatures[i--]);
-        continue;
-      }
-
-      direction = creatures[i]->UpdateCreature(mainCharacter);
-
-      if (direction == R3zero_vector) 
-        continue;
-      if (creaturedist < distanceToUpdateCreature) 
-        InterpolateMotion(&(creatures[i]->position), direction, false);
+      RemoveCreature(creatures[i--]);
+      continue;
     }
+
+    direction = creatures[i]->UpdateCreature(mainCharacter);
+
+    if (direction == R3zero_vector) 
+      continue;
+    if (creaturedist < distanceToUpdateCreature) 
+      InterpolateMotion(&(creatures[i]->position), direction, false);
   }
 
 	glutPostRedisplay();
