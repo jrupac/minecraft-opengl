@@ -3,6 +3,7 @@
 int GLUTwindow = 0;
 int GLUTwindow_height = 512;
 int GLUTwindow_width = 512;
+double GLUTaspect = 1.;
 
 double RandomNumber(void)
 {

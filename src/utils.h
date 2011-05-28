@@ -7,6 +7,7 @@
 extern int GLUTwindow;
 extern int GLUTwindow_height;
 extern int GLUTwindow_width;
+extern double GLUTaspect;
 
 double RandomNumber();
 

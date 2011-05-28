@@ -31,6 +31,7 @@ static char *input_scene_name = NULL;
 // Display Variables
 ///////////////////////////////////////////////////////////////////////////////
 
+static enum ANTIALIAS antialias = ZERO;
 static enum GAMESTATE state = STARTMENU;
 static bool CAPTURE_MOUSE = false;
 static bool show_faces = true;
@@ -53,7 +54,7 @@ static R3Scene *scene = NULL;
 static R3Vector currentNormal;
 static R3Vector rot;	
 static VecCreature creatures;
-static VecCreature::iterator currentSelectedCreatureIt;
+static VecCreatureIt currentSelectedCreatureIt;
 static R3Character *mainCharacter;
 static map<int, const jitter_point *> j;
 
@@ -228,7 +229,7 @@ void AlignReticle()
 	currentSelection = NULL;
 	currentSelectedCreatureIt = creatures.end();
 	R3Ray ray = R3Ray(camera.eye, camera.towards);
-	VecCreature::iterator it;
+	VecCreatureIt it;
 	double smallest = DBL_MAX;
 	double dt = 0.0;
 	R3Intersection intersect;
@@ -676,7 +677,7 @@ void LoadLights(R3Scene *scene)
 
 void DrawCreatures() 
 {
-	VecCreature::iterator it;
+	VecCreatureIt it;
 
 	for (it = creatures.begin(); it < creatures.end(); it++)
 	{
@@ -890,7 +891,7 @@ void GLUTMainLoop(void)
 
 void GLUTIdleFunction(void) 
 {
-	if ((state != REGULAR) || (state == LOST)) 
+	//if ((state != REGULAR) || (state == LOST)) 
 		return;
 
 	if (state != WORLDBUILDER && GetTime() >= previousLevelTime + timeBetweenLevels) 
@@ -983,6 +984,7 @@ void GLUTResize(int w, int h)
 	// Remember window size 
 	GLUTwindow_width = w;
 	GLUTwindow_height = h;
+  GLUTaspect = GLUTwindow_width / GLUTwindow_height;
 
 	// Redraw
 	glutPostRedisplay();
@@ -992,116 +994,81 @@ void JitterPerspective(GLdouble fovy, GLdouble aspect, GLdouble near_p,
                        GLdouble far_p, GLdouble pixdx, GLdouble pixdy, 
 	                     GLdouble eyedx, GLdouble eyedy, GLdouble focus)
 {
-	GLdouble fov2, left, right, bottom, top;
+	static GLdouble left, right, bottom, top, xwsize, ywsize, cached = 0.;
 
-	fov2 = fovy;
-
-	top = near_p * tan(fov2);
-	bottom = -top;
-	right = top * aspect;
-	left = -right;
+  // Only recompute if aspect ratio is changed
+  if (aspect != cached)
+  {
+    top = near_p * tan(fovy);
+    bottom = -top;
+    right = top * aspect;
+    left = -right;
+    xwsize = right - left;
+    ywsize = top - bottom;
+    cached = aspect;
+  }
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	GLint viewport[4];
-
-	glGetIntegerv(GL_VIEWPORT, viewport);
-
-	GLdouble xwsize = right - left;
-	GLdouble ywsize = top - bottom;
-	GLdouble dx = -(pixdx * xwsize / (GLdouble)viewport[2] + eyedx * near_p / focus);
-	GLdouble dy = -(pixdy * ywsize / (GLdouble)viewport[3] + eyedy * near_p / focus);
+	GLdouble dx = -(pixdx * xwsize / GLUTwindow_width + eyedx * near_p / focus);
+	GLdouble dy = -(pixdy * ywsize / GLUTwindow_height + eyedy * near_p / focus);
 
 	glFrustum (left + dx, right + dx, bottom + dy, top + dy, near_p, far_p);
 }
 
-void GLUTRedraw(void)
+static void GLUTRedrawNoAA(void)
 {
-	// Time stuff
-	current_time = GetTime();
-	// program just started up?
-	if (previous_time == 0) previous_time = current_time;
-	double delta_time = current_time - previous_time;
-	FPS = (int)1.0/delta_time;
+  // Time stuff
+  current_time = GetTime();
+  // program just started up?
+  if (previous_time == 0) previous_time = current_time;
+  double delta_time = current_time - previous_time;
+  FPS = (int)1.0/delta_time;
 
-	// Clear window 
-	glClearColor(background[0], background[1], background[2], background[3]);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  // Clear window 
+  glClearColor(background[0], background[1], background[2], background[3]);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// Initialize selected block
-	AlignReticle();
+  // Initialize selected block
+  AlignReticle();
 
-	// Load scene lights
-	LoadLights(scene);
+  // Load scene lights
+  LoadLights(scene);
 
-#if ACSIZE > 0
-	// Clear accumulation buffer
-	glClear(GL_ACCUM_BUFFER_BIT);
+  LoadCamera(&camera);
 
-	// Iterate through the jitter array to write to accumulation buffer
-	for (int jitter = 0; jitter < ACSIZE; jitter++) 
-	{
-		// Jitter perspective
-		JitterPerspective(camera.yfov, 
-			(GLdouble) GLUTwindow_width /(GLdouble) GLUTwindow_height, 
-			0.01, 10000, j[2][jitter].x, j[2][jitter].y, 0.0, 0.0, 1.0);
+  // Clear screen
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		camera.towards.Reset(0, 0, -1);
-		float n[16], *nn = n;
-		R3Point e = camera.eye;
+  // Draw scene surfaces
+  if (show_faces && (state == REGULAR)) 
+  {
+    glEnable(GL_LIGHTING);
+    DrawScene(scene);
+    DrawCreatures();
+  }
+  // Draw scene edges
+  if (show_edges && (state == REGULAR)) 
+  {
+    glDisable(GL_LIGHTING);
+    glColor3d(0., 0., 0.);
+    glLineWidth(3);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    DrawScene(scene);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glLineWidth(1);
+  }
 
-		// Set up modelview matrix
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
+  // Get into 2D mode
+  glMatrixMode (GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho (0, GLUTwindow_width, GLUTwindow_height, 0, 0, 1);
+  glMatrixMode (GL_MODELVIEW);
+  glLoadIdentity();
 
-		// Re-transform
-		glRotatef(rot[1] * 180 / M_PI, 1., 0., 0);
-		glRotatef(rot[0] * 180 / M_PI, 0., 1., 0);
-		glTranslated(-e[0], -e[1], -e[2]);
-
-		// Get the current transformation matrix
-		glGetFloatv(GL_MODELVIEW_MATRIX, n);
-
-		R3Matrix rotation = R3Matrix(nn);
-		camera.towards.Transform(rotation);
-		camera.towards.Normalize();
-
-#else
-	LoadCamera(&camera);
-#endif
-
-	// Clear screen
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Draw scene surfaces
-	if (show_faces && (state == REGULAR)) 
-	{
-		glEnable(GL_LIGHTING);
-		DrawScene(scene);
-		DrawCreatures();
-	}
-	// Draw scene edges
-	if (show_edges && (state == REGULAR)) 
-	{
-		glDisable(GL_LIGHTING);
-		glColor3d(0., 0., 0.);
-		glLineWidth(3);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		DrawScene(scene);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		glLineWidth(1);
-	}
-
-	// Get into 2D mode
-	glMatrixMode (GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho (0, GLUTwindow_width, GLUTwindow_height, 0, 0, 1);
-	glMatrixMode (GL_MODELVIEW);
-	glLoadIdentity();
-
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_LIGHTING); 
+  glDisable(GL_DEPTH_TEST);
+  glDisable(GL_LIGHTING); 
 
   switch (state)
   {
@@ -1123,18 +1090,8 @@ void GLUTRedraw(void)
       break;
   }
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING); 
-
-#if ACSIZE > 0
-	// Add back buffer (the one written to) to the accumulation buffer and
-	// weight with a fraction of the jitter size
-	glAccum(GL_ACCUM, 1.0 / ACSIZE);
-}
-
-// Put the composited buffer together and write to back buffer
-glAccum (GL_RETURN, 1.0);
-#endif
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_LIGHTING); 
 
   // Move back buffer to front and relish the fruits of your labor.
   glutSwapBuffers();
@@ -1142,7 +1099,7 @@ glAccum (GL_RETURN, 1.0);
   // Quit here so that can save image before exit
   if (quit) 
   {
-    if(toSave) 
+    if (toSave) 
     {
       // Write new scene based on changes
       if (!scene->WriteScene(input_scene_name))
@@ -1154,6 +1111,145 @@ glAccum (GL_RETURN, 1.0);
 
   previous_time = current_time;
 }    
+
+static void GLUTRedrawAA(void)
+{
+  // Time stuff
+  current_time = GetTime();
+  // program just started up?
+  if (previous_time == 0) previous_time = current_time;
+  double delta_time = current_time - previous_time;
+  FPS = (int)1.0/delta_time;
+
+  // Clear window 
+  glClearColor(background[0], background[1], background[2], background[3]);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  // Initialize selected block
+  AlignReticle();
+
+  // Load scene lights
+  LoadLights(scene);
+
+  // Clear accumulation buffer
+  glClear(GL_ACCUM_BUFFER_BIT);
+
+  // Iterate through the jitter array to write to accumulation buffer
+  for (int jitter = 0; jitter < antialias; jitter++) 
+  {
+    // Jitter perspective
+    JitterPerspective(camera.yfov, GLUTaspect, 0.01, 10000, 
+        j[antialias][jitter].x, j[antialias][jitter].y, 
+        0.0, 0.0, 1.0);
+
+    camera.towards.Reset(0, 0, -1);
+    float n[16], *nn = n;
+    R3Point e = camera.eye;
+
+    // Set up modelview matrix
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    // Re-transform
+    glRotatef(rot[1] * 180 / M_PI, 1., 0., 0);
+    glRotatef(rot[0] * 180 / M_PI, 0., 1., 0);
+    glTranslated(-e[0], -e[1], -e[2]);
+
+    // Get the current transformation matrix
+    glGetFloatv(GL_MODELVIEW_MATRIX, n);
+
+    R3Matrix rotation = R3Matrix(nn);
+    camera.towards.Transform(rotation);
+    camera.towards.Normalize();
+
+    // Clear screen
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Draw scene surfaces
+    if (show_faces && (state == REGULAR)) 
+    {
+      glEnable(GL_LIGHTING);
+      DrawScene(scene);
+      DrawCreatures();
+    }
+    // Draw scene edges
+    if (show_edges && (state == REGULAR)) 
+    {
+      glDisable(GL_LIGHTING);
+      glColor3d(0., 0., 0.);
+      glLineWidth(3);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      DrawScene(scene);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glLineWidth(1);
+    }
+
+    // Get into 2D mode
+    glMatrixMode (GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho (0, GLUTwindow_width, GLUTwindow_height, 0, 0, 1);
+    glMatrixMode (GL_MODELVIEW);
+    glLoadIdentity();
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING); 
+
+    switch (state)
+    {
+      case WORLDBUILDER:
+      case REGULAR:
+        DrawHUD(mainCharacter, false, FPS);
+        break;
+      case STARTMENU:
+        DisplayStartMenu();
+        break;
+      case CONTROLS:
+        DisplayControls();
+        break;
+      case LOST:
+        DisplayDeathMenu();
+        break;
+      case WON:
+        DisplayWonMenu();
+        break;
+    }
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHTING); 
+
+    // Add back buffer (the one written to) to the accumulation buffer and
+    // weight with a fraction of the jitter size
+    glAccum(GL_ACCUM, 1.0 / antialias);
+  }
+
+  // Put the composited buffer together and write to back buffer
+  glAccum (GL_RETURN, 1.0);
+
+  // Move back buffer to front and relish the fruits of your labor.
+  glutSwapBuffers();
+
+  // Quit here so that can save image before exit
+  if (quit) 
+  {
+    if (toSave) 
+    {
+      // Write new scene based on changes
+      if (!scene->WriteScene(input_scene_name))
+        fprintf(stderr, "WARNING: Couldn't save new scene!!!\n");
+    }
+
+    GLUTStop();
+  }
+
+  previous_time = current_time;
+}    
+
+void GLUTRedraw(void)
+{
+  if (antialias)
+    GLUTRedrawAA();
+  else GLUTRedrawNoAA();
+}
 
 void GLUTPassiveMotion(int x, int y)
 {

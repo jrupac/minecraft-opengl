@@ -21,9 +21,6 @@
 // Fudge factor
 #define EPS 1e-4
 
-// Amount of anti-aliasing (either 0 = none, 2 = medium, 4 = high
-#define ACSIZE 0
-
 // Return square of x
 #define SQ(x) ((x) * (x))
 // Return sign of x, with 0 as even
@@ -38,9 +35,9 @@
 // Debugging function to print any vector
 #define PRINT_VECTOR(x) printf("%lf %lf %lf\n", (x).X(), (x).Y(), (x).Z());
  
-typedef struct { GLfloat x, y; } jitter_point;
-
 typedef vector<R3Creature *> VecCreature;
+typedef vector<R3Creature *>::iterator VecCreatureIt;
+typedef struct { GLfloat x, y; } jitter_point;
 
 const jitter_point j2[] =
 {
@@ -58,6 +55,7 @@ const jitter_point j4[] =
 
 enum CULLING { NONE, VIEW, OCCLUSION, FULL };
 enum GAMESTATE { STARTMENU, REGULAR, WORLDBUILDER, CONTROLS, WON, LOST };
+enum ANTIALIAS { ZERO, LOW = 2, HIGH = 4 };
 
 extern enum CULLING culling;
 extern R3Node *currentSelection;
