@@ -1,7 +1,10 @@
 #ifndef __BLOCK_H_
 #define __BLOCK_H_
 
-typedef enum {
+#include "R3.h"
+
+typedef enum 
+{
   DIRT_BLOCK, //0
   AIR_BLOCK, //1
   LEAF_BLOCK, //2
@@ -21,7 +24,8 @@ typedef enum {
 #define OBSIDIAN_HEALTH 10
 #define GOLD_HEALTH 12
 
-class R3Block {
+class R3Block 
+{
  public:
   R3Block(const R3Box& box, int type);
   
@@ -33,7 +37,6 @@ class R3Block {
 	void setUpper(R3Block *up);
   void Draw(void) const;
   void Draw(int face, bool isSelected) const;
-  void Draw(int face, bool isSelected, double ratio) const;
 
  public:
   R3Box box;

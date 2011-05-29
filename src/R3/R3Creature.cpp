@@ -24,7 +24,6 @@ R3Creature::
 void R3Creature::
 Creature_Attack(R3Character *character, R3Vector translated) 
 {
-	
   switch (creaturetype)
   {
     case R3DEER_CREATURE:
@@ -35,14 +34,14 @@ Creature_Attack(R3Character *character, R3Vector translated)
       character->Health -= 4;
       MoveCharacter(translated, 4);
       RemoveCreature(this);
-	  return;
+      return;
 	  case R3COW_CREATURE:
 		  translated = character->position - position;
 		  translated.SetY(0);
 		  MoveCharacter(translated, 3);
 		  return;
     default:
-      break;
+      return;
   }
 }
 

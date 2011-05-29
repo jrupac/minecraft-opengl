@@ -12,7 +12,8 @@ R3Character(void)
 	number_gold = 0;
 
   // Clear all items
-	for(int i = 0; i < 8; i++) number_items[i] = 0;
+	for (int i = 0; i < 8; i++) 
+    number_items[i] = 0;
 }
 
 

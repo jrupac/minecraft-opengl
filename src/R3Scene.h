@@ -1,8 +1,8 @@
 // Include file for the R3 scene stuff
 
 #define R3Rgb R2Pixel
-#define MIDCHUNK = (CHUNKS-1)/2
 #define CHUNKS 3
+#define MIDCHUNK = (CHUNKS-1)/2
 
 #include "R3/R3.h"
 #include "R3Chunk.h"
@@ -52,10 +52,6 @@ struct R3Scene {
   // R3Character* main_character;
   set< pair<int, int> > generatedChunks;
 };
-
-
-
-// Inline functions 
 
 inline R3Node *R3Scene::
 Root(void) const

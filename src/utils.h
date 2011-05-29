@@ -2,7 +2,7 @@
 #define __UTILS_H__
 
 #include "cos426_opengl.h"
-#include "R3/R3.h"
+#include "minecraft.h"
 
 extern int GLUTwindow;
 extern int GLUTwindow_height;

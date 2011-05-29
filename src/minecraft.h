@@ -109,9 +109,6 @@ void GLUTIdleFunction(void);
 void GLUTSaveImage(const char *filename);
 void GLUTStop(void);
 void GLUTResize(int w, int h);
-void JitterPerspective(GLdouble fovy, GLdouble aspect, GLdouble near_p, 
-                       GLdouble far_p, GLdouble pixdx, GLdouble pixdy, 
-	                     GLdouble eyedx, GLdouble eyedy, GLdouble focus);
 void GLUTRedraw(void);
 void GLUTPassiveMotion(int x, int y);
 void GLUTMouse(int button, int state, int x, int y);

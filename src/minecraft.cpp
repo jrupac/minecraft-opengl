@@ -183,6 +183,7 @@ R3Vector InterpolateMotion(R3Point *start, R3Vector direction, bool isCharacter)
 
 void InterpolateJump(R3Point *start, R3Vector direction)
 {
+  R3Point cached = *start;
 	R3Index coords = getChunkCoordinates((*start) + direction);
 	int NUM_FRAMES_PER_JUMP = 12;
 
@@ -200,24 +201,23 @@ void InterpolateJump(R3Point *start, R3Vector direction)
       }
 
 			*start += direction;
-			scene->UpdateScene(*start);
+      scene->UpdateScene(*start);
+      return;
 		}
-		return;
 	}
 
 	// What goes up...
 	for (int i = 0; i < NUM_FRAMES_PER_JUMP / 2; i++)
 	{
 		(*start) += R3posy_vector / (NUM_FRAMES_PER_JUMP / 2);
-		GLUTRedraw();
+    GLUTRedraw();
 	}
 	// ...must come down.
 	for (int i = 0; i < NUM_FRAMES_PER_JUMP / 2; i++)
 	{
 		(*start) -= R3posy_vector / (NUM_FRAMES_PER_JUMP / 2);
-		GLUTRedraw();
+    GLUTRedraw();
 	}
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -257,18 +257,14 @@ void AlignReticle()
       continue;
     cached = curNode;
     
-    // Temporary solution for stale pointers causing segfaults
-    try 
+    // Intersect with the first non-transparent box
+    if (!curNode->shape->block->transparent)
     {
-      // Intersect with the first non-transparent box
-      if (!curNode->shape->block->transparent)
-      {
-        closestIntersect = IntersectBox(ray, curNode->shape->block->getBox());
-        smallest = closestIntersect.t;
-        closestIntersect.node = curNode;
-        break;
-      }
-    } catch(...) { }
+      closestIntersect = IntersectBox(ray, curNode->shape->block->getBox());
+      smallest = closestIntersect.t;
+      closestIntersect.node = curNode;
+      break;
+    }
 	}
 
 	// Find if the reticle is on a creature
@@ -846,7 +842,6 @@ void ModulateLighting()
 	static const R3Rgb nightColor = R3Rgb(.2, .2, .2, 1);
 	static int nightIndex = 0;
 	static bool isNight = false;
-  static bool dontChange = false;
 	const int nightLength = 2e3;
 	const double FACTOR = 1e4;
 	R3Rgb diff;
@@ -861,26 +856,22 @@ void ModulateLighting()
 		{
 			isNight = !isNight;
 			nightIndex = 0;
-      dontChange = true;
 		}
   
     if (nightIndex++ >= nightLength)
-      dontChange = false;
-    
-    if (!dontChange)
       light->color += diff / FACTOR;
 	}
 
   diff = (isNight) ? backgroundDayColor - background :
                      backgroundNightColor - background;
   
-  if (!dontChange)
+  if (nightIndex >= nightLength)
     background += diff / FACTOR;
 }
 
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // GLUT USER INTERFACE CODE
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 void GLUTMainLoop(void)
 {
@@ -992,9 +983,9 @@ void GLUTResize(int w, int h)
 	glutPostRedisplay();
 }
 
-void JitterPerspective(GLdouble fovy, GLdouble aspect, GLdouble near_p, 
-                       GLdouble far_p, GLdouble pixdx, GLdouble pixdy, 
-	                     GLdouble eyedx, GLdouble eyedy, GLdouble focus)
+static void JitterPerspective(GLdouble fovy, GLdouble aspect, GLdouble near_p, 
+    GLdouble far_p, GLdouble pixdx, GLdouble pixdy, 
+    GLdouble eyedx, GLdouble eyedy, GLdouble focus)
 {
 	static GLdouble left, right, bottom, top, xwsize, ywsize, cached = 0.;
 
@@ -1050,6 +1041,7 @@ static void GLUTRedrawNoAA(void)
     DrawScene(scene);
     DrawCreatures();
   }
+
   // Draw scene edges
   if (show_edges && (state == REGULAR)) 
   {
@@ -1174,6 +1166,7 @@ static void GLUTRedrawAA(void)
       DrawScene(scene);
       DrawCreatures();
     }
+
     // Draw scene edges
     if (show_edges && (state == REGULAR)) 
     {
@@ -1571,7 +1564,6 @@ void GLUTKeyboard(unsigned char key, int x, int y)
       difference = InterpolateMotion(&(camera.eye), 
           -(cos(rot[0]) * R3posz_point - sin(rot[0]) * R3posx_point), true);
       break;
-
     case 's': 
       if (state == STARTMENU) 
         break;
@@ -1670,9 +1662,9 @@ void GLUTInit(int *argc, char **argv)
 
 }
 
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // SCENE READING
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 R3Scene *ReadScene(const char *filename)
 {
@@ -1703,9 +1695,9 @@ R3Scene *ReadScene(const char *filename)
 	return scene;
 }
 
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // PROGRAM ARGUMENT PARSING
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 int ParseArgs(int argc, char **argv)
 {
@@ -1743,9 +1735,9 @@ int ParseArgs(int argc, char **argv)
 	return 1;
 }
 
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // OPENAL CODE 
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 #ifdef __linux__
 
@@ -1793,9 +1785,9 @@ void KillALData()
 
 #endif
 
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // MAIN
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char **argv)
 {

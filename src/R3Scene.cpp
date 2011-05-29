@@ -44,7 +44,7 @@ getIndex(R3Point p)
   int chunksAway = 0;
 
   newIndex.x = (int)(p[0] - terrain[chunkX][chunkZ]->start_point[0]);
-  newIndex.y = (int)(p[1] + CHUNK_Y / 2);
+  newIndex.y = (int)((p[1] + CHUNK_Y / 2) + .5);
   newIndex.z = (int)(p[2] - terrain[chunkX][chunkZ]->start_point[2]);
   newIndex.current = NULL;
   

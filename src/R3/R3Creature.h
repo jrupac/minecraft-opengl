@@ -10,7 +10,8 @@ typedef enum {
   R3SUICIDE_CREATURE
 } R3CreatureType;
 
-class R3Creature {
+class R3Creature 
+{
   public:
     R3Creature(void);
     R3Creature(R3Point init, R3CreatureType creaturetype);

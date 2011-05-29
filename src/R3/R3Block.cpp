@@ -1,6 +1,5 @@
-
-#include "R3.h"
-
+#include "R3Block.h"
+#include "utils.h"
 
 R3Block::
 R3Block(const R3Box& box, int type)
@@ -72,55 +71,40 @@ Draw(void) const
 void R3Block::
 Draw(int face, bool isSelected) const
 {
-	//printf("Why is this called?!!?\n");
-  // Don't draw transparent air blocks
-	
-  if (!transparent) {
-	  
-    box.DrawFace(face);
-  }
-
-  if (!transparent && isSelected)
-  {
-      glDisable(GL_LIGHTING);
-      glColor3d(0., 0., 0.);
-      glLineWidth(15);
-      glPolygonMode(GL_FRONT, GL_LINE);
-
-      box.DrawFace(face);
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-      glLineWidth(1);
-      glEnable(GL_LIGHTING);
-  }
-	
-	glDisable(GL_COLOR_MATERIAL);
-}
-
-
-void R3Block::
-Draw(int face, bool isSelected, double ratio) const
-{
-	/*
-	glColorMaterial(GL_FRONT, GL_DIFFUSE);
-	glColor3f(1, ratio, ratio);*/
-  // Don't draw transparent air blocks
   if (!transparent)
-    box.DrawFace(face);
-
-  if (!transparent && isSelected)
   {
-      glDisable(GL_LIGHTING);
-      glColor3d(0., 0., 0.);
-      glLineWidth(15);
-      glPolygonMode(GL_FRONT, GL_LINE);
-
-      box.DrawFace(face);
+    if (isSelected)
+    {
+      // Save all attributes
+      glPushAttrib(GL_ALL_ATTRIB_BITS);
+      
+      // Clear the stencil
+      glClearStencil(0);
+      glClear(GL_STENCIL_BUFFER_BIT);
+      glEnable(GL_STENCIL_TEST);
+      
+      glStencilFunc(GL_ALWAYS, 1, 0xFFFF);
+      glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+      
+      // Render whole face in black first
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-      glLineWidth(1);
-      glEnable(GL_LIGHTING);
+      glColor3f(0.0f, 0.0f, 0.0f);
+      box.DrawFace(face);
+
+      glDisable(GL_LIGHTING);
+      glStencilFunc(GL_NOTEQUAL, 1, 0xFFFF);
+      glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+      
+      // Now render just the outline
+      glLineWidth(5);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      box.DrawFace(face);
+     
+      // Restore all attributes
+      glPopAttrib();
+    }
+    else box.DrawFace(face);
   }
-	
-	glDisable(GL_COLOR_MATERIAL);
 }
 
 void R3Block::
@@ -177,7 +161,6 @@ changeBlock(int newType)
 		  transparent = false;
 		  gravity = false;
 		  break;
-		  
   }
 }
 
