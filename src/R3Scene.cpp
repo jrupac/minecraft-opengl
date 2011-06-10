@@ -5,6 +5,7 @@
 #include <sstream>
 
 #include "R3Scene.h"
+#include "utils.h"
 
 using namespace std;
 
@@ -43,13 +44,9 @@ getIndex(R3Point p)
   int chunkZ = (CHUNKS - 1) / 2;
   int chunksAway = 0;
 
-  newIndex.y = (int)((p[1] + CHUNK_Y / 2) + .5);
-  {
-    float x = (p[0] - terrain[chunkX][chunkZ]->start_point[0]);
-    newIndex.x = (x < 0) ? (int)(x - .5) : (int)(x + .5);
-    float z = (p[2] - terrain[chunkX][chunkZ]->start_point[2]);
-    newIndex.z = (z < 0) ? (int)(z - .5) : (int)(z + .5);
-  }
+  newIndex.x = ROUND(p[0] - terrain[chunkX][chunkZ]->start_point[0]);
+  newIndex.y = ROUND(p[1] + CHUNK_Y / 2);
+  newIndex.z = ROUND(p[2] - terrain[chunkX][chunkZ]->start_point[2]);
   newIndex.current = NULL;
   
   while (newIndex.x < 0)

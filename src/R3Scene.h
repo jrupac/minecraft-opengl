@@ -1,12 +1,14 @@
-// Include file for the R3 scene stuff
+#ifndef __R3SCENE_H__
+#define __R3SCENE_H__
+
+#include <set>
+
+#include "R3/R3.h"
+#include "R3Chunk.h"
 
 #define R3Rgb R2Pixel
 #define CHUNKS 3
 #define MIDCHUNK = (CHUNKS-1)/2
-
-#include "R3/R3.h"
-#include "R3Chunk.h"
-#include <set>
 
 // Scene graph definition
 
@@ -96,5 +98,4 @@ BBox(void)
   return bbox;
 }
 
-
-
+#endif
