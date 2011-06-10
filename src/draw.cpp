@@ -14,8 +14,8 @@ void DrawSceneFullOptimization(R3Scene *scene)
 	int charBlockY = currentPosition.y;
 
 	double viewX = camera.towards[0];
-	double viewZ = camera.towards[2];
 	double viewY = camera.towards[1];
+	double viewZ = camera.towards[2];
 
 	int faceCount = 0;
 
@@ -79,7 +79,7 @@ void DrawSceneFullOptimization(R3Scene *scene)
 							isSelected = (currentSelection == node);
 
 							double distance = R3Distance(camera.eye, block->box.Centroid());
-							bool tooFar = distance > LODcutoff;
+							bool tooFar = (distance > LODcutoff);
 
 							if (tooFar) 
 							{

@@ -1,15 +1,15 @@
 #include "ui.h"
 
-void DrawHUD(R3Character *Main_Character, bool dead, int FPS) 
+void DrawHUD(R3Character *mainCharacter, bool dead, int FPS) 
 {  
+  float picker_height = 10;
+  float picker_width = 10;
+
 	glLineWidth(3);
 	glColor3d(.1, .1, .1);
 
 	if (!dead) 
   {
-    static float picker_height = 10;
-    static float picker_width = 10;
-
 		// Draw reticle
 		glBegin(GL_LINES);
 		glVertex2f((GLUTwindow_width / 2) - picker_width, GLUTwindow_height / 2); 
@@ -24,28 +24,27 @@ void DrawHUD(R3Character *Main_Character, bool dead, int FPS)
 	glLineWidth(1);
 
 	// Draw text
-	char points[20];
-	sprintf(points, "Gold: %d", Main_Character->number_gold);
-	GLUTDrawText(R3Point(5, 13, 0), "MINECRAFT v.0.0.1");
+  stringstream ps;
+  ps << "Gold: ";
+  ps << mainCharacter->number_gold;	
+	GLUTDrawText(R3Point(10, 50, 0), ps.str().c_str()); 
+
+	GLUTDrawText(R3Point(5, 13, 0), s_Version);
 	GLUTDrawText(R3Point(5, 30, 0), "C - display controls");
 	
-	GLUTDrawText(R3Point(400, 13, 0), "FPS: " );
 	stringstream ss;
+  ss << "FPS: ";
 	ss << FPS;
-	GLUTDrawText(R3Point(450, 13, 0), ss.str().c_str()); 
-	
-	GLUTDrawText(R3Point(10, 50, 0), points); 
+	GLUTDrawText(R3Point(400, 13, 0), ss.str().c_str()); 
+
 	// Draw bottom pane
 	glColor3d(.7, .7, .7);
 
-	//Draw Hearts
-	DrawHUD_Hearts(Main_Character);
-
-	//Draw Inventory
-	DrawHUD_Inventory(Main_Character);
+	DrawHUD_Hearts(mainCharacter);
+	DrawHUD_Inventory(mainCharacter);
 }
 
-void DrawHUD_Hearts(R3Character *Main_Character) 
+void DrawHUD_Hearts(R3Character *mainCharacter) 
 {
 	glDisable(GL_TEXTURE_2D);
 	int x = GLUTwindow_width;
@@ -56,9 +55,9 @@ void DrawHUD_Hearts(R3Character *Main_Character)
 	glPushMatrix();
 	glTranslatef(.25 * x, .9 * y, 0);
 
-	for (int i = 0; i < Main_Character->MaxHealth; i++) 
+	for (int i = 0; i < mainCharacter->MaxHealth; i++) 
 	{
-		if (i >= Main_Character->Health)
+		if (i >= mainCharacter->Health)
 			glColor3d(1.0,1.0,1.0);
 
 		glBegin(GL_QUADS);
@@ -75,7 +74,7 @@ void DrawHUD_Hearts(R3Character *Main_Character)
 	glEnable(GL_TEXTURE_2D);
 }
 
-void DrawHUD_Inventory(R3Character *Main_Character) 
+void DrawHUD_Inventory(R3Character *mainCharacter) 
 {
 	int x = GLUTwindow_width;
 	int y = GLUTwindow_height;
@@ -91,7 +90,7 @@ void DrawHUD_Inventory(R3Character *Main_Character)
 
 	for (i = 0; i <= 4; i++) 
 	{	
-		if (Main_Character->number_items[i] > 0)
+		if (mainCharacter->number_items[i] > 0)
 			LoadMaterial(materials[materialsStart]);
 		else 
 			LoadMaterial(materials[DEFAULT]);
@@ -110,7 +109,7 @@ void DrawHUD_Inventory(R3Character *Main_Character)
 		glEnd();
 
 		// Drawing the line
-		if (Main_Character->item == i)
+		if (mainCharacter->item == i)
 			glColor3f(1,1,1);
 		else
 			glColor3f(.4, .4, .4);
@@ -144,9 +143,9 @@ void DrawHUD_Inventory(R3Character *Main_Character)
 	glTranslatef(.75 * x, .9 * y, 0.);
 
 	// Find correct material to load
-  if (Main_Character->item != R3BLOCK_AIR) 
+  if (mainCharacter->item != R3BLOCK_AIR) 
   {
-    switch (Main_Character->item)
+    switch (mainCharacter->item)
     {
       case R3BLOCK_DIRT:
         LoadMaterial(materials[GRASS]);
@@ -165,7 +164,7 @@ void DrawHUD_Inventory(R3Character *Main_Character)
         break;
     }
 		
-    if (Main_Character->item == R3BLOCK_DIRT) 
+    if (mainCharacter->item == R3BLOCK_DIRT) 
       LoadMaterial(materials[GRASS]);
 
 		glBegin(GL_QUADS);
@@ -180,7 +179,7 @@ void DrawHUD_Inventory(R3Character *Main_Character)
 		glVertex2f(itemWidth, itemHeight * .08); 
 		glEnd();
 
-		if (Main_Character->item == R3BLOCK_DIRT) 
+		if (mainCharacter->item == R3BLOCK_DIRT) 
       LoadMaterial(materials[DIRT]);
 
 		glBegin(GL_QUADS);

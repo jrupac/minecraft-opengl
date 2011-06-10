@@ -1,6 +1,7 @@
 #ifndef __STRINGS_H__
 #define __STRINGS_H__
 
+const char s_Version[]          = "MINECRAFT v.0.0.1";
 const char s_WAVFile[]          = "sounds/ninth.wav";
 const char s_TexLogo[]          = "textures/logo.jpg";
 const char s_TexDefault[]       = "textures/default.jpg";

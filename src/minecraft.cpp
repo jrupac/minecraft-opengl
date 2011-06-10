@@ -31,7 +31,7 @@ static char *input_scene_name = NULL;
 // Display Variables
 ///////////////////////////////////////////////////////////////////////////////
 
-static enum ANTIALIAS antialias = HIGH;
+static enum ANTIALIAS antialias = ZERO;
 static enum GAMESTATE state = STARTMENU;
 static bool CAPTURE_MOUSE = false;
 static bool show_faces = true;
@@ -234,6 +234,7 @@ void AlignReticle()
 	double dt = 0.0;
 	R3Intersection intersect;
 	R3Intersection closestIntersect;
+
   // Cache previously seen block for improved performance
   R3Node *cached = NULL;
 
@@ -243,11 +244,11 @@ void AlignReticle()
   // Loop until you go beyond the boundaries of the currently loaded map
 	while (true)
 	{
-    dt += .5;
+    dt += 1.;
 		R3Index cur = getChunkCoordinates(ray.Point(dt));
     
     // Break if you reach too far with this ray
-		if (!cur.current || dt > AlignReticleDistance)
+		if ((!cur.current) || (dt > AlignReticleDistance))
 			break;
 
 		R3Node *curNode = cur.current->chunk[cur.x][cur.y][cur.z];
@@ -549,17 +550,15 @@ void LoadCamera(R3Camera *camera)
 	// Set projection transformation
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluPerspective(2 * 180.0 * camera->yfov / M_PI, 
-		(GLdouble) GLUTwindow_width /(GLdouble) GLUTwindow_height, 
-		0.01, 10000);
+	gluPerspective(2 * camera->yfov * RAD2DEG, GLUTaspect, 0.01, 10000);
 
 	// Set camera transformation
 	R3Point e = camera->eye;
 
 	glMatrixMode(GL_MODELVIEW);
 
-	glRotatef(rot[1] * 180 / M_PI, 1., 0., 0);
-	glRotatef(rot[0] * 180 / M_PI, 0., 1., 0);
+	glRotatef(rot[1] * RAD2DEG, 1., 0., 0);
+	glRotatef(rot[0] * RAD2DEG, 0., 1., 0);
 	glTranslated(-e[0], -e[1], -e[2]);
 
 	// Get the current transformation matrix
@@ -1136,25 +1135,7 @@ static void GLUTRedrawAA(void)
         j[antialias][jitter].x, j[antialias][jitter].y, 
         0.0, 0.0, 1.0);
 
-    camera.towards.Reset(0, 0, -1);
-    float n[16], *nn = n;
-    R3Point e = camera.eye;
-
-    // Set up modelview matrix
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    // Re-transform
-    glRotatef(rot[1] * 180 / M_PI, 1., 0., 0);
-    glRotatef(rot[0] * 180 / M_PI, 0., 1., 0);
-    glTranslated(-e[0], -e[1], -e[2]);
-
-    // Get the current transformation matrix
-    glGetFloatv(GL_MODELVIEW_MATRIX, n);
-
-    R3Matrix rotation = R3Matrix(nn);
-    camera.towards.Transform(rotation);
-    camera.towards.Normalize();
+    LoadCamera(&camera);
 
     // Clear screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1262,8 +1243,8 @@ void GLUTPassiveMotion(int x, int y)
 	int dx = x - GLUTmouse[0];
 	int dy = y - GLUTmouse[1];
 
-	if (x < 60 || x > GLUTwindow_width - 60 || 
-		y < 60 || y > GLUTwindow_height - 60)
+  if (x < 60 || x > GLUTwindow_width - 60 || 
+      y < 60 || y > GLUTwindow_height - 60)
 	{
 		glutWarpPointer(GLUTwindow_width / 2, GLUTwindow_height / 2);
 		GLUTmouse[0] = x;
@@ -1686,7 +1667,7 @@ R3Scene *ReadScene(const char *filename)
 
 	// Set up default properties of camera
 	camera.towards = R3negz_vector;
-	camera.eye = R3zero_point + 2. * R3posy_vector;
+	camera.eye = R3zero_point + (1.9) * R3posy_vector;
 	camera.up = R3posy_vector;
 	camera.right = R3posx_vector;
 	camera.xfov = .5;
