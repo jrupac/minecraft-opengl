@@ -229,8 +229,6 @@ R3Chunk::R3Chunk(void)
 {
 }
 
-
-
 int R3Chunk::
 GenerateChunk(int c_x, int c_z)
 {
@@ -425,7 +423,6 @@ DeleteChunk()
     }
   }
 }
-
 
 int R3Chunk::
 ReadChunk(int xChunkCoord, int zChunkCoord)

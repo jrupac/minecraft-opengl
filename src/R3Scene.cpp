@@ -44,9 +44,9 @@ getIndex(R3Point p)
   int chunkZ = (CHUNKS - 1) / 2;
   int chunksAway = 0;
 
-  newIndex.x = ROUND(p[0] - terrain[chunkX][chunkZ]->start_point[0]);
-  newIndex.y = ROUND(p[1] + CHUNK_Y / 2);
-  newIndex.z = ROUND(p[2] - terrain[chunkX][chunkZ]->start_point[2]);
+  newIndex.x = floor(p[0] - terrain[chunkX][chunkZ]->start_point[0]);
+  newIndex.y = floor(p[1] + CHUNK_Y / 2);
+  newIndex.z = floor(p[2] - terrain[chunkX][chunkZ]->start_point[2]);
   newIndex.current = NULL;
   
   while (newIndex.x < 0)

@@ -244,7 +244,7 @@ void AlignReticle()
   // Loop until you go beyond the boundaries of the currently loaded map
 	while (true)
 	{
-    dt += 1.;
+    dt += .5;
 		R3Index cur = getChunkCoordinates(ray.Point(dt));
     
     // Break if you reach too far with this ray
@@ -1451,6 +1451,8 @@ void GLUTKeyboard(unsigned char key, int x, int y)
 	// Invert y coordinate
 	y = GLUTwindow_height - y;
 
+  R3Index index;
+
   // Process keyboard button event 
   switch (key) 
   {
@@ -1580,8 +1582,10 @@ void GLUTKeyboard(unsigned char key, int x, int y)
     case 'i':
       if (state == STARTMENU) 
         break;
-      printf("camera %g %g %g  %g %g %g  %g  %g %g \n",
-          camera.eye[0], camera.eye[1], camera.eye[2], 
+      index = getChunkCoordinates(camera.eye);
+      printf("camera %g %g %g - %d %d %d - %g %g %g - %g - %g %g \n",
+          camera.eye[0], camera.eye[1], camera.eye[2],
+          index.x, index.y, index.z,
           rot[0], rot[1], rot[2],
           camera.xfov, camera.neardist, camera.fardist); 
       break;
@@ -1667,7 +1671,7 @@ R3Scene *ReadScene(const char *filename)
 
 	// Set up default properties of camera
 	camera.towards = R3negz_vector;
-	camera.eye = R3zero_point + (1.9) * R3posy_vector;
+	camera.eye = R3zero_point + (2.1) * R3posy_vector;
 	camera.up = R3posy_vector;
 	camera.right = R3posx_vector;
 	camera.xfov = .5;
